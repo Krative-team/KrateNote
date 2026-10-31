@@ -1,8 +1,8 @@
 from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-import whisper
-import tempfile
 import os
+import requests
+import tempfile
 
 app = FastAPI()
 app.add_middleware(
@@ -12,20 +12,28 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-model = whisper.load_model("tiny.en")
-print("Model loaded!")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "gsk_...put_your_key_here...")
 
 @app.get("/")
 def home():
-    return {"status": "online"}
+    return {"status": "KrateNote Whisper API online - Groq"}
 
 @app.post("/transcribe")
 async def transcribe(file: UploadFile = File(...)):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".webm") as tmp:
         tmp.write(await file.read())
         path = tmp.name
+
     try:
-        result = model.transcribe(path, fp16=False)
-        return {"text": result["text"]}
+        with open(path, "rb") as f:
+            res = requests.post(
+                "https://api.groq.com/openai/v1/audio/transcriptions",
+                headers={"Authorization": f"Bearer {GROQ_API_KEY}"},
+                files={"file": f},
+                data={"model": "whisper-large-v3"}
+            )
+        data = res.json()
+        return {"text": data.get("text", "")}
     finally:
-        os.remove(path)
+        if os.path.exists(path):
+            os.remove(path)
