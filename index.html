@@ -30,7 +30,7 @@
 <div class="main">
   <div class="card">
     <input id="titleInput" placeholder="Lecture Title">
-    <div id="transcriptBox">Tap START → Speak → STOP</div>
+    <div id="transcriptBox"><i class="fa-solid fa-circle-info"></i> Tap START, Speak, then STOP</div>
     <button class="full" id="recBtn"><i class="fa-solid fa-microphone"></i> START RECORDING</button>
     <div style="display:flex;gap:8px">
       <button class="full" id="saveBtn"><i class="fa-solid fa-floppy-disk"></i> SAVE</button>
@@ -49,23 +49,49 @@
 </div>
 
 <div id="settingsModal"><div class="modalBox">
-  <div style="display:flex;justify-content:space-between"><h3>Settings</h3><button class="iconBtn" id="closeSetBtn"><i class="fa-solid fa-xmark"></i></button></div>
-  <label>Whisper Server URL</label><input id="serverUrl" value="https://kratenote-1.onrender.com">
-  <label>Speech Language</label><select id="langSelect"></select>
-  <label>Translate To</label><select id="translateSelect"></select>
-  <label>Voice (for Ibibio)</label><select id="voiceSelect"><option>Loading...</option></select>
-  <label>Font Size</label><select id="fontSelect"><option value="15px">Small</option><option value="17px" selected>Medium</option><option value="20px">Large</option><option value="24px">XL</option></select>
-  <div class="row"><span>Dark Mode</span><div id="darkSwitch" class="switch"><div class="dot"></div></div></div>
+  <div style="display:flex;justify-content:space-between"><h3><i class="fa-solid fa-gear"></i> Settings</h3><button class="iconBtn" id="closeSetBtn"><i class="fa-solid fa-xmark"></i></button></div>
+  <label><i class="fa-solid fa-link"></i> Whisper Server URL</label><input id="serverUrl" value="https://kratenote-1.onrender.com">
+  <label><i class="fa-solid fa-microphone"></i> Speech Language</label><select id="langSelect"></select>
+  <label><i class="fa-solid fa-language"></i> Translate To</label><select id="translateSelect"></select>
+  <label><i class="fa-solid fa-volume-high"></i> Voice</label><select id="voiceSelect"><option>Loading...</option></select>
+  <label><i class="fa-solid fa-text-height"></i> Font Size</label><select id="fontSelect"><option value="15px">Small</option><option value="17px" selected>Medium</option><option value="20px">Large</option><option value="24px">XL</option></select>
+  <div class="row"><span><i class="fa-solid fa-moon"></i> Dark Mode</span><div id="darkSwitch" class="switch"><div class="dot"></div></div></div>
   <button class="full" style="background:#fee2e2;color:#b91c1c" id="clearBtn"><i class="fa-solid fa-trash"></i> Clear All Notes</button>
 </div></div>
 
 <script>
 const LANGUAGES=[
-  {code:'en-US',name:'English (US)'},{code:'en-GB',name:'English (UK)'},{code:'en-NG',name:'English (Nigeria)'},
-  {code:'ibb-NG',name:'Ibibio (Akwa Ibom) ⭐'},{code:'efi-NG',name:'Efik ⭐'},
+  {code:'en-US',name:'English (US)'},
+  {code:'en-GB',name:'English (UK)'},
+  {code:'en-NG',name:'English (Nigeria)'},
+  {code:'ibb-NG',name:'Ibibio (Akwa Ibom)'},
+  {code:'efi-NG',name:'Efik (Cross River)'},
+  {code:'fr-FR',name:'French'},
+  {code:'es-ES',name:'Spanish'},
+  {code:'de-DE',name:'German'},
+  {code:'pt-PT',name:'Portuguese'},
+  {code:'pt-BR',name:'Portuguese (Brazil)'},
+  {code:'it-IT',name:'Italian'},
+  {code:'nl-NL',name:'Dutch'},
+  {code:'ru-RU',name:'Russian'},
+  {code:'zh-CN',name:'Chinese (Simplified)'},
+  {code:'zh-TW',name:'Chinese (Traditional)'},
+  {code:'ja-JP',name:'Japanese'},
+  {code:'ko-KR',name:'Korean'},
+  {code:'ar-SA',name:'Arabic'},
+  {code:'hi-IN',name:'Hindi'},
+  {code:'tr-TR',name:'Turkish'},
+  {code:'pl-PL',name:'Polish'},
+  {code:'uk-UA',name:'Ukrainian'},
+  {code:'vi-VN',name:'Vietnamese'},
+  {code:'th-TH',name:'Thai'},
+  {code:'sw-KE',name:'Swahili'},
+  {code:'ha-NG',name:'Hausa (Nigeria)'},
+  {code:'yo-NG',name:'Yoruba (Nigeria)'},
+  {code:'ig-NG',name:'Igbo (Nigeria)'},
+  {code:'pcm-NG',name:'Pidgin (Nigeria)'},
+  {code:'af-ZA',name:'Afrikaans'},
 ];
-const IBIBIO_DICT = {"hello":"Msosobo","good morning":"Mma mmesiere","thank you":"Sosongo","school":"ufok nwed","teacher":"ete nwed","book":"nwed"};
-const EFIK_DICT = {"hello":"Mokomor","good morning":"Emem owuro","thank you":"Sosongho"};
 
 let isRec=false, mediaRecorder=null, audioChunks=[], transcript='', notes=[], audioStream=null;
 let settings={dark:false,lang:'en-NG',translateTo:'ibb-NG',font:'17px',voiceURI:'',serverUrl:'https://kratenote-1.onrender.com'};
@@ -76,14 +102,17 @@ try{
 }catch(e){}
 const recBtn=document.getElementById('recBtn'), box=document.getElementById('transcriptBox'), modal=document.getElementById('settingsModal');
 let voices=[];
-function populateLangs(){const opts=LANGUAGES.map(l=>`<option value="${l.code}">${l.name}</option>`).join(''); document.getElementById('langSelect').innerHTML=opts; document.getElementById('translateSelect').innerHTML='<option value="none">No Translation</option>'+opts;}
+function populateLangs(){
+  const opts=LANGUAGES.map(l=>`<option value="${l.code}">${l.name}</option>`).join('');
+  document.getElementById('langSelect').innerHTML=opts;
+  document.getElementById('translateSelect').innerHTML='<option value="none">No Translation</option>'+opts;
+}
 function loadVoices(){
   voices=speechSynthesis.getVoices();
   const sel=document.getElementById('voiceSelect');
   if(voices.length){
-    // Sort: Nigerian voices first
-    voices.sort((a,b)=> (b.lang.includes('NG')||b.name.includes('Nigeria')?1:0) - (a.lang.includes('NG')||a.name.includes('Nigeria')?1:0));
-    sel.innerHTML=voices.map(v=>`<option value="${v.voiceURI}">${v.name} (${v.lang}) ${v.lang.includes('NG')?'⭐':''}</option>`).join('');
+    voices.sort((a,b)=> (b.lang.includes('NG')?1:0) - (a.lang.includes('NG')?1:0));
+    sel.innerHTML=voices.map(v=>`<option value="${v.voiceURI}">${v.name} (${v.lang}) ${v.lang.includes('NG')?'(NG)':''}</option>`).join('');
     if(settings.voiceURI) sel.value=settings.voiceURI;
   }
 }
@@ -94,15 +123,11 @@ function applySettings(){document.body.classList.toggle('dark',settings.dark); d
 function speakIbibio(text){
   speechSynthesis.cancel();
   const u=new SpeechSynthesisUtterance(text);
-  // Pick Nigerian voice if exists
-  let bestVoice = voices.find(v=> v.voiceURI===settings.voiceURI) || voices.find(v=> v.lang==='en-NG' || v.name.toLowerCase().includes('nigeria')) || voices.find(v=> v.lang.startsWith('en-')) || voices[0];
+  let bestVoice = voices.find(v=> v.voiceURI===settings.voiceURI) || voices.find(v=> v.lang==='en-NG') || voices.find(v=> v.lang.startsWith('en-')) || voices[0];
   if(bestVoice) u.voice = bestVoice;
   u.lang = 'en-NG';
-  u.rate = 0.85; // slower for Ibibio sounds better
-  u.pitch = 1;
-  // Replace Ibibio words for better pronunciation
-  let t = text.replace(/ñ/g,'ng').replace(/ị/g,'i');
-  u.text = t;
+  u.rate = 0.85; u.pitch = 1;
+  u.text = text;
   speechSynthesis.speak(u);
 }
 
@@ -118,9 +143,8 @@ async function initWhisper(){
     mediaRecorder.ondataavailable=e=>{ if(e.data.size>0) audioChunks.push(e.data); };
     mediaRecorder.onstop=async()=>{
       const blob=new Blob(audioChunks, {type: mime});
-      if(blob.size < 1000){ box.textContent='⚠️ No audio - speak louder!'; return; }
-      box.textContent='🧠 Transcribing...';
-      box.classList.add('listening');
+      if(blob.size < 1000){ box.textContent='No audio - speak louder!'; return; }
+      box.textContent='Transcribing...'; box.classList.add('listening');
       const form=new FormData();
       form.append('file', blob, mime.includes('mp4') ? 'recording.m4a' : 'recording.webm');
       try{
@@ -129,9 +153,8 @@ async function initWhisper(){
         if(data.error) throw new Error(data.error);
         let t=(data.text||'').trim();
         if(!t) throw new Error('No voice detected');
-        transcript=t;
-        box.textContent=t;
-      }catch(e){ box.textContent='❌ Error: '+e.message; }
+        transcript=t; box.textContent=t;
+      }catch(e){ box.textContent='Error: '+e.message; }
       box.classList.remove('listening');
     };
     return mediaRecorder;
@@ -142,8 +165,7 @@ recBtn.addEventListener('click', async()=>{
   if(!isRec){
     const rec=await initWhisper(); if(!rec) return;
     audioChunks=[]; transcript='';
-    box.textContent='🎙️ LISTENING... Speak now!';
-    rec.start(100); isRec=true;
+    box.textContent='Listening... Speak now!'; rec.start(100); isRec=true;
     recBtn.innerHTML='<i class="fa-solid fa-stop"></i> STOP'; recBtn.classList.add('rec');
   } else {
     try{ mediaRecorder.stop(); }catch(e){}
@@ -155,14 +177,14 @@ function saveNote(){
   if(!transcript.trim()) return alert('Record first!'); 
   const title=document.getElementById('titleInput').value||transcript.split(' ').slice(0,5).join(' '); 
   notes.unshift({title,text:transcript,date:new Date().toLocaleString()}); 
-  saveAll(); render(); transcript=''; document.getElementById('titleInput').value=''; box.textContent='✅ Saved!'; 
+  saveAll(); render(); transcript=''; document.getElementById('titleInput').value=''; box.textContent='Saved!';
 }
 document.getElementById('saveBtn').addEventListener('click',saveNote);
 document.getElementById('speakBtn').addEventListener('click',()=>{ if(transcript) speakIbibio(transcript); else if(box.textContent) speakIbibio(box.textContent); });
 
 function render(){ 
   document.getElementById('count').textContent=notes.length; 
-  document.getElementById('notesList').innerHTML=notes.map((n,i)=>`<div class="note"><div style="display:flex;justify-content:space-between"><b>${n.title}</b><div><span style="cursor:pointer;margin-right:8px" data-speak="${i}">🔊</span><span style="cursor:pointer" data-del="${i}">🗑️</span></div></div><small>${n.date}</small><div>${n.text}</div></div>`).join(''); 
+  document.getElementById('notesList').innerHTML=notes.map((n,i)=>`<div class="note"><div style="display:flex;justify-content:space-between"><b>${n.title}</b><div><span style="cursor:pointer;margin-right:8px" data-speak="${i}"><i class="fa-solid fa-volume-high"></i></span><span style="cursor:pointer" data-del="${i}"><i class="fa-solid fa-trash"></i></span></div></div><small><i class="fa-regular fa-clock"></i> ${n.date}</small><div style="margin-top:6px">${n.text}</div></div>`).join(''); 
   document.querySelectorAll('[data-del]').forEach(el=>el.addEventListener('click',()=>{ notes.splice(parseInt(el.dataset.del),1); saveAll(); render(); }));
   document.querySelectorAll('[data-speak]').forEach(el=>el.addEventListener('click',()=>{ speakIbibio(notes[parseInt(el.dataset.speak)].text); }));
 }
@@ -174,9 +196,8 @@ document.getElementById('translateSelect').addEventListener('change',e=>{ settin
 document.getElementById('voiceSelect').addEventListener('change',e=>{ settings.voiceURI=e.target.value; saveAll(); });
 document.getElementById('fontSelect').addEventListener('change',e=>{ settings.font=e.target.value; box.style.fontSize=settings.font; saveAll(); });
 document.getElementById('darkSwitch').addEventListener('click',()=>{ settings.dark=!settings.dark; document.body.classList.toggle('dark',settings.dark); document.getElementById('darkSwitch').classList.toggle('on',settings.dark); saveAll(); });
-document.getElementById('clearBtn').addEventListener('click',()=>{ if(confirm('Clear all?')){ notes=[]; saveAll(); render(); modal.style.display='none'; }});
+document.getElementById('clearBtn').addEventListener('click',()=>{ if(confirm('Clear all notes?')){ notes=[]; saveAll(); render(); modal.style.display='none'; }});
 
-// PDF Export
 document.getElementById('exportPdfBtn').addEventListener('click',()=>{
   if(!notes.length) return alert('No notes!');
   const { jsPDF } = window.jspdf;
