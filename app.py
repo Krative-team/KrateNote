@@ -1,72 +1,67 @@
-from fastapi import FastAPI, File, UploadFile
-from fastapi.middleware.cors import CORSMiddleware
 import os
-import requests
-import tempfile
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+from groq import Groq
 
-app = FastAPI()
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app = Flask(__name__)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
-GROQ_API_KEY = os.getenv("GROQ_API_KEY", "").strip()
+client = Groq(api_key=os.environ.get("GROQ_API_KEY"))
 
-@app.get("/")
+@app.route("/", methods=["GET"])
 def home():
-    return {"status": "KrateNote Whisper API online - Groq", "has_key": bool(GROQ_API_KEY)}
+    return jsonify({"status": "KrateNote Whisper Online", "auto_lang": True})
 
-@app.get("/debug")
-def debug():
-    k = GROQ_API_KEY or ""
-    return {
-        "has_key": bool(k),
-        "len": len(k),
-        "prefix": k[:10] + "..." if k else "NONE",
-        "starts_with_gsk": k.startswith("gsk_")
-    }
-
-@app.post("/transcribe")
-async def transcribe(file: UploadFile = File(...)):
-    if not GROQ_API_KEY:
-        return {"error": "Server has no GROQ_API_KEY set in Render Environment! Go to Render Dashboard > Environment", "text": ""}
+@app.route("/transcribe", methods=["POST", "OPTIONS"])
+def transcribe():
+    if request.method == "OPTIONS":
+        return "", 200
     
-    original_ext = os.path.splitext(file.filename)[1] or ".webm"
-    if not original_ext:
-        if "mp4" in (file.content_type or ""):
-            original_ext = ".m4a"
-        else:
-            original_ext = ".webm"
+    if 'file' not in request.files:
+        return jsonify({"error": "No file"}), 400
     
-    with tempfile.NamedTemporaryFile(delete=False, suffix=original_ext) as tmp:
-        content = await file.read()
-        print(f"Received: {file.filename}, type: {file.content_type}, size: {len(content)} bytes")
-        tmp.write(content)
-        path = tmp.name
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "Empty file"}), 400
 
     try:
-        with open(path, "rb") as f:
-            res = requests.post(
-                "https://api.groq.com/openai/v1/audio/transcriptions",
-                headers={"Authorization": f"Bearer {GROQ_API_KEY}"},
-                files={"file": (f"audio{original_ext}", f, file.content_type or "audio/webm")},
-                data={"model": "whisper-large-v3"}
-            )
-        print(f"Groq status: {res.status_code}")
-        print(f"Groq response: {res.text[:500]}")
+        # AUTO LANGUAGE DETECTION - No language parameter!
+        # Groq Whisper will auto-detect Ibibio, Efik, Hausa, Yoruba, English, etc.
+        transcription = client.audio.transcriptions.create(
+            file=(file.filename, file.read()),
+            model="whisper-large-v3",
+            response_format="verbose_json",  # This returns language detected
+            temperature=0.0
+        )
         
-        if res.status_code != 200:
-            return {"error": f"Groq error {res.status_code}: {res.text}", "text": ""}
-        
-        data = res.json()
-        text = data.get("text", "")
-        print(f"Transcribed: {text}")
-        return {"text": text}
+        # verbose_json returns object with text and language
+        text = transcription.text if hasattr(transcription, 'text') else str(transcription)
+        detected_lang = transcription.language if hasattr(transcription, 'language') else "en"
+        duration = transcription.duration if hasattr(transcription, 'duration') else 0
+
+        print(f"Detected: {detected_lang} -> {text[:100]}")
+
+        return jsonify({
+            "text": text,
+            "language": detected_lang,  # e.g. 'en', 'ha', 'yo', 'fr', 'es'
+            "duration": duration
+        })
+
     except Exception as e:
-        print(f"Exception: {e}")
-        return {"error": str(e), "text": ""}
-    finally:
-        if os.path.exists(path):
-            os.remove(path)
+        print(f"Error: {e}")
+        # Fallback - try without verbose_json
+        try:
+            file.stream.seek(0)
+            transcription = client.audio.transcriptions.create(
+                file=(file.filename, file.read()),
+                model="whisper-large-v3",
+                temperature=0.0
+            )
+            text = transcription.text if hasattr(transcription, 'text') else str(transcription)
+            return jsonify({"text": text, "language": "auto"})
+        except Exception as e2:
+            return jsonify({"error": str(e2)}), 500
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
