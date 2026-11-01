@@ -27,13 +27,13 @@
 </style>
 </head>
 <body>
-<div class="header"><div><b><i class="fa-solid fa-microphone-lines"></i> KrateNote</b> <small id="statusTxt" style="opacity:.6"></small></div><button class="iconBtn" id="openSetBtn"><i class="fa-solid fa-gear"></i></button></div>
+<div class="header"><div><b><i class="fa-solid fa-microphone-lines"></i> KrateNote</b> <small id="statusTxt" style="color:#6366f1;margin-left:8px"></small></div><button class="iconBtn" id="openSetBtn"><i class="fa-solid fa-gear"></i></button></div>
 
 <div class="main">
   <div class="card">
     <input id="titleInput" placeholder="Lecture Title">
     <div id="liveBadge"><i class="fa-solid fa-circle" style="font-size:8px"></i> LIVE</div>
-    <div id="transcriptBox" contenteditable="true"><i class="fa-solid fa-circle-info"></i> Tap START - speak and see words appear live here. You can also type to edit.</div>
+    <div id="transcriptBox" contenteditable="true"><i class="fa-solid fa-circle-info"></i> Tap START - words appear live here. You can type to edit.</div>
     <button class="full" id="recBtn"><i class="fa-solid fa-microphone"></i> START RECORDING</button>
     <div style="display:flex;gap:8px">
       <button class="full" id="saveBtn"><i class="fa-solid fa-floppy-disk"></i> SAVE</button>
@@ -83,7 +83,7 @@ try{
   const s=JSON.parse(localStorage.getItem('k_settings')||'{}');
   settings={...settings,...s};
 }catch(e){}
-const recBtn=document.getElementById('recBtn'), box=document.getElementById('transcriptBox'), modal=document.getElementById('settingsModal'), editModal=document.getElementById('editModal'), liveBadge=document.getElementById('liveBadge');
+const recBtn=document.getElementById('recBtn'), box=document.getElementById('transcriptBox'), modal=document.getElementById('settingsModal'), editModal=document.getElementById('editModal'), liveBadge=document.getElementById('liveBadge'), statusTxt=document.getElementById('statusTxt');
 let voices=[], recognition=null, finalTranscriptLive='';
 
 function populateLangs(){
@@ -113,15 +113,12 @@ function speakIbibio(text){
   speechSynthesis.speak(u);
 }
 
-// REALTIME SPEECH
 function initRealtime(){
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if(!SpeechRecognition) return null;
   const rec = new SpeechRecognition();
-  rec.continuous = true;
-  rec.interimResults = true;
-  rec.lang = settings.lang || 'en-NG';
-  rec.onstart = ()=>{ liveBadge.classList.add('on'); finalTranscriptLive=''; };
+  rec.continuous = true; rec.interimResults = true; rec.lang = settings.lang || 'en-NG';
+  rec.onstart = ()=>{ liveBadge.classList.add('on'); finalTranscriptLive=''; statusTxt.textContent='Listening live...'; };
   rec.onresult = (e)=>{
     let interim='';
     for(let i=e.resultIndex;i<e.results.length;i++){
@@ -131,7 +128,6 @@ function initRealtime(){
     }
     box.textContent = finalTranscriptLive + interim;
     transcript = finalTranscriptLive + interim;
-    box.scrollTop = box.scrollHeight;
   };
   rec.onerror = (e)=>{ console.log('live error',e); };
   rec.onend = ()=>{ liveBadge.classList.remove('on'); };
@@ -151,9 +147,12 @@ async function initWhisper(){
       const blob=new Blob(audioChunks, {type: mime});
       if(blob.size < 500){ 
         if(!finalTranscriptLive) box.textContent='No audio - speak louder!';
+        statusTxt.textContent='';
         return;
       }
-      box.textContent = (finalTranscriptLive || transcript || box.textContent) + '\n\n[iPhone: Improving with Whisper...]';
+      const liveText = finalTranscriptLive || transcript || box.innerText;
+      transcript = liveText;
+      statusTxt.textContent='Improving with Whisper...';
       box.classList.add('listening');
       const form=new FormData();
       form.append('file', blob, mime.includes('mp4') ? 'recording.m4a' : 'recording.webm');
@@ -162,14 +161,15 @@ async function initWhisper(){
         const data=await res.json();
         if(data.error) throw new Error(data.error);
         let t=(data.text||'').trim();
-        if(t){ transcript=t; box.textContent=t; }
+        if(t){ transcript=t; box.textContent=t; statusTxt.textContent='Improved'; }
+        else { statusTxt.textContent='Live kept'; }
       }catch(e){ 
-        // Keep live transcript if Whisper fails
-        if(finalTranscriptLive) { transcript=finalTranscriptLive; box.textContent=finalTranscriptLive; }
-        else box.textContent='Error: '+e.message;
+        statusTxt.textContent='Live kept - Whisper waking';
+        console.log(e);
       }
       box.classList.remove('listening');
       liveBadge.classList.remove('on');
+      setTimeout(()=>statusTxt.textContent='',3000);
     };
     return mediaRecorder;
   }catch(e){ box.textContent='Mic error: '+e.message; return null; }
@@ -180,27 +180,23 @@ recBtn.addEventListener('click', async()=>{
     const rec=await initWhisper(); if(!rec) return;
     audioChunks=[]; transcript=''; finalTranscriptLive='';
     box.textContent=''; box.focus();
-    // Start realtime
     recognition = initRealtime();
     try{ if(recognition) recognition.start(); }catch(e){}
     rec.start(100); isRec=true;
     recBtn.innerHTML='<i class="fa-solid fa-stop"></i> STOP'; recBtn.classList.add('rec');
-    document.getElementById('statusTxt').textContent='Listening...';
   } else {
     try{ if(recognition) recognition.stop(); }catch(e){}
     try{ mediaRecorder.stop(); }catch(e){}
     isRec=false; recBtn.innerHTML='<i class="fa-solid fa-microphone"></i> START RECORDING'; recBtn.classList.remove('rec');
-    document.getElementById('statusTxt').textContent='';
   }
 });
 
-// Save from editable box
 function saveNote(){ 
   const currentText = box.innerText.trim() || transcript.trim();
-  if(!currentText) return alert('Record or type first!');
+  if(!currentText || currentText.includes('Tap START')) return alert('Record or type first!');
   const title=document.getElementById('titleInput').value||currentText.split(' ').slice(0,5).join(' ');
   notes.unshift({title,text:currentText,date:new Date().toLocaleString()}); 
-  saveAll(); render(); transcript=''; document.getElementById('titleInput').value=''; box.textContent='Saved! Tap START for new note.';
+  saveAll(); render(); transcript=''; document.getElementById('titleInput').value=''; box.textContent='Saved!'; statusTxt.textContent='';
 }
 document.getElementById('saveBtn').addEventListener('click',saveNote);
 document.getElementById('speakBtn').addEventListener('click',()=>{ const txt=box.innerText.trim()||transcript; if(txt) speakIbibio(txt); });
