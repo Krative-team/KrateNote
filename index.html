@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>KrateNote</title>
+<title>KrateNote - Auto Lang</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
@@ -16,9 +16,11 @@
   #transcriptBox.listening{border-color:#6366f1;animation:pulse 1s infinite} @keyframes pulse{0%{border-color:#6366f1}50%{border-color:#a5b4fc}100%{border-color:#6366f1}}
   #liveBadge{display:none;font-size:11px;background:#10b981;color:#fff;padding:4px 8px;border-radius:10px;margin-bottom:8px}
   #liveBadge.on{display:inline-block}
+  #detectedBadge{display:none;font-size:11px;background:#e0e7ff;color:#3730a3;padding:4px 8px;border-radius:10px;margin-left:6px}
+  #detectedBadge.on{display:inline-block}
   input,select,textarea{width:100%;padding:14px;border-radius:10px;border:none;background:var(--muted);color:var(--text);margin-bottom:10px;font-size:16px}
   button{padding:14px 16px;border-radius:12px;border:none;font-weight:600;font-size:14px;cursor:pointer;display:inline-flex;gap:6px;justify-content:center;align-items:center}
-  .full{width:100%;margin-top:10px} #recBtn{background:var(--primary);color:var(--bg);font-size:16px;padding:18px} #recBtn.rec{background:#e11d48;color:#fff;animation:rec 1s infinite} @keyframes rec{0%{opacity:1}50%{opacity:.7}100%{opacity:1}} #saveBtn{background:#e0e7ff;color:#1e1b4b}
+  .full{width:100%;margin-top:10px} #recBtn{background:var(--primary);color:var(--bg);font-size:16px;padding:18px} #recBtn.rec{background:#e11d48;color:#fff} #saveBtn{background:#e0e7ff;color:#1e1b4b}
   .note{background:var(--box);padding:12px;border-radius:12px;margin-bottom:12px}
   #settingsModal,#editModal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:999;padding:16px}
   .modalBox{background:var(--card);width:100%;max-width:560px;border-radius:20px;padding:20px;max-height:90vh;overflow:auto}
@@ -32,12 +34,12 @@
 <div class="main">
   <div class="card">
     <input id="titleInput" placeholder="Lecture Title">
-    <div id="liveBadge"><i class="fa-solid fa-circle" style="font-size:8px"></i> LIVE</div>
-    <div id="transcriptBox" contenteditable="true"><i class="fa-solid fa-circle-info"></i> Tap START - words appear live here. You can type to edit.</div>
+    <div><span id="liveBadge"><i class="fa-solid fa-circle" style="font-size:8px"></i> LIVE</span><span id="detectedBadge"></span></div>
+    <div id="transcriptBox" contenteditable="true"><i class="fa-solid fa-wand-magic-sparkles"></i> Auto-detect: Speak any language - Ibibio, Efik, English, Hausa, Yoruba... It will detect automatically.</div>
     <button class="full" id="recBtn"><i class="fa-solid fa-microphone"></i> START RECORDING</button>
     <div style="display:flex;gap:8px">
       <button class="full" id="saveBtn"><i class="fa-solid fa-floppy-disk"></i> SAVE</button>
-      <button class="full" id="speakBtn" style="background:var(--muted)"><i class="fa-solid fa-volume-high"></i> SPEAK</button>
+      <button class="full" id="speakBtn" style="background:var(--muted)"><i class="fa-solid fa-volume-high"></i> SPEAK CLEAR</button>
     </div>
   </div>
   <div class="card">
@@ -54,70 +56,105 @@
 <div id="settingsModal"><div class="modalBox">
   <div style="display:flex;justify-content:space-between"><h3><i class="fa-solid fa-gear"></i> Settings</h3><button class="iconBtn" id="closeSetBtn"><i class="fa-solid fa-xmark"></i></button></div>
   <label><i class="fa-solid fa-link"></i> Whisper Server URL</label><input id="serverUrl" value="https://kratenote-1.onrender.com">
-  <label><i class="fa-solid fa-microphone"></i> Speech Language</label><select id="langSelect"></select>
-  <label><i class="fa-solid fa-language"></i> Translate To</label><select id="translateSelect"></select>
-  <label><i class="fa-solid fa-volume-high"></i> Voice</label><select id="voiceSelect"><option>Loading...</option></select>
+  <label><i class="fa-solid fa-volume-high"></i> Voice Quality</label><select id="voiceSelect"><option>Loading clear voices...</option></select>
   <label><i class="fa-solid fa-text-height"></i> Font Size</label><select id="fontSelect"><option value="15px">Small</option><option value="17px" selected>Medium</option><option value="20px">Large</option><option value="24px">XL</option></select>
   <div class="row"><span><i class="fa-solid fa-moon"></i> Dark Mode</span><div id="darkSwitch" class="switch"><div class="dot"></div></div></div>
-  <button class="full" style="background:#fee2e2;color:#b91c1c" id="clearBtn"><i class="fa-solid fa-trash"></i> Clear All Notes</button>
+  <div class="row"><span><i class="fa-solid fa-language"></i> Auto Language Detect</span><div class="switch on"><div class="dot"></div></div></div>
+  <small style="opacity:.6"><i class="fa-solid fa-circle-info"></i> System now auto-detects: English, Ibibio, Efik, Hausa, Yoruba, Igbo, French, Spanish, etc. No need to switch manually.</small>
+  <button class="full" style="background:#fee2e2;color:#b91c1c;margin-top:12px" id="clearBtn"><i class="fa-solid fa-trash"></i> Clear All Notes</button>
 </div></div>
 
 <div id="editModal"><div class="modalBox">
   <div style="display:flex;justify-content:space-between"><h3><i class="fa-solid fa-pen-to-square"></i> Edit Note</h3><button class="iconBtn" id="closeEditBtn"><i class="fa-solid fa-xmark"></i></button></div>
-  <label>Title</label><input id="editTitle">
-  <label>Text</label><textarea id="editText" rows="8"></textarea>
-  <div style="display:flex;gap:8px"><button class="full" id="saveEditBtn" style="background:var(--primary);color:var(--bg)"><i class="fa-solid fa-check"></i> Save Changes</button><button class="full" id="cancelEditBtn" style="background:var(--muted)"><i class="fa-solid fa-xmark"></i> Cancel</button></div>
+  <label>Title</label><input id="editTitle"><label>Text</label><textarea id="editText" rows="8"></textarea>
+  <div style="display:flex;gap:8px"><button class="full" id="saveEditBtn" style="background:var(--primary);color:var(--bg)"><i class="fa-solid fa-check"></i> Save</button><button class="full" id="cancelEditBtn" style="background:var(--muted)"><i class="fa-solid fa-xmark"></i> Cancel</button></div>
 </div></div>
 
 <script>
-const LANGUAGES=[
-  {code:'en-US',name:'English (US)'},{code:'en-GB',name:'English (UK)'},{code:'en-NG',name:'English (Nigeria)'},
-  {code:'ibb-NG',name:'Ibibio (Akwa Ibom)'},{code:'efi-NG',name:'Efik (Cross River)'},
-  {code:'fr-FR',name:'French'},{code:'es-ES',name:'Spanish'},{code:'de-DE',name:'German'},{code:'pt-PT',name:'Portuguese'},{code:'pt-BR',name:'Portuguese (Brazil)'},{code:'it-IT',name:'Italian'},{code:'nl-NL',name:'Dutch'},{code:'ru-RU',name:'Russian'},{code:'zh-CN',name:'Chinese (Simplified)'},{code:'zh-TW',name:'Chinese (Traditional)'},{code:'ja-JP',name:'Japanese'},{code:'ko-KR',name:'Korean'},{code:'ar-SA',name:'Arabic'},{code:'hi-IN',name:'Hindi'},{code:'tr-TR',name:'Turkish'},{code:'pl-PL',name:'Polish'},{code:'uk-UA',name:'Ukrainian'},{code:'vi-VN',name:'Vietnamese'},{code:'th-TH',name:'Thai'},{code:'sw-KE',name:'Swahili'},{code:'ha-NG',name:'Hausa (Nigeria)'},{code:'yo-NG',name:'Yoruba (Nigeria)'},{code:'ig-NG',name:'Igbo (Nigeria)'},{code:'pcm-NG',name:'Pidgin (Nigeria)'},{code:'af-ZA',name:'Afrikaans'},
-];
+const LANGUAGES_MAP={
+  'en':'English','ibb':'Ibibio','efi':'Efik','ha':'Hausa','yo':'Yoruba','ig':'Igbo','fr':'French','es':'Spanish','de':'German','pt':'Portuguese','it':'Italian','nl':'Dutch','ru':'Russian','zh':'Chinese','ja':'Japanese','ko':'Korean','ar':'Arabic','hi':'Hindi','yo':'Yoruba','pcm':'Pidgin','sw':'Swahili'
+};
 
-let isRec=false, mediaRecorder=null, audioChunks=[], transcript='', notes=[], audioStream=null, editingIndex=-1;
-let settings={dark:false,lang:'en-NG',translateTo:'ibb-NG',font:'17px',voiceURI:'',serverUrl:'https://kratenote-1.onrender.com'};
+// Auto detect language from text
+function detectLanguage(text){
+  const t=text.toLowerCase();
+  if(/(mma|mmesiere|sosongo|ufok|nwed|ete|msosobo|yak|idi|nnyin|mfin)/.test(t)) return {code:'ibb',name:'Ibibio'};
+  if(/(mokomor|emem|sosongho|owuro|efi|afere)/.test(t)) return {code:'efi',name:'Efik'};
+  if(/(sannu|ina|kwana|yaya|gobe|hausa)/.test(t)) return {code:'ha',name:'Hausa'};
+  if(/(bawo|e|kaaro|ojo|yoruba|pele)/.test(t)) return {code:'yo',name:'Yoruba'};
+  if(/(kedu|ndewo|igbo|daalu|biko)/.test(t)) return {code:'ig',name:'Igbo'};
+  if(/(bonjour|merci|francais)/.test(t)) return {code:'fr',name:'French'};
+  if(/(hola|gracias|espanol)/.test(t)) return {code:'es',name:'Spanish'};
+  if(/(wetin|how|far|na|dey|pidgin)/.test(t) && t.includes('pidgin')===false) return {code:'pcm',name:'Pidgin'};
+  return {code:'en',name:'English'};
+}
+
+let isRec=false, mediaRecorder=null, audioChunks=[], transcript='', notes=[], audioStream=null, editingIndex=-1, detectedLang={code:'en',name:'English'};
+let settings={dark:false,font:'17px',voiceURI:'',serverUrl:'https://kratenote-1.onrender.com'};
 try{
   notes=JSON.parse(localStorage.getItem('k_notes')||'[]');
   const s=JSON.parse(localStorage.getItem('k_settings')||'{}');
   settings={...settings,...s};
 }catch(e){}
-const recBtn=document.getElementById('recBtn'), box=document.getElementById('transcriptBox'), modal=document.getElementById('settingsModal'), editModal=document.getElementById('editModal'), liveBadge=document.getElementById('liveBadge'), statusTxt=document.getElementById('statusTxt');
+const recBtn=document.getElementById('recBtn'), box=document.getElementById('transcriptBox'), modal=document.getElementById('settingsModal'), editModal=document.getElementById('editModal'), liveBadge=document.getElementById('liveBadge'), detectedBadge=document.getElementById('detectedBadge'), statusTxt=document.getElementById('statusTxt');
 let voices=[], recognition=null, finalTranscriptLive='';
 
-function populateLangs(){
-  const opts=LANGUAGES.map(l=>`<option value="${l.code}">${l.name}</option>`).join('');
-  document.getElementById('langSelect').innerHTML=opts;
-  document.getElementById('translateSelect').innerHTML='<option value="none">No Translation</option>'+opts;
-}
 function loadVoices(){
   voices=speechSynthesis.getVoices();
   const sel=document.getElementById('voiceSelect');
   if(voices.length){
-    voices.sort((a,b)=> (b.lang.includes('NG')?1:0) - (a.lang.includes('NG')?1:0));
-    sel.innerHTML=voices.map(v=>`<option value="${v.voiceURI}">${v.name} (${v.lang})</option>`).join('');
+    // Rank voices: Premium / Natural / Google first = clearer
+    voices.sort((a,b)=>{
+      const score=(v)=>{
+        let s=0;
+        if(/Google|Natural|Premium|Neural|Samantha|Karen|Tessa/i.test(v.name)) s+=10;
+        if(v.localService===false) s+=5;
+        if(v.lang==='en-NG') s+=8;
+        if(v.lang.startsWith('en-')) s+=3;
+        return s;
+      };
+      return score(b)-score(a);
+    });
+    sel.innerHTML=voices.map((v,i)=>`<option value="${v.voiceURI}">${i<3?'⭐ ':''}${v.name} (${v.lang}) ${/Google|Natural/i.test(v.name)?'- Clear':''}</option>`).join('');
     if(settings.voiceURI) sel.value=settings.voiceURI;
   }
 }
-speechSynthesis.onvoiceschanged=loadVoices; setTimeout(loadVoices,500);
+speechSynthesis.onvoiceschanged=loadVoices; setTimeout(loadVoices,800);
 function saveAll(){localStorage.setItem('k_notes',JSON.stringify(notes)); localStorage.setItem('k_settings',JSON.stringify(settings));}
-function applySettings(){document.body.classList.toggle('dark',settings.dark); document.getElementById('darkSwitch').classList.toggle('on',settings.dark); document.getElementById('langSelect').value=settings.lang; document.getElementById('translateSelect').value=settings.translateTo; document.getElementById('fontSelect').value=settings.font; document.getElementById('serverUrl').value=settings.serverUrl; box.style.fontSize=settings.font;}
+function applySettings(){document.body.classList.toggle('dark',settings.dark); document.getElementById('darkSwitch').classList.toggle('on',settings.dark); document.getElementById('fontSelect').value=settings.font; document.getElementById('serverUrl').value=settings.serverUrl; box.style.fontSize=settings.font;}
 
-function speakIbibio(text){
+function speakClear(text, langCode=null){
   speechSynthesis.cancel();
+  const detected = langCode || detectLanguage(text).code;
   const u=new SpeechSynthesisUtterance(text);
-  let bestVoice = voices.find(v=> v.voiceURI===settings.voiceURI) || voices.find(v=> v.lang==='en-NG') || voices[0];
-  if(bestVoice) u.voice = bestVoice;
-  u.lang = 'en-NG'; u.rate = 0.85;
+  // Pick best voice for language
+  let bestVoice=null;
+  if(detected==='ibb' || detected==='efi' || detected==='ha' || detected==='yo' || detected==='ig' || detected==='pcm'){
+    bestVoice = voices.find(v=>v.lang==='en-NG') || voices.find(v=>v.voiceURI===settings.voiceURI) || voices[0];
+    u.lang='en-NG';
+  } else if(detected==='fr') { bestVoice=voices.find(v=>v.lang.startsWith('fr'))||voices[0]; u.lang='fr-FR'; }
+  else if(detected==='es') { bestVoice=voices.find(v=>v.lang.startsWith('es'))||voices[0]; u.lang='es-ES'; }
+  else { bestVoice=voices.find(v=>v.voiceURI===settings.voiceURI) || voices.find(v=>v.name.includes('Google')) || voices[0]; u.lang='en-US'; }
+  
+  if(bestVoice) u.voice=bestVoice;
+  u.rate=0.9; // clearer slower
+  u.pitch=1;
+  u.volume=1;
   speechSynthesis.speak(u);
+}
+
+function showDetected(text){
+  detectedLang=detectLanguage(text);
+  detectedBadge.textContent=`${detectedLang.name} detected`;
+  detectedBadge.classList.add('on');
 }
 
 function initRealtime(){
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if(!SpeechRecognition) return null;
   const rec = new SpeechRecognition();
-  rec.continuous = true; rec.interimResults = true; rec.lang = settings.lang || 'en-NG';
+  rec.continuous = true; rec.interimResults = true; 
+  rec.lang = 'en-NG'; // base - will capture English + Nigerian languages live
   rec.onstart = ()=>{ liveBadge.classList.add('on'); finalTranscriptLive=''; statusTxt.textContent='Listening live...'; };
   rec.onresult = (e)=>{
     let interim='';
@@ -128,8 +165,8 @@ function initRealtime(){
     }
     box.textContent = finalTranscriptLive + interim;
     transcript = finalTranscriptLive + interim;
+    if(transcript.length>5) showDetected(transcript);
   };
-  rec.onerror = (e)=>{ console.log('live error',e); };
   rec.onend = ()=>{ liveBadge.classList.remove('on'); };
   return rec;
 }
@@ -145,14 +182,10 @@ async function initWhisper(){
     mediaRecorder.ondataavailable=e=>{ if(e.data.size>0) audioChunks.push(e.data); };
     mediaRecorder.onstop=async()=>{
       const blob=new Blob(audioChunks, {type: mime});
-      if(blob.size < 500){ 
-        if(!finalTranscriptLive) box.textContent='No audio - speak louder!';
-        statusTxt.textContent='';
-        return;
-      }
+      if(blob.size < 500){ if(!finalTranscriptLive) box.textContent='No audio - speak louder!'; statusTxt.textContent=''; return; }
       const liveText = finalTranscriptLive || transcript || box.innerText;
       transcript = liveText;
-      statusTxt.textContent='Improving with Whisper...';
+      statusTxt.textContent='Auto-detecting language...';
       box.classList.add('listening');
       const form=new FormData();
       form.append('file', blob, mime.includes('mp4') ? 'recording.m4a' : 'recording.webm');
@@ -161,12 +194,14 @@ async function initWhisper(){
         const data=await res.json();
         if(data.error) throw new Error(data.error);
         let t=(data.text||'').trim();
-        if(t){ transcript=t; box.textContent=t; statusTxt.textContent='Improved'; }
-        else { statusTxt.textContent='Live kept'; }
-      }catch(e){ 
-        statusTxt.textContent='Live kept - Whisper waking';
-        console.log(e);
-      }
+        if(t){ 
+          transcript=t; box.textContent=t; 
+          showDetected(t);
+          // Use server detected language if provided
+          if(data.language){ detectedBadge.textContent=`${LANGUAGES_MAP[data.language]||data.language} detected`; }
+          statusTxt.textContent='Done';
+        }
+      }catch(e){ statusTxt.textContent='Live kept'; console.log(e); }
       box.classList.remove('listening');
       liveBadge.classList.remove('on');
       setTimeout(()=>statusTxt.textContent='',3000);
@@ -178,7 +213,7 @@ async function initWhisper(){
 recBtn.addEventListener('click', async()=>{
   if(!isRec){
     const rec=await initWhisper(); if(!rec) return;
-    audioChunks=[]; transcript=''; finalTranscriptLive='';
+    audioChunks=[]; transcript=''; finalTranscriptLive=''; detectedBadge.classList.remove('on');
     box.textContent=''; box.focus();
     recognition = initRealtime();
     try{ if(recognition) recognition.start(); }catch(e){}
@@ -193,64 +228,42 @@ recBtn.addEventListener('click', async()=>{
 
 function saveNote(){ 
   const currentText = box.innerText.trim() || transcript.trim();
-  if(!currentText || currentText.includes('Tap START')) return alert('Record or type first!');
+  if(!currentText || currentText.includes('Auto-detect')) return alert('Record or type first!');
   const title=document.getElementById('titleInput').value||currentText.split(' ').slice(0,5).join(' ');
-  notes.unshift({title,text:currentText,date:new Date().toLocaleString()}); 
-  saveAll(); render(); transcript=''; document.getElementById('titleInput').value=''; box.textContent='Saved!'; statusTxt.textContent='';
+  const lang=detectLanguage(currentText);
+  notes.unshift({title,text:currentText,date:new Date().toLocaleString(),lang:lang.name}); 
+  saveAll(); render(); transcript=''; document.getElementById('titleInput').value=''; box.textContent='Saved!'; detectedBadge.classList.remove('on'); statusTxt.textContent='';
 }
 document.getElementById('saveBtn').addEventListener('click',saveNote);
-document.getElementById('speakBtn').addEventListener('click',()=>{ const txt=box.innerText.trim()||transcript; if(txt) speakIbibio(txt); });
+document.getElementById('speakBtn').addEventListener('click',()=>{ const txt=box.innerText.trim()||transcript; if(txt) speakClear(txt); });
 
 function render(){ 
   document.getElementById('count').textContent=notes.length; 
-  document.getElementById('notesList').innerHTML=notes.map((n,i)=>`<div class="note"><div style="display:flex;justify-content:space-between"><b>${n.title}</b><div><span style="cursor:pointer;margin-right:8px" data-edit="${i}"><i class="fa-solid fa-pen-to-square"></i></span><span style="cursor:pointer;margin-right:8px" data-speak="${i}"><i class="fa-solid fa-volume-high"></i></span><span style="cursor:pointer" data-del="${i}"><i class="fa-solid fa-trash"></i></span></div></div><small><i class="fa-regular fa-clock"></i> ${n.date}</small><div style="margin-top:6px;white-space:pre-wrap">${n.text}</div></div>`).join(''); 
+  document.getElementById('notesList').innerHTML=notes.map((n,i)=>`<div class="note"><div style="display:flex;justify-content:space-between"><b>${n.title}</b><div><span style="cursor:pointer;margin-right:8px" data-edit="${i}"><i class="fa-solid fa-pen-to-square"></i></span><span style="cursor:pointer;margin-right:8px" data-speak="${i}"><i class="fa-solid fa-volume-high"></i></span><span style="cursor:pointer" data-del="${i}"><i class="fa-solid fa-trash"></i></span></div></div><small><i class="fa-regular fa-clock"></i> ${n.date} ${n.lang?'<span style="background:#e0e7ff;color:#3730a3;padding:2px 6px;border-radius:6px;margin-left:4px">'+n.lang+'</span>':''}</small><div style="margin-top:6px;white-space:pre-wrap">${n.text}</div></div>`).join(''); 
   document.querySelectorAll('[data-del]').forEach(el=>el.addEventListener('click',()=>{ if(confirm('Delete?')){ notes.splice(parseInt(el.dataset.del),1); saveAll(); render(); }}));
-  document.querySelectorAll('[data-speak]').forEach(el=>el.addEventListener('click',()=>{ speakIbibio(notes[parseInt(el.dataset.speak)].text); }));
-  document.querySelectorAll('[data-edit]').forEach(el=>el.addEventListener('click',()=>{ 
-    const idx=parseInt(el.dataset.edit); editingIndex=idx;
-    document.getElementById('editTitle').value=notes[idx].title;
-    document.getElementById('editText').value=notes[idx].text;
-    editModal.style.display='flex';
-  }));
+  document.querySelectorAll('[data-speak]').forEach(el=>el.addEventListener('click',()=>{ speakClear(notes[parseInt(el.dataset.speak)].text); }));
+  document.querySelectorAll('[data-edit]').forEach(el=>el.addEventListener('click',()=>{ const idx=parseInt(el.dataset.edit); editingIndex=idx; document.getElementById('editTitle').value=notes[idx].title; document.getElementById('editText').value=notes[idx].text; editModal.style.display='flex'; }));
 }
 document.getElementById('openSetBtn').addEventListener('click',()=>{ modal.style.display='flex'; });
 document.getElementById('closeSetBtn').addEventListener('click',()=>modal.style.display='none');
 document.getElementById('closeEditBtn').addEventListener('click',()=>editModal.style.display='none');
 document.getElementById('cancelEditBtn').addEventListener('click',()=>editModal.style.display='none');
-document.getElementById('saveEditBtn').addEventListener('click',()=>{
-  if(editingIndex>=0){
-    notes[editingIndex].title=document.getElementById('editTitle').value||notes[editingIndex].title;
-    notes[editingIndex].text=document.getElementById('editText').value;
-    notes[editingIndex].date=new Date().toLocaleString()+' (edited)';
-    saveAll(); render(); editModal.style.display='none';
-  }
-});
+document.getElementById('saveEditBtn').addEventListener('click',()=>{ if(editingIndex>=0){ notes[editingIndex].title=document.getElementById('editTitle').value||notes[editingIndex].title; notes[editingIndex].text=document.getElementById('editText').value; notes[editingIndex].lang=detectLanguage(notes[editingIndex].text).name; notes[editingIndex].date=new Date().toLocaleString()+' (edited)'; saveAll(); render(); editModal.style.display='none'; }});
 document.getElementById('serverUrl').addEventListener('change',e=>{ settings.serverUrl=e.target.value.trim().replace(/\/$/,''); saveAll(); });
-document.getElementById('langSelect').addEventListener('change',e=>{ settings.lang=e.target.value; saveAll(); });
-document.getElementById('translateSelect').addEventListener('change',e=>{ settings.translateTo=e.target.value; saveAll(); });
 document.getElementById('voiceSelect').addEventListener('change',e=>{ settings.voiceURI=e.target.value; saveAll(); });
 document.getElementById('fontSelect').addEventListener('change',e=>{ settings.font=e.target.value; box.style.fontSize=settings.font; saveAll(); });
 document.getElementById('darkSwitch').addEventListener('click',()=>{ settings.dark=!settings.dark; document.body.classList.toggle('dark',settings.dark); document.getElementById('darkSwitch').classList.toggle('on',settings.dark); saveAll(); });
 document.getElementById('clearBtn').addEventListener('click',()=>{ if(confirm('Clear all notes?')){ notes=[]; saveAll(); render(); modal.style.display='none'; }});
-
 document.getElementById('exportPdfBtn').addEventListener('click',()=>{
   if(!notes.length) return alert('No notes!');
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  doc.setFontSize(16); doc.text("KrateNote - My Notes", 10, 15);
-  let y=25;
-  notes.forEach((n,i)=>{
-    doc.setFontSize(12); doc.setFont(undefined,'bold'); doc.text(`${i+1}. ${n.title} - ${n.date}`, 10, y); y+=8;
-    doc.setFont(undefined,'normal'); doc.setFontSize(11);
-    const lines = doc.splitTextToSize(n.text, 180);
-    if(y+lines.length*6 > 280){ doc.addPage(); y=15; }
-    doc.text(lines, 10, y); y+=lines.length*6+10;
-  });
+  const { jsPDF } = window.jspdf; const doc = new jsPDF();
+  doc.setFontSize(16); doc.text("KrateNote - My Notes", 10, 15); let y=25;
+  notes.forEach((n,i)=>{ doc.setFontSize(12); doc.setFont(undefined,'bold'); doc.text(`${i+1}. ${n.title} - ${n.date} [${n.lang||''}]`, 10, y); y+=8; doc.setFont(undefined,'normal'); doc.setFontSize(11); const lines = doc.splitTextToSize(n.text, 180); if(y+lines.length*6 > 280){ doc.addPage(); y=15; } doc.text(lines, 10, y); y+=lines.length*6+10; });
   doc.save('KrateNote.pdf');
 });
-document.getElementById('exportTxtBtn').addEventListener('click',()=>{ const txt=notes.map(n=>`${n.title}\n${n.date}\n${n.text}\n`).join('\n---\n\n'); const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([txt])); a.download='KrateNote.txt'; a.click(); });
+document.getElementById('exportTxtBtn').addEventListener('click',()=>{ const txt=notes.map(n=>`${n.title} [${n.lang||''}]\n${n.date}\n${n.text}\n`).join('\n---\n\n'); const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([txt])); a.download='KrateNote.txt'; a.click(); });
 
-populateLangs(); applySettings(); render();
+applySettings(); render();
 </script>
 </body>
 </html>
