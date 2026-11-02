@@ -59,20 +59,34 @@ def translate():
     if not text:
         return jsonify({"error": "No text"}), 400
     
-    names = {"ibb":"Ibibio from Akwa Ibom Nigeria","efi":"Efik from Cross River Nigeria","pcm":"Nigerian Pidgin English","ha":"Hausa","yo":"Yoruba","ig":"Igbo","en":"English","fr":"French","es":"Spanish"}
+    names = {
+        "en": "English",
+        "ibb": "Ibibio - a Nigerian language from Akwa Ibom State. Translate naturally like Ibibio people speak",
+        "efi": "Efik - a Nigerian language from Cross River State, similar to Ibibio",
+        "pcm": "Nigerian Pidgin English - informal West African English like 'How you dey?' 'Wetin happen?' 'Una' for you all",
+        "ha": "Hausa", "yo": "Yoruba", "ig": "Igbo",
+        "fr": "French", "es": "Spanish", "de": "German", "pt": "Portuguese",
+        "it": "Italian", "nl": "Dutch", "ar": "Arabic", "zh": "Chinese",
+        "ja": "Japanese", "ko": "Korean", "ru": "Russian", "hi": "Hindi",
+        "sw": "Swahili", "zu": "Zulu", "am": "Amharic", "tr": "Turkish",
+        "el": "Greek", "he": "Hebrew", "sv": "Swedish", "no": "Norwegian",
+        "pl": "Polish", "id": "Indonesian", "th": "Thai"
+    }
     target = names.get(to_code, to_code)
     
     try:
         comp = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
+            model="llama-3.3-70b-versatile",
             messages=[
-                {"role":"system","content":f"Translate to {target}. Only return translation."},
+                {"role":"system","content":f"You are a professional translator. Translate to {target}. Only return the translation, no explanation, no quotes."},
                 {"role":"user","content":text}
             ],
-            temperature=0.2, max_tokens=800
+            temperature=0.3,
+            max_tokens=1000
         )
         return jsonify({"translated": comp.choices[0].message.content.strip(), "to": to_code})
     except Exception as e:
+        print(f"Translate error: {e}")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
