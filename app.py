@@ -25,7 +25,7 @@ def home():
         "key_exists": bool(GROQ_KEY),
         "key_len": len(GROQ_KEY),
         "translate": True,
-        "model": "openai/gpt-oss-20b"
+        "model": "openai/gpt-oss-20b + dictionary"
     })
 
 @app.route("/transcribe", methods=["POST", "OPTIONS"])
@@ -46,7 +46,6 @@ def transcribe():
         )
         return jsonify({"text": transcription.text, "language": getattr(transcription, 'language', 'en')})
     except Exception as e:
-        print(f"Transcribe error: {e}")
         return jsonify({"error": str(e)}), 500
 
 @app.route("/translate", methods=["POST", "OPTIONS"])
@@ -61,38 +60,100 @@ def translate():
     if not text:
         return jsonify({"error": "No text"}), 400
     
-    names = {
-        "en": "English",
-        "ibb": "Ibibio language from Akwa Ibom Nigeria - translate naturally",
-        "efi": "Efik language from Cross River Nigeria",
-        "pcm": "Nigerian Pidgin English - use informal West African Pidgin like 'How una dey', 'Wetin', 'Na'",
-        "ha": "Hausa", "yo": "Yoruba", "ig": "Igbo",
-        "fr": "French", "es": "Spanish", "de": "German",
-        "pt": "Portuguese", "it": "Italian", "nl": "Dutch",
-        "ar": "Arabic", "zh": "Chinese", "ja": "Japanese",
-        "ko": "Korean", "ru": "Russian", "hi": "Hindi",
-        "sw": "Swahili", "zu": "Zulu", "am": "Amharic",
-        "tr": "Turkish", "el": "Greek", "he": "Hebrew",
-        "sv": "Swedish", "no": "Norwegian", "pl": "Polish",
-        "id": "Indonesian", "th": "Thai"
-    }
-    target = names.get(to_code, to_code)
+    if to_code == "ibb":
+        system_prompt = """You are an expert Ibibio translator from Akwa Ibom State, Nigeria.
+You MUST translate to Ibibio, not English.
+
+Ibibio vocabulary - USE THESE WORDS:
+Hello = Mmesiere
+Students = Nditɔ̃ / Nditɔ
+How are you? = Nte idem fo? / Sosongo idem?
+How are you all doing? = Nte idem mfo?
+I hope = Mmenyeneke
+You are good = Afo esongo / Afo asongo
+Welcome = Eka abo / Sosongo
+Today = Mfin
+Today's class = Ufok nwed mfin
+Class = Ufok nwed
+Let's = Yak
+Make it = Ya nam
+Lively = Idara / Ufok idara
+Lovely = Nnanga / Usung
+
+Examples you must follow style:
+EN: Hello students, how are you all doing? I hope you are good today.
+IBB: Mmesiere nditɔ̃, nte idem mfo? Mmenyeneke mfin afo esongo.
+
+EN: Welcome to today's class
+IBB: Eka abo mfin ufok nwed
+
+Translate this now to Ibibio, mix Ibibio and small English if needed, but try Ibibio first. Only return translation, no explanation."""
     
+    elif to_code == "efi":
+        system_prompt = """You are an expert Efik translator from Cross River State, Nigeria.
+Translate to Efik language.
+
+Efik vocabulary:
+Hello = Emem / Mesiere
+Students = Nditɔ
+How are you = Kam idem fo?
+How are you all doing = Kam idem mfo?
+Welcome = Sosongho / Ekaabo
+Today = Mfin
+Class = Ufok nwed
+
+Example:
+EN: Hello students -> EFIK: Emem nditɔ
+
+Translate to Efik. Only return translation."""
+    
+    elif to_code == "pcm":
+        system_prompt = "You are a Nigerian Pidgin translator. Translate to Nigerian Pidgin. Use Una, Dey, How una dey, Wetin, Na, For, etc. Only return translation."
+    else:
+        names = {"en":"English","ha":"Hausa","yo":"Yoruba","ig":"Igbo","fr":"French","es":"Spanish","de":"German","pt":"Portuguese","it":"Italian","nl":"Dutch","ar":"Arabic","zh":"Chinese","ja":"Japanese","ko":"Korean","ru":"Russian","hi":"Hindi","sw":"Swahili","zu":"Zulu","am":"Amharic","tr":"Turkish","el":"Greek","he":"Hebrew","sv":"Swedish","no":"Norwegian","pl":"Polish","id":"Indonesian","th":"Thai"}
+        target = names.get(to_code, to_code)
+        system_prompt = f"You are a professional translator. Translate to {target}. Only return translation, no explanation."
+
     try:
+        # First try with 20b
         comp = client.chat.completions.create(
             model="openai/gpt-oss-20b",
             messages=[
-                {"role": "system", "content": f"You are a professional translator. Translate to {target}. Only return the translation, no explanation, no quotes."},
-                {"role": "user", "content": text}
+                {"role":"system","content": system_prompt},
+                {"role":"user","content": text}
             ],
-            temperature=0.2,
+            temperature=0.7,
             max_tokens=1200
         )
         translated = comp.choices[0].message.content.strip()
+        
+        # If model says it can't translate Ibibio/Efik, try bigger model
+        if to_code in ["ibb","efi"] and ("cannot" in translated.lower() or "sorry" in translated.lower() or len(translated) < 5):
+            comp = client.chat.completions.create(
+                model="openai/gpt-oss-120b",
+                messages=[
+                    {"role":"system","content": system_prompt},
+                    {"role":"user","content": text}
+                ],
+                temperature=0.8,
+                max_tokens=1200
+            )
+            translated = comp.choices[0].message.content.strip()
+            
         return jsonify({"translated": translated, "to": to_code})
     except Exception as e:
         print(f"Translate error: {e}")
-        return jsonify({"error": str(e)}), 500
+        # Try fallback to 120b on error
+        try:
+            comp = client.chat.completions.create(
+                model="openai/gpt-oss-120b",
+                messages=[{"role":"system","content": system_prompt},{"role":"user","content": text}],
+                temperature=0.7,
+                max_tokens=1200
+            )
+            return jsonify({"translated": comp.choices[0].message.content.strip(), "to": to_code})
+        except Exception as e2:
+            return jsonify({"error": str(e2)}), 500
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
