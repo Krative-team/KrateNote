@@ -24,7 +24,8 @@ def home():
         "groq_ready": client is not None,
         "key_exists": bool(GROQ_KEY),
         "key_len": len(GROQ_KEY),
-        "translate": True
+        "translate": True,
+        "model": "openai/gpt-oss-20b"
     })
 
 @app.route("/transcribe", methods=["POST", "OPTIONS"])
@@ -45,6 +46,7 @@ def transcribe():
         )
         return jsonify({"text": transcription.text, "language": getattr(transcription, 'language', 'en')})
     except Exception as e:
+        print(f"Transcribe error: {e}")
         return jsonify({"error": str(e)}), 500
 
 @app.route("/translate", methods=["POST", "OPTIONS"])
@@ -61,30 +63,33 @@ def translate():
     
     names = {
         "en": "English",
-        "ibb": "Ibibio - a Nigerian language from Akwa Ibom State. Translate naturally like Ibibio people speak",
-        "efi": "Efik - a Nigerian language from Cross River State, similar to Ibibio",
-        "pcm": "Nigerian Pidgin English - informal West African English like 'How you dey?' 'Wetin happen?' 'Una' for you all",
+        "ibb": "Ibibio language from Akwa Ibom Nigeria - translate naturally",
+        "efi": "Efik language from Cross River Nigeria",
+        "pcm": "Nigerian Pidgin English - use informal West African Pidgin like 'How una dey', 'Wetin', 'Na'",
         "ha": "Hausa", "yo": "Yoruba", "ig": "Igbo",
-        "fr": "French", "es": "Spanish", "de": "German", "pt": "Portuguese",
-        "it": "Italian", "nl": "Dutch", "ar": "Arabic", "zh": "Chinese",
-        "ja": "Japanese", "ko": "Korean", "ru": "Russian", "hi": "Hindi",
-        "sw": "Swahili", "zu": "Zulu", "am": "Amharic", "tr": "Turkish",
-        "el": "Greek", "he": "Hebrew", "sv": "Swedish", "no": "Norwegian",
-        "pl": "Polish", "id": "Indonesian", "th": "Thai"
+        "fr": "French", "es": "Spanish", "de": "German",
+        "pt": "Portuguese", "it": "Italian", "nl": "Dutch",
+        "ar": "Arabic", "zh": "Chinese", "ja": "Japanese",
+        "ko": "Korean", "ru": "Russian", "hi": "Hindi",
+        "sw": "Swahili", "zu": "Zulu", "am": "Amharic",
+        "tr": "Turkish", "el": "Greek", "he": "Hebrew",
+        "sv": "Swedish", "no": "Norwegian", "pl": "Polish",
+        "id": "Indonesian", "th": "Thai"
     }
     target = names.get(to_code, to_code)
     
     try:
         comp = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
+            model="openai/gpt-oss-20b",
             messages=[
-                {"role":"system","content":f"You are a professional translator. Translate to {target}. Only return the translation, no explanation, no quotes."},
-                {"role":"user","content":text}
+                {"role": "system", "content": f"You are a professional translator. Translate to {target}. Only return the translation, no explanation, no quotes."},
+                {"role": "user", "content": text}
             ],
-            temperature=0.3,
-            max_tokens=1000
+            temperature=0.2,
+            max_tokens=1200
         )
-        return jsonify({"translated": comp.choices[0].message.content.strip(), "to": to_code})
+        translated = comp.choices[0].message.content.strip()
+        return jsonify({"translated": translated, "to": to_code})
     except Exception as e:
         print(f"Translate error: {e}")
         return jsonify({"error": str(e)}), 500
