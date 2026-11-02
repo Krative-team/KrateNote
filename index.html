@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>KrateNote V8.1</title>
+<title>KrateNote V8.2 - 30 Langs Fixed</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
@@ -173,7 +173,6 @@ function applySettings(){
   document.getElementById('pitchVal').textContent=settings.pitch;
   box.style.fontSize=settings.font;
 }
-
 function speakClear(text, forcedLang=null){
   speechSynthesis.cancel();
   const u=new SpeechSynthesisUtterance(text);
@@ -192,14 +191,12 @@ function speakClear(text, forcedLang=null){
   u.rate=parseFloat(settings.speed); u.pitch=parseFloat(settings.pitch);
   speechSynthesis.speak(u);
 }
-
 function showDetected(text){
   if(!settings.autoDetect) return;
   detectedLang=detectLanguage(text);
   detectedBadge.textContent=`${detectedLang.flag} ${detectedLang.name} detected`;
   detectedBadge.classList.add('on');
 }
-
 function initRealtime(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition; if(!SR) return null;
   const rec=new SR(); rec.continuous=true; rec.interimResults=true; rec.lang='en-NG';
@@ -207,7 +204,6 @@ function initRealtime(){
   rec.onresult=(e)=>{ let inter=''; for(let i=e.resultIndex;i<e.results.length;i++){ const t=e.results[i][0].transcript; if(e.results[i].isFinal) finalTranscriptLive+=t+' '; else inter+=t; } box.textContent=finalTranscriptLive+inter; transcript=finalTranscriptLive+inter; if(transcript.length>5) showDetected(transcript); };
   rec.onend=()=>liveBadge.classList.remove('on'); return rec;
 }
-
 async function initWhisper(){
   try{
     if(!audioStream) audioStream=await navigator.mediaDevices.getUserMedia({audio:true});
@@ -223,7 +219,6 @@ async function initWhisper(){
     }; return mediaRecorder;
   }catch(e){ box.textContent='Mic error: '+e.message; return null; }
 }
-
 recBtn.addEventListener('click',async()=>{
   if(!isRec){
     const rec=await initWhisper(); if(!rec) return;
@@ -237,27 +232,34 @@ recBtn.addEventListener('click',async()=>{
   }
 });
 
-// FIXED TRANSLATION FUNCTION - WORKS NOW
+// === FIXED TRANSLATION - USES YOUR GROQ SERVER FOR ALL 30 LANGUAGES ===
 async function translateText(text,to){
   if(!text) return '';
-  if(['ibb','efi','pcm'].includes(to)){
-    return text + ' [No online translator for '+LANGS.find(l=>l.code===to).name+']';
-  }
-  const map={zh:'zh-CN',he:'iw',no:'no',sw:'sw',zu:'zu'};
-  const target = map[to] || to;
   try{
-    const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${target}&dt=t&q=${encodeURIComponent(text)}`);
+    statusTxt.textContent='Translating...';
+    const res = await fetch(settings.serverUrl.replace(/\/$/,'')+'/translate',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({text:text.substring(0,3000), to:to})
+    });
     const data = await res.json();
-    if(data && data[0]){
-      return data[0].map(x=>x[0]).join('');
-    }
-  }catch(e){ console.log('Google fail',e); }
-  try{
-    const res2 = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=auto|${target}`);
-    const data2 = await res2.json();
-    if(data2.responseData?.translatedText) return data2.responseData.translatedText;
-  }catch(e){}
-  return text;
+    statusTxt.textContent='';
+    if(data.translated) return data.translated;
+    if(data.error) throw new Error(data.error);
+    return text;
+  }catch(e){
+    statusTxt.textContent='Translate error';
+    console.log('Server translate fail, trying backup', e);
+    // Backup for major languages only
+    try{
+      const map={zh:'zh-CN',he:'iw',no:'no'};
+      const target = map[to] || to;
+      const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${target}&dt=t&q=${encodeURIComponent(text)}`);
+      const data = await res.json();
+      if(data && data[0]) return data[0].map(x=>x[0]).join('');
+    }catch(e2){}
+    return text + ' (translation failed: '+e.message+')';
+  }
 }
 
 function saveNote(){
@@ -275,7 +277,7 @@ document.getElementById('translateBtn').addEventListener('click',()=>{
 });
 document.getElementById('doTranslateBtn').addEventListener('click',async()=>{
   const orig=document.getElementById('origText').value; const to=document.getElementById('toLang').value;
-  document.getElementById('transText').value='Translating...'; 
+  document.getElementById('transText').value='Translating via Groq...'; 
   const tr=await translateText(orig,to); 
   document.getElementById('transText').value=tr;
 });
@@ -286,7 +288,6 @@ document.getElementById('saveTransBtn').addEventListener('click',()=>{
   notes.unshift({title:'Translated to '+lang.name,text:txt,date:new Date().toLocaleString(),lang:lang.name,code:lang.code,flag:lang.flag});
   saveAll(); render(); transModal.style.display='none';
 });
-
 function render(){
   document.getElementById('count').textContent=notes.length;
   document.getElementById('notesList').innerHTML=notes.map((n,i)=>`
@@ -330,7 +331,6 @@ document.getElementById('exportPdfBtn').addEventListener('click',()=>{
   doc.save('KrateNote.pdf');
 });
 document.getElementById('exportTxtBtn').addEventListener('click',()=>{ const txt=notes.map(n=>`${n.title}\n${n.date}\n${n.text}\n`).join('\n---\n\n'); const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([txt])); a.download='KrateNote.txt'; a.click(); });
-
 fillLangSelects(); applySettings(); render();
 </script>
 </body>
