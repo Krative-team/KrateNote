@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>KrateNote V8.2 - 30 Langs Fixed</title>
+<title>KrateNote V8.3</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
@@ -12,8 +12,10 @@
   .header{display:flex;justify-content:space-between;align-items:center;background:var(--card);padding:14px 18px;border-radius:14px;margin-bottom:12px}
   .main{max-width:1100px;margin:auto;display:flex;flex-direction:column;gap:12px} @media(min-width:900px){.main{flex-direction:row}}
   .card{background:var(--card);border-radius:14px;padding:14px;flex:1}
-  #transcriptBox{min-height:220px;background:var(--box);border-radius:10px;padding:12px;line-height:26px;font-size:17px;white-space:pre-wrap;border:2px solid transparent;outline:none}
+  #transcriptBox{min-height:220px;background:var(--box);border-radius:10px;padding:12px;line-height:26px;font-size:17px;white-space:pre-wrap;border:2px solid transparent;outline:none;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#888}
+  #transcriptBox.has-text{display:block;color:var(--text);align-items:flex-start;justify-content:flex-start}
   #transcriptBox.listening{border-color:#6366f1}
+  .emptyIcon{font-size:48px;margin-bottom:12px;opacity:.3} .emptyTxt{font-size:15px}
   .badge{font-size:11px;padding:4px 8px;border-radius:10px;display:none;margin-right:6px} .badge.on{display:inline-block} #liveBadge{background:#10b981;color:#fff} #detectedBadge{background:#e0e7ff;color:#3730a3}
   input,select,textarea{width:100%;padding:12px;border-radius:8px;border:none;background:var(--muted);color:var(--text);margin-bottom:10px;font-size:15px}
   button{padding:12px 14px;border-radius:10px;border:none;font-weight:600;font-size:14px;cursor:pointer;display:inline-flex;gap:6px;justify-content:center;align-items:center}
@@ -35,7 +37,7 @@
   <div class="card">
     <input id="titleInput" placeholder="Lecture Title">
     <div style="margin-bottom:6px"><span id="liveBadge" class="badge"><i class="fa-solid fa-circle" style="font-size:8px"></i> LIVE</span><span id="detectedBadge" class="badge"></span></div>
-    <div id="transcriptBox" contenteditable="true">Speak any language - auto detects Ibibio, Efik, Hausa, Yoruba, Igbo, English, French...</div>
+    <div id="transcriptBox" contenteditable="true"></div>
     <button class="full" id="recBtn"><i class="fa-solid fa-microphone"></i> START RECORDING</button>
     <div style="display:flex;gap:6px">
       <button class="full" id="saveBtn" style="background:#e0e7ff;color:#1e1b4b"><i class="fa-solid fa-floppy-disk"></i> SAVE</button>
@@ -53,8 +55,8 @@
 
 <div id="settingsModal"><div class="modalBox">
   <div style="display:flex;justify-content:space-between"><h3><i class="fa-solid fa-gear"></i> Settings</h3><button class="iconBtn" id="closeSetBtn"><i class="fa-solid fa-xmark"></i></button></div>
-  <label>Server URL</label><input id="serverUrl" value="https://kratenote-1.onrender.com">
-  <label><i class="fa-solid fa-volume-high"></i> Voice - Clearest First</label><select id="voiceSelect"><option>Loading...</option></select>
+  <input id="serverUrl" type="hidden" value="https://kratenote-1.onrender.com">
+  <label><i class="fa-solid fa-volume-high"></i> Voice</label><select id="voiceSelect"><option>Loading...</option></select>
   <label><i class="fa-solid fa-microphone"></i> Speech Language</label><select id="speechLang"></select>
   <label><i class="fa-solid fa-language"></i> Translate To</label><select id="translateTo"></select>
   <label><i class="fa-solid fa-gauge-high"></i> Speed: <span id="speedVal">0.9</span></label><input type="range" id="speedRange" min="0.5" max="1.5" step="0.1" value="0.9">
@@ -75,13 +77,13 @@
 </div></div>
 
 <div id="translateModal"><div class="modalBox">
-  <div style="display:flex;justify-content:space-between"><h3><i class="fa-solid fa-language"></i> Translate - 30 Languages</h3><button class="iconBtn" id="closeTranslateBtn"><i class="fa-solid fa-xmark"></i></button></div>
+  <div style="display:flex;justify-content:space-between"><h3><i class="fa-solid fa-language"></i> Translate</h3><button class="iconBtn" id="closeTranslateBtn"><i class="fa-solid fa-xmark"></i></button></div>
   <label>From</label><select id="fromLang"></select>
   <label>To</label><select id="toLang"></select>
   <label>Original</label><textarea id="origText" rows="4"></textarea>
-  <label>Translated</label><textarea id="transText" rows="4" placeholder="Translation will appear..."></textarea>
+  <label>Translated</label><textarea id="transText" rows="4" placeholder="Translation..."></textarea>
   <div style="display:flex;gap:6px"><button class="full" id="doTranslateBtn" style="background:var(--primary);color:var(--bg)"><i class="fa-solid fa-language"></i> Translate Now</button><button class="full" id="speakTransBtn" style="background:var(--muted)"><i class="fa-solid fa-volume-high"></i> Speak</button></div>
-  <button class="full" id="saveTransBtn" style="background:#e0e7ff;color:#1e1b4b;margin-top:6px"><i class="fa-solid fa-floppy-disk"></i> Save Translation</button>
+  <button class="full" id="saveTransBtn" style="background:#e0e7ff;color:#1e1b4b;margin-top:6px"><i class="fa-solid fa-floppy-disk"></i> Save</button>
 </div></div>
 
 <script>
@@ -129,25 +131,38 @@ function fillLangSelects(){
   document.getElementById('editLang').innerHTML=optsNoAuto;
   document.getElementById('editTranslateTo').innerHTML=optsNoAuto;
 }
-
 function detectLanguage(text){
   const t=text.toLowerCase();
   if(/(mma|mmesiere|sosongo|ufok|nwed|ete|yak|mfin|nsido|idem)/.test(t)) return LANGS.find(l=>l.code==='ibb');
   if(/(emem|mokomor|efi|afere|sosongho)/.test(t)) return LANGS.find(l=>l.code==='efi');
-  if(/(sannu|ina|kwana|hausa|yaya)/.test(t)) return LANGS.find(l=>l.code==='ha');
-  if(/(bawo|kaaro|pele|yoruba|ojo)/.test(t)) return LANGS.find(l=>l.code==='yo');
-  if(/(kedu|ndewo|igbo|daalu|biko)/.test(t)) return LANGS.find(l=>l.code==='ig');
+  if(/(sannu|ina|kwana)/.test(t)) return LANGS.find(l=>l.code==='ha');
+  if(/(bawo|kaaro|pele)/.test(t)) return LANGS.find(l=>l.code==='yo');
+  if(/(kedu|ndewo|igbo|daalu)/.test(t)) return LANGS.find(l=>l.code==='ig');
   if(/(bonjour|merci)/.test(t)) return LANGS.find(l=>l.code==='fr');
   if(/(hola|gracias)/.test(t)) return LANGS.find(l=>l.code==='es');
   return LANGS.find(l=>l.code==='en');
 }
-
 let isRec=false, mediaRecorder=null, audioChunks=[], transcript='', notes=[], audioStream=null, editingIndex=-1, detectedLang=LANGS[1];
 let settings={dark:false,font:'17px',voiceURI:'',serverUrl:'https://kratenote-1.onrender.com',speed:0.9,pitch:1,speechLang:'auto',translateTo:'en',autoDetect:true};
 try{ notes=JSON.parse(localStorage.getItem('k_notes')||'[]'); const s=JSON.parse(localStorage.getItem('k_settings')||'{}'); settings={...settings,...s}; }catch(e){}
 const recBtn=document.getElementById('recBtn'), box=document.getElementById('transcriptBox'), modal=document.getElementById('settingsModal'), editModal=document.getElementById('editModal'), transModal=document.getElementById('translateModal'), liveBadge=document.getElementById('liveBadge'), detectedBadge=document.getElementById('detectedBadge'), statusTxt=document.getElementById('statusTxt');
 let voices=[], recognition=null, finalTranscriptLive='';
 
+function setEmptyState(){
+  box.classList.remove('has-text');
+  box.innerHTML='<i class="fa-solid fa-waveform-lines emptyIcon"></i><div class="emptyTxt">Tap mic to start recording</div>';
+  transcript=''; finalTranscriptLive='';
+  detectedBadge.classList.remove('on');
+  liveBadge.classList.remove('on');
+  statusTxt.textContent='';
+  recBtn.innerHTML='<i class="fa-solid fa-microphone"></i> START RECORDING';
+  recBtn.classList.remove('rec');
+  isRec=false;
+}
+function setHasTextState(text){
+  box.classList.add('has-text');
+  box.textContent=text;
+}
 function loadVoices(){
   voices=speechSynthesis.getVoices();
   const sel=document.getElementById('voiceSelect');
@@ -164,7 +179,6 @@ function applySettings(){
   document.getElementById('darkSwitch').classList.toggle('on',settings.dark);
   document.getElementById('autoSwitch').classList.toggle('on',settings.autoDetect);
   document.getElementById('fontSelect').value=settings.font;
-  document.getElementById('serverUrl').value=settings.serverUrl;
   document.getElementById('speechLang').value=settings.speechLang;
   document.getElementById('translateTo').value=settings.translateTo;
   document.getElementById('speedRange').value=settings.speed;
@@ -194,15 +208,30 @@ function speakClear(text, forcedLang=null){
 function showDetected(text){
   if(!settings.autoDetect) return;
   detectedLang=detectLanguage(text);
-  detectedBadge.textContent=`${detectedLang.flag} ${detectedLang.name} detected`;
+  detectedBadge.textContent=`${detectedLang.flag} ${detectedLang.name}`;
   detectedBadge.classList.add('on');
 }
 function initRealtime(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition; if(!SR) return null;
   const rec=new SR(); rec.continuous=true; rec.interimResults=true; rec.lang='en-NG';
-  rec.onstart=()=>{ liveBadge.classList.add('on'); finalTranscriptLive=''; statusTxt.textContent='Listening...'; };
-  rec.onresult=(e)=>{ let inter=''; for(let i=e.resultIndex;i<e.results.length;i++){ const t=e.results[i][0].transcript; if(e.results[i].isFinal) finalTranscriptLive+=t+' '; else inter+=t; } box.textContent=finalTranscriptLive+inter; transcript=finalTranscriptLive+inter; if(transcript.length>5) showDetected(transcript); };
-  rec.onend=()=>liveBadge.classList.remove('on'); return rec;
+  rec.onstart=()=>{
+    liveBadge.classList.add('on');
+    detectedBadge.textContent='🌐 Detecting...';
+    detectedBadge.classList.add('on');
+    finalTranscriptLive=''; statusTxt.textContent='Listening...';
+  };
+  rec.onresult=(e)=>{
+    let inter=''; for(let i=e.resultIndex;i<e.results.length;i++){ const t=e.results[i][0].transcript; if(e.results[i].isFinal) finalTranscriptLive+=t+' '; else inter+=t; }
+    const full = finalTranscriptLive+inter;
+    if(full.trim()){
+      box.classList.add('has-text');
+      box.textContent=full;
+      transcript=full;
+      if(transcript.length>3) showDetected(transcript);
+    }
+  };
+  rec.onend=()=>liveBadge.classList.remove('on');
+  return rec;
 }
 async function initWhisper(){
   try{
@@ -214,16 +243,17 @@ async function initWhisper(){
       const blob=new Blob(audioChunks,{type:mime});
       statusTxt.textContent='Transcribing...';
       const form=new FormData(); form.append('file',blob,mime.includes('mp4')?'recording.m4a':'recording.webm');
-      try{ const res=await fetch(settings.serverUrl+'/transcribe',{method:'POST',body:form}); const data=await res.json(); if(data.text){ transcript=data.text; box.textContent=data.text; showDetected(data.text); statusTxt.textContent='Done'; } }catch(e){ statusTxt.textContent='Error'; }
+      try{ const res=await fetch(settings.serverUrl+'/transcribe',{method:'POST',body:form}); const data=await res.json(); if(data.text){ transcript=data.text; setHasTextState(data.text); showDetected(data.text); statusTxt.textContent='Done'; } }catch(e){ statusTxt.textContent='Error'; }
       setTimeout(()=>statusTxt.textContent='',2000);
     }; return mediaRecorder;
-  }catch(e){ box.textContent='Mic error: '+e.message; return null; }
+  }catch(e){ setHasTextState('Mic error: '+e.message); return null; }
 }
 recBtn.addEventListener('click',async()=>{
   if(!isRec){
     const rec=await initWhisper(); if(!rec) return;
-    audioChunks=[]; transcript=''; finalTranscriptLive=''; detectedBadge.classList.remove('on');
-    box.textContent=''; recognition=initRealtime(); try{ if(recognition) recognition.start(); }catch(e){}
+    audioChunks=[]; transcript=''; finalTranscriptLive='';
+    box.innerHTML=''; box.classList.add('has-text'); box.textContent='Listening...';
+    recognition=initRealtime(); try{ if(recognition) recognition.start(); }catch(e){}
     rec.start(100); isRec=true; recBtn.innerHTML='<i class="fa-solid fa-stop"></i> STOP'; recBtn.classList.add('rec');
   }else{
     try{ if(recognition) recognition.stop(); }catch(e){}
@@ -231,53 +261,40 @@ recBtn.addEventListener('click',async()=>{
     isRec=false; recBtn.innerHTML='<i class="fa-solid fa-microphone"></i> START RECORDING'; recBtn.classList.remove('rec');
   }
 });
-
-// === FIXED TRANSLATION - USES YOUR GROQ SERVER FOR ALL 30 LANGUAGES ===
 async function translateText(text,to){
   if(!text) return '';
   try{
     statusTxt.textContent='Translating...';
-    const res = await fetch(settings.serverUrl.replace(/\/$/,'')+'/translate',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({text:text.substring(0,3000), to:to})
-    });
-    const data = await res.json();
-    statusTxt.textContent='';
+    const res = await fetch(settings.serverUrl.replace(/\/$/,'')+'/translate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:text.substring(0,3000), to:to})});
+    const data = await res.json(); statusTxt.textContent='';
     if(data.translated) return data.translated;
     if(data.error) throw new Error(data.error);
     return text;
   }catch(e){
-    statusTxt.textContent='Translate error';
-    console.log('Server translate fail, trying backup', e);
-    // Backup for major languages only
-    try{
-      const map={zh:'zh-CN',he:'iw',no:'no'};
-      const target = map[to] || to;
-      const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${target}&dt=t&q=${encodeURIComponent(text)}`);
-      const data = await res.json();
-      if(data && data[0]) return data[0].map(x=>x[0]).join('');
-    }catch(e2){}
-    return text + ' (translation failed: '+e.message+')';
+    statusTxt.textContent=''; return text;
   }
 }
-
 function saveNote(){
-  const txt=box.innerText.trim()||transcript.trim(); if(!txt) return alert('Record first');
+  const txt=(box.innerText||'').trim()||transcript.trim(); if(!txt || txt.includes('Tap mic')) return alert('Record first');
   const title=document.getElementById('titleInput').value||txt.split(' ').slice(0,5).join(' ');
   const lang=detectLanguage(txt);
   notes.unshift({title,text:txt,date:new Date().toLocaleString(),lang:lang.name,code:lang.code,flag:lang.flag});
-  saveAll(); render(); document.getElementById('titleInput').value=''; box.textContent='Saved!';
+  saveAll(); render();
+  // Auto reset immediately
+  document.getElementById('titleInput').value='';
+  setEmptyState();
+  try{ if(recognition) recognition.stop(); }catch(e){}
+  try{ if(mediaRecorder && mediaRecorder.state==='recording') mediaRecorder.stop(); }catch(e){}
 }
 document.getElementById('saveBtn').addEventListener('click',saveNote);
-document.getElementById('speakBtn').addEventListener('click',()=>{ const t=box.innerText.trim(); if(t) speakClear(t); });
+document.getElementById('speakBtn').addEventListener('click',()=>{ const t=box.innerText.trim(); if(t && !t.includes('Tap mic')) speakClear(t); });
 document.getElementById('translateBtn').addEventListener('click',()=>{
-  const t=box.innerText.trim(); if(!t) return alert('No text');
+  const t=box.innerText.trim(); if(!t || t.includes('Tap mic')) return alert('No text');
   document.getElementById('origText').value=t; document.getElementById('fromLang').value='auto'; document.getElementById('toLang').value=settings.translateTo; transModal.style.display='flex';
 });
 document.getElementById('doTranslateBtn').addEventListener('click',async()=>{
   const orig=document.getElementById('origText').value; const to=document.getElementById('toLang').value;
-  document.getElementById('transText').value='Translating via Groq...'; 
+  document.getElementById('transText').value='Translating...'; 
   const tr=await translateText(orig,to); 
   document.getElementById('transText').value=tr;
 });
@@ -314,7 +331,6 @@ document.getElementById('cancelEditBtn').addEventListener('click',()=>editModal.
 document.getElementById('closeTranslateBtn').addEventListener('click',()=>transModal.style.display='none');
 document.getElementById('saveEditBtn').addEventListener('click',()=>{ if(editingIndex>=0){ notes[editingIndex].title=document.getElementById('editTitle').value; notes[editingIndex].text=document.getElementById('editText').value; const lang=LANGS.find(l=>l.code===document.getElementById('editLang').value); notes[editingIndex].code=lang.code; notes[editingIndex].lang=lang.name; notes[editingIndex].flag=lang.flag; notes[editingIndex].date=new Date().toLocaleString()+' (edited)'; saveAll(); render(); editModal.style.display='none'; }});
 document.getElementById('doEditTranslate').addEventListener('click',async()=>{ const to=document.getElementById('editTranslateTo').value; const orig=document.getElementById('editText').value; document.getElementById('editText').value='Translating...'; const tr=await translateText(orig,to); document.getElementById('editText').value=tr; document.getElementById('editLang').value=to; });
-document.getElementById('serverUrl').addEventListener('change',e=>{ settings.serverUrl=e.target.value.trim().replace(/\/$/,''); saveAll(); });
 document.getElementById('voiceSelect').addEventListener('change',e=>{ settings.voiceURI=e.target.value; saveAll(); });
 document.getElementById('speechLang').addEventListener('change',e=>{ settings.speechLang=e.target.value; saveAll(); });
 document.getElementById('translateTo').addEventListener('change',e=>{ settings.translateTo=e.target.value; saveAll(); });
@@ -331,7 +347,7 @@ document.getElementById('exportPdfBtn').addEventListener('click',()=>{
   doc.save('KrateNote.pdf');
 });
 document.getElementById('exportTxtBtn').addEventListener('click',()=>{ const txt=notes.map(n=>`${n.title}\n${n.date}\n${n.text}\n`).join('\n---\n\n'); const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([txt])); a.download='KrateNote.txt'; a.click(); });
-fillLangSelects(); applySettings(); render();
+fillLangSelects(); applySettings(); setEmptyState(); render();
 </script>
 </body>
 </html>
