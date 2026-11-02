@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>KrateNote V8.7 - With Auth</title>
+<title>KrateNote V8.7 - Auth Ready</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
@@ -20,9 +20,10 @@
   button{padding:12px 14px;border-radius:10px;border:none;font-weight:600;font-size:14px;cursor:pointer;display:inline-flex;gap:6px;justify-content:center;align-items:center}
   .full{width:100%;margin-top:8px} #recBtn{background:var(--primary);color:var(--bg);font-size:16px;padding:16px} #recBtn.rec{background:#e11d48;color:#fff}
   .iconBtn{width:auto;padding:6px 10px;border-radius:6px;background:var(--muted);color:var(--text);font-size:12px}
-  .note{background:var(--box);padding:12px;border-radius:12px;margin-bottom:10px}
+  .note{background:var(--box);padding:12px;border-radius:12px;margin-bottom:10px;border:1px solid transparent}
   .noteActions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
-  .actBtn{padding:7px 11px;border-radius:8px;background:var(--muted);color:var(--text);font-size:12px;cursor:pointer;border:none;display:inline-flex;gap:5px;align-items:center}
+  .actBtn{padding:7px 11px;border-radius:8px;background:var(--muted);color:var(--text);font-size:12px;cursor:pointer;border:none;display:inline-flex;gap:5px;align-items:center;transition:.15s}
+  .actBtn:hover{transform:translateY(-1px);filter:brightness(.95)}
   .actBtn.edit{background:#e0e7ff;color:#3730a3} .actBtn.speak{background:#dcfce7;color:#166534} .actBtn.trans{background:#fef3c7;color:#92400e} .actBtn.del{background:#fee2e2;color:#991b1b}
   #settingsModal,#editModal,#translateModal,#confirmModal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:999;padding:12px;backdrop-filter:blur(4px)}
   .modalBox{background:var(--card);width:100%;max-width:560px;border-radius:16px;padding:18px;max-height:90vh;overflow:auto;animation:pop .2s ease}
@@ -35,8 +36,8 @@
 </head>
 <body>
 <div class="header">
-  <div id="headerLeft"><b><i class="fa-solid fa-microphone-lines"></i> KrateNote</b> <small id="statusTxt" style="color:#6366f1;margin-left:8px"></small> <span id="userInfo" style="margin-left:12px;font-size:12px;opacity:.7"></span></div>
-  <div style="display:flex;gap:6px"><button class="iconBtn" id="openSetBtn"><i class="fa-solid fa-gear"></i> Settings</button><button class="iconBtn" id="logoutBtn" style="color:#dc2626"><i class="fa-solid fa-right-from-bracket"></i> Logout</button></div>
+  <div id="headerLeft"><b><i class="fa-solid fa-microphone-lines"></i> KrateNote</b> <small id="statusTxt" style="color:#6366f1;margin-left:8px"></small> <span id="userInfo" style="margin-left:10px;font-size:12px;background:#e0e7ff;color:#3730a3;padding:3px 8px;border-radius:12px;display:none"></span></div>
+  <div style="display:flex;gap:6px"><button class="iconBtn" id="openSetBtn"><i class="fa-solid fa-gear"></i> Settings</button><button class="iconBtn" id="logoutBtn" style="background:#fee2e2;color:#991b1b"><i class="fa-solid fa-right-from-bracket"></i></button></div>
 </div>
 
 <div class="main">
@@ -47,8 +48,8 @@
     <button class="full" id="recBtn"><i class="fa-solid fa-microphone"></i> START RECORDING</button>
     <div style="display:flex;gap:6px">
       <button class="full" id="saveBtn" style="background:#e0e7ff;color:#1e1b4b"><i class="fa-solid fa-floppy-disk"></i> SAVE</button>
-      <button class="full" id="speakBtn" style="background:var(--muted)"><i class="fa-solid fa-volume-high"></i></button>
-      <button class="full" id="translateBtn" style="background:var(--muted)"><i class="fa-solid fa-language"></i></button>
+      <button class="full" id="speakBtn" style="background:var(--muted)"><i class="fa-solid fa-volume-high"></i> SPEAK</button>
+      <button class="full" id="translateBtn" style="background:var(--muted)"><i class="fa-solid fa-language"></i> TRANSLATE</button>
     </div>
   </div>
   <div class="card">
@@ -86,19 +87,20 @@
 </div></div>
 
 <script>
-// ===== AUTH GUARD - ADDED IN V8.7 =====
+// ===== AUTH GUARD V8.7 =====
 const token = localStorage.getItem('k_token');
 const user = JSON.parse(localStorage.getItem('k_user')||'null');
-if(!token){
-  location.href='login.html';
+if(!token || !user){
+  window.location.href='login.html';
+} else {
+  const ui = document.getElementById('userInfo');
+  ui.style.display='inline-block';
+  ui.innerHTML=`<i class="fa-solid fa-user"></i> ${user.name}`;
 }
-document.getElementById('userInfo').innerHTML = user ? `<i class="fa-solid fa-user"></i> ${user.name}` : '';
 document.getElementById('logoutBtn').addEventListener('click',()=>{
-  localStorage.removeItem('k_token');
-  localStorage.removeItem('k_user');
-  location.href='login.html';
+  if(confirm('Logout?')){ localStorage.removeItem('k_token'); localStorage.removeItem('k_user'); location.href='login.html'; }
 });
-// ===== END AUTH GUARD =====
+// ===== END AUTH =====
 
 const LANGS=[
   {code:'auto',name:'Auto',flag:'🌐',tts:'en-US'},{code:'en',name:'English',flag:'🇬🇧',tts:'en-US'},{code:'ibb',name:'Ibibio',flag:'🇳🇬',tts:'en-NG'},{code:'efi',name:'Efik',flag:'🇳🇬',tts:'en-NG'},{code:'ha',name:'Hausa',flag:'🇳🇬',tts:'ha-NG'},{code:'yo',name:'Yoruba',flag:'🇳🇬',tts:'yo-NG'},{code:'ig',name:'Igbo',flag:'🇳🇬',tts:'ig-NG'},{code:'pcm',name:'Pidgin',flag:'🇳🇬',tts:'en-NG'},{code:'fr',name:'French',flag:'🇫🇷',tts:'fr-FR'},{code:'es',name:'Spanish',flag:'🇪🇸',tts:'es-ES'},{code:'de',name:'German',flag:'🇩🇪',tts:'de-DE'},{code:'pt',name:'Portuguese',flag:'🇵🇹',tts:'pt-PT'},{code:'it',name:'Italian',flag:'🇮🇹',tts:'it-IT'},{code:'nl',name:'Dutch',flag:'🇳🇱',tts:'nl-NL'},{code:'ar',name:'Arabic',flag:'🇸🇦',tts:'ar-SA'},{code:'zh',name:'Chinese',flag:'🇨🇳',tts:'zh-CN'},{code:'ja',name:'Japanese',flag:'🇯🇵',tts:'ja-JP'},{code:'ko',name:'Korean',flag:'🇰🇷',tts:'ko-KR'},{code:'ru',name:'Russian',flag:'🇷🇺',tts:'ru-RU'},{code:'hi',name:'Hindi',flag:'🇮🇳',tts:'hi-IN'},{code:'sw',name:'Swahili',flag:'🇰🇪',tts:'sw-KE'},{code:'zu',name:'Zulu',flag:'🇿🇦',tts:'zu-ZA'},{code:'am',name:'Amharic',flag:'🇪🇹',tts:'am-ET'},{code:'tr',name:'Turkish',flag:'🇹🇷',tts:'tr-TR'},{code:'el',name:'Greek',flag:'🇬🇷',tts:'el-GR'},{code:'he',name:'Hebrew',flag:'🇮🇱',tts:'he-IL'},{code:'sv',name:'Swedish',flag:'🇸🇪',tts:'sv-SE'},{code:'no',name:'Norwegian',flag:'🇳🇴',tts:'nb-NO'},{code:'pl',name:'Polish',flag:'🇵🇱',tts:'pl-PL'},{code:'id',name:'Indonesian',flag:'🇮🇩',tts:'id-ID'},{code:'th',name:'Thai',flag:'🇹🇭',tts:'th-TH'}
@@ -108,9 +110,8 @@ function detectLanguage(text){const t=(text||'').toLowerCase();if(!t.trim())retu
 let isRec=false,mediaRecorder=null,audioChunks=[],transcript='',notes=[],audioStream=null,editingIndex=-1,pendingDeleteIndex=-1,pendingClearAll=false;
 let settings={dark:false,font:'17px',voiceURI:'',serverUrl:'https://kratenote-1.onrender.com',speed:0.9,pitch:1,speechLang:'auto',translateTo:'en',autoDetect:true};
 try{
-  // Notes now per user
   const userEmail = user?.email || 'guest';
-  notes=JSON.parse(localStorage.getItem('k_notes_'+userEmail)||'[]');
+  notes=JSON.parse(localStorage.getItem('k_notes_'+userEmail)||localStorage.getItem('k_notes')||'[]');
   const s=JSON.parse(localStorage.getItem('k_settings')||'{}');settings={...settings,...s};
 }catch(e){}
 const recBtn=document.getElementById('recBtn'),box=document.getElementById('transcriptBox'),modal=document.getElementById('settingsModal'),editModal=document.getElementById('editModal'),transModal=document.getElementById('translateModal'),confirmModal=document.getElementById('confirmModal'),liveBadge=document.getElementById('liveBadge'),detectedBadge=document.getElementById('detectedBadge'),statusTxt=document.getElementById('statusTxt');
@@ -131,7 +132,7 @@ async function startMic(){try{if(!audioStream)audioStream=await navigator.mediaD
 recBtn.addEventListener('click',async()=>{if(!isRec){finalTranscriptLive='';transcript='';audioChunks=[];box.textContent='Listening...';box.classList.add('has-text');const rec=await startMic();if(!rec)return;recognition=createRecognition();if(!recognition)return;try{recognition.start();}catch(e){}rec.start(100);isRec=true;recBtn.innerHTML='<i class="fa-solid fa-stop"></i> STOP';recBtn.classList.add('rec');}else{isRec=false;try{if(recognition)recognition.stop();}catch(e){}try{if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();}catch(e){}recBtn.innerHTML='<i class="fa-solid fa-microphone"></i> START RECORDING';recBtn.classList.remove('rec');liveBadge.classList.remove('on');if(transcript&&transcript!=='Listening...')statusTxt.textContent='Done - tap SAVE';}});
 async function translateText(text,to){try{statusTxt.textContent='Translating...';const res=await fetch(settings.serverUrl.replace(/\/$/,'')+'/translate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:text.substring(0,3000),to:to})});const data=await res.json();statusTxt.textContent='';if(data.translated)return data.translated;return text;}catch(e){statusTxt.textContent='';return text;}}
 function saveNote(){const txt=(box.innerText||'').trim()||transcript.trim();if(!txt||txt.includes('Tap mic')||txt==='Listening...'||txt.length<2)return alert('Speak first!');const title=document.getElementById('titleInput').value||txt.split(' ').slice(0,5).join(' ');const lang=detectLanguage(txt);notes.unshift({title,text:txt,date:new Date().toLocaleString(),lang:lang.name,code:lang.code,flag:lang.flag});saveAll();render();document.getElementById('titleInput').value='';setEmptyState();try{if(recognition)recognition.stop();}catch(e){}try{if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();}catch(e){}}
-function openConfirmDelete(index,isClearAll=false){pendingDeleteIndex=index;pendingClearAll=isClearAll;if(isClearAll){document.querySelector('#confirmModal .confirmIcon').innerHTML='<i class="fa-solid fa-triangle-exclamation"></i>';document.getElementById('confirmText').innerHTML=`<b>Delete all ${notes.length} notes?</b><br>This will permanently remove all your saved notes.`;document.getElementById('confirmDelete').innerHTML='<i class="fa-solid fa-trash"></i> Yes, Delete All';}else{const note=notes[index];document.querySelector('#confirmModal .confirmIcon').innerHTML='<i class="fa-solid fa-trash"></i>';document.getElementById('confirmText').innerHTML=`Delete <b>"${note.title.substring(0,30)}"</b>?<br>This cannot be undone.`;document.getElementById('confirmDelete').innerHTML='<i class="fa-solid fa-trash"></i> Yes, Delete';}confirmModal.style.display='flex';}
+function openConfirmDelete(index,isClearAll=false){pendingDeleteIndex=index;pendingClearAll=isClearAll;if(isClearAll){document.querySelector('#confirmModal .confirmIcon').innerHTML='<i class="fa-solid fa-triangle-exclamation"></i>';document.getElementById('confirmText').innerHTML=`<b>Delete all ${notes.length} notes?</b><br>This will permanently remove all your saved notes. This cannot be undone.`;document.getElementById('confirmDelete').innerHTML='<i class="fa-solid fa-trash"></i> Yes, Delete All';}else{const note=notes[index];document.querySelector('#confirmModal .confirmIcon').innerHTML='<i class="fa-solid fa-trash"></i>';document.getElementById('confirmText').innerHTML=`Delete <b>"${note.title.substring(0,30)}"</b>?<br>This action cannot be undone.`;document.getElementById('confirmDelete').innerHTML='<i class="fa-solid fa-trash"></i> Yes, Delete';}confirmModal.style.display='flex';}
 document.getElementById('confirmCancel').addEventListener('click',()=>{confirmModal.style.display='none';pendingDeleteIndex=-1;pendingClearAll=false;});
 document.getElementById('confirmDelete').addEventListener('click',()=>{if(pendingClearAll){notes=[];saveAll();render();modal.style.display='none';}else if(pendingDeleteIndex>=0){notes.splice(pendingDeleteIndex,1);saveAll();render();}confirmModal.style.display='none';pendingDeleteIndex=-1;pendingClearAll=false;});
 confirmModal.addEventListener('click',(e)=>{if(e.target===confirmModal)confirmModal.style.display='none';});
@@ -141,8 +142,44 @@ document.getElementById('translateBtn').addEventListener('click',()=>{const t=bo
 document.getElementById('doTranslateBtn').addEventListener('click',async()=>{const orig=document.getElementById('origText').value;const to=document.getElementById('toLang').value;document.getElementById('transText').value='Translating...';const tr=await translateText(orig,to);document.getElementById('transText').value=tr;});
 document.getElementById('speakTransBtn').addEventListener('click',()=>{const txt=document.getElementById('transText').value;const to=document.getElementById('toLang').value;if(txt)speakClear(txt,to);});
 document.getElementById('saveTransBtn').addEventListener('click',()=>{const txt=document.getElementById('transText').value;if(!txt)return;const lang=LANGS.find(l=>l.code===document.getElementById('toLang').value);notes.unshift({title:'Translated to '+lang.name,text:txt,date:new Date().toLocaleString(),lang:lang.name,code:lang.code,flag:lang.flag});saveAll();render();transModal.style.display='none';});
-function render(){document.getElementById('count').textContent=notes.length;document.getElementById('notesList').innerHTML=notes.map((n,i)=>`<div class="note"><div style="display:flex;justify-content:space-between"><b>${n.flag||''} ${n.title}</b><small>${n.date}</small></div><small style="opacity:.6">${n.lang||''}</small><div style="margin-top:6px;white-space:pre-wrap">${n.text}</div><div class="noteActions"><button class="actBtn edit" data-edit="${i}"><i class="fa-solid fa-pen-to-square"></i> Edit</button><button class="actBtn speak" data-speak="${i}"><i class="fa-solid fa-volume-high"></i> Speak</button><button class="actBtn trans" data-trans="${i}"><i class="fa-solid fa-language"></i> Translate</button><button class="actBtn del" data-del="${i}"><i class="fa-solid fa-trash"></i> Delete</button></div></div>`).join('')||'<div style="text-align:center;padding:20px;opacity:.4"><i class="fa-solid fa-inbox" style="font-size:32px;display:block;margin-bottom:8px"></i>No notes yet</div>';document.querySelectorAll('[data-del]').forEach(el=>el.addEventListener('click',()=>{openConfirmDelete(parseInt(el.dataset.del),false);}));document.querySelectorAll('[data-speak]').forEach(el=>el.addEventListener('click',()=>{const nn=notes[parseInt(el.dataset.speak)];speakClear(nn.text,nn.code);}));document.querySelectorAll('[data-trans]').forEach(el=>el.addEventListener('click',()=>{const nn=notes[parseInt(el.dataset.trans)];document.getElementById('origText').value=nn.text;document.getElementById('toLang').value=settings.translateTo;transModal.style.display='flex';}));document.querySelectorAll('[data-edit]').forEach(el=>el.addEventListener('click',()=>{const idx=parseInt(el.dataset.edit);editingIndex=idx;document.getElementById('editTitle').value=notes[idx].title;document.getElementById('editText').value=notes[idx].text;document.getElementById('editLang').value=notes[idx].code||'en';editModal.style.display='flex';}));}
-document.getElementById('openSetBtn').addEventListener('click',()=>modal.style.display='flex');document.getElementById('closeSetBtn').addEventListener('click',()=>modal.style.display='none');document.getElementById('closeEditBtn').addEventListener('click',()=>editModal.style.display='none');document.getElementById('cancelEditBtn').addEventListener('click',()=>editModal.style.display='none');document.getElementById('closeTranslateBtn').addEventListener('click',()=>transModal.style.display='none');document.getElementById('saveEditBtn').addEventListener('click',()=>{if(editingIndex>=0){notes[editingIndex].title=document.getElementById('editTitle').value;notes[editingIndex].text=document.getElementById('editText').value;const lang=LANGS.find(l=>l.code===document.getElementById('editLang').value);notes[editingIndex].code=lang.code;notes[editingIndex].lang=lang.name;notes[editingIndex].flag=lang.flag;notes[editingIndex].date=new Date().toLocaleString()+' (edited)';saveAll();render();editModal.style.display='none';}});document.getElementById('doEditTranslate').addEventListener('click',async()=>{const to=document.getElementById('editTranslateTo').value;const orig=document.getElementById('editText').value;document.getElementById('editText').value='Translating...';const tr=await translateText(orig,to);document.getElementById('editText').value=tr;document.getElementById('editLang').value=to;});document.getElementById('voiceSelect').addEventListener('change',e=>{settings.voiceURI=e.target.value;saveAll();});document.getElementById('speechLang').addEventListener('change',e=>{settings.speechLang=e.target.value;saveAll();});document.getElementById('translateTo').addEventListener('change',e=>{settings.translateTo=e.target.value;saveAll();});document.getElementById('fontSelect').addEventListener('change',e=>{settings.font=e.target.value;box.style.fontSize=settings.font;saveAll();});document.getElementById('speedRange').addEventListener('input',e=>{settings.speed=e.target.value;document.getElementById('speedVal').textContent=e.target.value;saveAll();});document.getElementById('pitchRange').addEventListener('input',e=>{settings.pitch=e.target.value;document.getElementById('pitchVal').textContent=e.target.value;saveAll();});document.getElementById('darkSwitch').addEventListener('click',()=>{settings.dark=!settings.dark;document.body.classList.toggle('dark',settings.dark);document.getElementById('darkSwitch').classList.toggle('on',settings.dark);saveAll();});document.getElementById('autoSwitch').addEventListener('click',()=>{settings.autoDetect=!settings.autoDetect;document.getElementById('autoSwitch').classList.toggle('on',settings.autoDetect);saveAll();});document.getElementById('clearBtn').addEventListener('click',()=>{if(notes.length===0)return alert('No notes');openConfirmDelete(-1,true);});document.getElementById('exportPdfBtn').addEventListener('click',()=>{if(!notes.length)return alert('No notes');const {jsPDF}=window.jspdf;const doc=new jsPDF();doc.setFontSize(14);doc.text("KrateNote Notes - "+user.name,10,15);let y=25;notes.forEach((n,i)=>{doc.setFontSize(11);doc.setFont(undefined,'bold');doc.text(`${i+1}. ${n.title} [${n.lang||''}]`,10,y);y+=6;doc.setFont(undefined,'normal');const lines=doc.splitTextToSize(n.text,180);if(y+lines.length*6>280){doc.addPage();y=15;}doc.text(lines,10,y);y+=lines.length*6+10;});doc.save('KrateNote.pdf');});document.getElementById('exportTxtBtn').addEventListener('click',()=>{const txt=notes.map(n=>`${n.title}\n${n.date}\n${n.text}\n`).join('\n---\n\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt]));a.download='KrateNote.txt';a.click();});fillLangSelects();applySettings();setEmptyState();render();
+function render(){
+  document.getElementById('count').textContent=notes.length;
+  document.getElementById('notesList').innerHTML=notes.map((n,i)=>`
+    <div class="note">
+      <div style="display:flex;justify-content:space-between"><b>${n.flag||''} ${n.title}</b><small>${n.date}</small></div>
+      <small style="opacity:.6">${n.lang||''}</small>
+      <div style="margin-top:6px;white-space:pre-wrap">${n.text}</div>
+      <div class="noteActions">
+        <button class="actBtn edit" data-edit="${i}"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
+        <button class="actBtn speak" data-speak="${i}"><i class="fa-solid fa-volume-high"></i> Speak</button>
+        <button class="actBtn trans" data-trans="${i}"><i class="fa-solid fa-language"></i> Translate</button>
+        <button class="actBtn del" data-del="${i}"><i class="fa-solid fa-trash"></i> Delete</button>
+      </div>
+    </div>`).join('') || '<div style="text-align:center;padding:20px;opacity:.4"><i class="fa-solid fa-inbox" style="font-size:32px;display:block;margin-bottom:8px"></i>No notes yet</div>';
+  document.querySelectorAll('[data-del]').forEach(el=>el.addEventListener('click',()=>{ openConfirmDelete(parseInt(el.dataset.del),false); }));
+  document.querySelectorAll('[data-speak]').forEach(el=>el.addEventListener('click',()=>{ const nn=notes[parseInt(el.dataset.speak)]; speakClear(nn.text,nn.code); }));
+  document.querySelectorAll('[data-trans]').forEach(el=>el.addEventListener('click',()=>{ const nn=notes[parseInt(el.dataset.trans)]; document.getElementById('origText').value=nn.text; document.getElementById('toLang').value=settings.translateTo; transModal.style.display='flex'; }));
+  document.querySelectorAll('[data-edit]').forEach(el=>el.addEventListener('click',()=>{ const idx=parseInt(el.dataset.edit); editingIndex=idx; document.getElementById('editTitle').value=notes[idx].title; document.getElementById('editText').value=notes[idx].text; document.getElementById('editLang').value=notes[idx].code||'en'; editModal.style.display='flex'; }));
+}
+document.getElementById('openSetBtn').addEventListener('click',()=>modal.style.display='flex');
+document.getElementById('closeSetBtn').addEventListener('click',()=>modal.style.display='none');
+document.getElementById('closeEditBtn').addEventListener('click',()=>editModal.style.display='none');
+document.getElementById('cancelEditBtn').addEventListener('click',()=>editModal.style.display='none');
+document.getElementById('closeTranslateBtn').addEventListener('click',()=>transModal.style.display='none');
+document.getElementById('saveEditBtn').addEventListener('click',()=>{ if(editingIndex>=0){ notes[editingIndex].title=document.getElementById('editTitle').value; notes[editingIndex].text=document.getElementById('editText').value; const lang=LANGS.find(l=>l.code===document.getElementById('editLang').value); notes[editingIndex].code=lang.code; notes[editingIndex].lang=lang.name; notes[editingIndex].flag=lang.flag; notes[editingIndex].date=new Date().toLocaleString()+' (edited)'; saveAll(); render(); editModal.style.display='none'; }});
+document.getElementById('doEditTranslate').addEventListener('click',async()=>{ const to=document.getElementById('editTranslateTo').value; const orig=document.getElementById('editText').value; document.getElementById('editText').value='Translating...'; const tr=await translateText(orig,to); document.getElementById('editText').value=tr; document.getElementById('editLang').value=to; });
+document.getElementById('voiceSelect').addEventListener('change',e=>{ settings.voiceURI=e.target.value; saveAll(); });
+document.getElementById('speechLang').addEventListener('change',e=>{ settings.speechLang=e.target.value; saveAll(); });
+document.getElementById('translateTo').addEventListener('change',e=>{ settings.translateTo=e.target.value; saveAll(); });
+document.getElementById('fontSelect').addEventListener('change',e=>{ settings.font=e.target.value; box.style.fontSize=settings.font; saveAll(); });
+document.getElementById('speedRange').addEventListener('input',e=>{ settings.speed=e.target.value; document.getElementById('speedVal').textContent=e.target.value; saveAll(); });
+document.getElementById('pitchRange').addEventListener('input',e=>{ settings.pitch=e.target.value; document.getElementById('pitchVal').textContent=e.target.value; saveAll(); });
+document.getElementById('darkSwitch').addEventListener('click',()=>{ settings.dark=!settings.dark; document.body.classList.toggle('dark',settings.dark); document.getElementById('darkSwitch').classList.toggle('on',settings.dark); saveAll(); });
+document.getElementById('autoSwitch').addEventListener('click',()=>{ settings.autoDetect=!settings.autoDetect; document.getElementById('autoSwitch').classList.toggle('on',settings.autoDetect); saveAll(); });
+document.getElementById('clearBtn').addEventListener('click',()=>{ if(notes.length===0) return alert('No notes'); openConfirmDelete(-1,true); });
+document.getElementById('exportPdfBtn').addEventListener('click',()=>{ if(!notes.length) return alert('No notes'); const {jsPDF}=window.jspdf; const doc=new jsPDF(); doc.setFontSize(14); doc.text("KrateNote Notes - "+(user?.name||''),10,15); let y=25; notes.forEach((n,i)=>{ doc.setFontSize(11); doc.setFont(undefined,'bold'); doc.text(`${i+1}. ${n.title} [${n.lang||''}]`,10,y); y+=6; doc.setFont(undefined,'normal'); const lines=doc.splitTextToSize(n.text,180); if(y+lines.length*6>280){ doc.addPage(); y=15; } doc.text(lines,10,y); y+=lines.length*6+10; }); doc.save('KrateNote.pdf'); });
+document.getElementById('exportTxtBtn').addEventListener('click',()=>{ const txt=notes.map(n=>`${n.title}\n${n.date}\n${n.text}\n`).join('\n---\n\n'); const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([txt])); a.download='KrateNote.txt'; a.click(); });
+fillLangSelects(); applySettings(); setEmptyState(); render();
 </script>
 </body>
 </html>
