@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>KrateNote V8.3</title>
+<title>KrateNote V8.4 - Real-time Detect</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
@@ -16,7 +16,7 @@
   #transcriptBox.has-text{display:block;color:var(--text);align-items:flex-start;justify-content:flex-start}
   #transcriptBox.listening{border-color:#6366f1}
   .emptyIcon{font-size:48px;margin-bottom:12px;opacity:.3} .emptyTxt{font-size:15px}
-  .badge{font-size:11px;padding:4px 8px;border-radius:10px;display:none;margin-right:6px} .badge.on{display:inline-block} #liveBadge{background:#10b981;color:#fff} #detectedBadge{background:#e0e7ff;color:#3730a3}
+  .badge{font-size:12px;padding:5px 10px;border-radius:20px;display:none;margin-right:6px;font-weight:600;transition:.2s} .badge.on{display:inline-block} #liveBadge{background:#10b981;color:#fff;animation:pulse 1.2s infinite} #detectedBadge{background:#e0e7ff;color:#3730a3} @keyframes pulse{0%{opacity:1}50%{opacity:.6}100%{opacity:1}}
   input,select,textarea{width:100%;padding:12px;border-radius:8px;border:none;background:var(--muted);color:var(--text);margin-bottom:10px;font-size:15px}
   button{padding:12px 14px;border-radius:10px;border:none;font-weight:600;font-size:14px;cursor:pointer;display:inline-flex;gap:6px;justify-content:center;align-items:center}
   .full{width:100%;margin-top:8px} #recBtn{background:var(--primary);color:var(--bg);font-size:16px;padding:16px} #recBtn.rec{background:#e11d48;color:#fff}
@@ -36,7 +36,7 @@
 <div class="main">
   <div class="card">
     <input id="titleInput" placeholder="Lecture Title">
-    <div style="margin-bottom:6px"><span id="liveBadge" class="badge"><i class="fa-solid fa-circle" style="font-size:8px"></i> LIVE</span><span id="detectedBadge" class="badge"></span></div>
+    <div style="margin-bottom:8px"><span id="liveBadge" class="badge"><i class="fa-solid fa-circle" style="font-size:8px"></i> LIVE</span><span id="detectedBadge" class="badge">🌐 Detecting...</span></div>
     <div id="transcriptBox" contenteditable="true"></div>
     <button class="full" id="recBtn"><i class="fa-solid fa-microphone"></i> START RECORDING</button>
     <div style="display:flex;gap:6px">
@@ -131,15 +131,20 @@ function fillLangSelects(){
   document.getElementById('editLang').innerHTML=optsNoAuto;
   document.getElementById('editTranslateTo').innerHTML=optsNoAuto;
 }
+
+// IMPROVED REAL-TIME DETECTION
 function detectLanguage(text){
-  const t=text.toLowerCase();
-  if(/(mma|mmesiere|sosongo|ufok|nwed|ete|yak|mfin|nsido|idem)/.test(t)) return LANGS.find(l=>l.code==='ibb');
-  if(/(emem|mokomor|efi|afere|sosongho)/.test(t)) return LANGS.find(l=>l.code==='efi');
-  if(/(sannu|ina|kwana)/.test(t)) return LANGS.find(l=>l.code==='ha');
-  if(/(bawo|kaaro|pele)/.test(t)) return LANGS.find(l=>l.code==='yo');
-  if(/(kedu|ndewo|igbo|daalu)/.test(t)) return LANGS.find(l=>l.code==='ig');
-  if(/(bonjour|merci)/.test(t)) return LANGS.find(l=>l.code==='fr');
-  if(/(hola|gracias)/.test(t)) return LANGS.find(l=>l.code==='es');
+  const t=text.toLowerCase().trim();
+  if(!t) return LANGS[0];
+  if(/(mmesiere|mma mmi|nsido|idem mmi|ufok nwed|sosongo|ndi|yak inam|mfin emi|eti ete|amakabade)/.test(t)) return LANGS.find(l=>l.code==='ibb');
+  if(/(emem o|mesiere|mokomor|efi ibibio|sosongho)/.test(t)) return LANGS.find(l=>l.code==='efi');
+  if(/(sannu|ina kwana|yaya dai|hausa|lafiya)/.test(t)) return LANGS.find(l=>l.code==='ha');
+  if(/(bawo ni|kaaro|pele o|yoruba|o dabo)/.test(t)) return LANGS.find(l=>l.code==='yo');
+  if(/(kedu|ndewo|igbo kwenu|daalu|biko nu)/.test(t)) return LANGS.find(l=>l.code==='ig');
+  if(/(how una dey|wetin|na so|abi|shebi|pidgin)/.test(t)) return LANGS.find(l=>l.code==='pcm');
+  if(/(bonjour|merci beaucoup|comment ca va)/.test(t)) return LANGS.find(l=>l.code==='fr');
+  if(/(hola|gracias|como estas)/.test(t)) return LANGS.find(l=>l.code==='es');
+  if(/(hallo|danke|wie geht)/.test(t)) return LANGS.find(l=>l.code==='de');
   return LANGS.find(l=>l.code==='en');
 }
 let isRec=false, mediaRecorder=null, audioChunks=[], transcript='', notes=[], audioStream=null, editingIndex=-1, detectedLang=LANGS[1];
@@ -206,31 +211,37 @@ function speakClear(text, forcedLang=null){
   speechSynthesis.speak(u);
 }
 function showDetected(text){
-  if(!settings.autoDetect) return;
+  if(!settings.autoDetect || !text) return;
   detectedLang=detectLanguage(text);
-  detectedBadge.textContent=`${detectedLang.flag} ${detectedLang.name}`;
+  if(detectedLang.code==='auto') detectedLang=LANGS.find(l=>l.code==='en');
+  detectedBadge.innerHTML=`${detectedLang.flag} ${detectedLang.name}`;
   detectedBadge.classList.add('on');
 }
+// REAL-TIME SYNC ENGINE
 function initRealtime(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition; if(!SR) return null;
-  const rec=new SR(); rec.continuous=true; rec.interimResults=true; rec.lang='en-NG';
+  const rec=new SR(); rec.continuous=true; rec.interimResults=true; 
+  let baseLang = settings.speechLang==='auto' ? 'en-NG' : (LANGS.find(l=>l.code===settings.speechLang)?.tts||'en-NG');
+  rec.lang=baseLang;
   rec.onstart=()=>{
     liveBadge.classList.add('on');
-    detectedBadge.textContent='🌐 Detecting...';
+    detectedBadge.innerHTML='🎙️ Listening...';
     detectedBadge.classList.add('on');
     finalTranscriptLive=''; statusTxt.textContent='Listening...';
   };
   rec.onresult=(e)=>{
     let inter=''; for(let i=e.resultIndex;i<e.results.length;i++){ const t=e.results[i][0].transcript; if(e.results[i].isFinal) finalTranscriptLive+=t+' '; else inter+=t; }
-    const full = finalTranscriptLive+inter;
-    if(full.trim()){
-      box.classList.add('has-text');
+    const full = (finalTranscriptLive+inter).trim();
+    if(full){
+      if(!box.classList.contains('has-text')) box.classList.add('has-text');
       box.textContent=full;
       transcript=full;
-      if(transcript.length>3) showDetected(transcript);
+      // UPDATE LANGUAGE BADGE IN REAL TIME ON EVERY WORD
+      showDetected(full);
     }
   };
-  rec.onend=()=>liveBadge.classList.remove('on');
+  rec.onend=()=>{ liveBadge.classList.remove('on'); if(transcript) statusTxt.textContent='Tap STOP to finish'; };
+  rec.onerror=(e)=>{ console.log('SR error',e); };
   return rec;
 }
 async function initWhisper(){
@@ -243,7 +254,7 @@ async function initWhisper(){
       const blob=new Blob(audioChunks,{type:mime});
       statusTxt.textContent='Transcribing...';
       const form=new FormData(); form.append('file',blob,mime.includes('mp4')?'recording.m4a':'recording.webm');
-      try{ const res=await fetch(settings.serverUrl+'/transcribe',{method:'POST',body:form}); const data=await res.json(); if(data.text){ transcript=data.text; setHasTextState(data.text); showDetected(data.text); statusTxt.textContent='Done'; } }catch(e){ statusTxt.textContent='Error'; }
+      try{ const res=await fetch(settings.serverUrl+'/transcribe',{method:'POST',body:form}); const data=await res.json(); if(data.text){ transcript=data.text; setHasTextState(data.text); showDetected(data.text); statusTxt.textContent='Done'; } }catch(e){ statusTxt.textContent='Saved from mic'; }
       setTimeout(()=>statusTxt.textContent='',2000);
     }; return mediaRecorder;
   }catch(e){ setHasTextState('Mic error: '+e.message); return null; }
@@ -268,26 +279,22 @@ async function translateText(text,to){
     const res = await fetch(settings.serverUrl.replace(/\/$/,'')+'/translate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:text.substring(0,3000), to:to})});
     const data = await res.json(); statusTxt.textContent='';
     if(data.translated) return data.translated;
-    if(data.error) throw new Error(data.error);
     return text;
-  }catch(e){
-    statusTxt.textContent=''; return text;
-  }
+  }catch(e){ statusTxt.textContent=''; return text; }
 }
 function saveNote(){
-  const txt=(box.innerText||'').trim()||transcript.trim(); if(!txt || txt.includes('Tap mic')) return alert('Record first');
+  const txt=(box.innerText||'').trim()||transcript.trim(); if(!txt || txt.includes('Tap mic') || txt==='Listening...') return alert('Record first');
   const title=document.getElementById('titleInput').value||txt.split(' ').slice(0,5).join(' ');
   const lang=detectLanguage(txt);
   notes.unshift({title,text:txt,date:new Date().toLocaleString(),lang:lang.name,code:lang.code,flag:lang.flag});
   saveAll(); render();
-  // Auto reset immediately
   document.getElementById('titleInput').value='';
   setEmptyState();
   try{ if(recognition) recognition.stop(); }catch(e){}
   try{ if(mediaRecorder && mediaRecorder.state==='recording') mediaRecorder.stop(); }catch(e){}
 }
 document.getElementById('saveBtn').addEventListener('click',saveNote);
-document.getElementById('speakBtn').addEventListener('click',()=>{ const t=box.innerText.trim(); if(t && !t.includes('Tap mic')) speakClear(t); });
+document.getElementById('speakBtn').addEventListener('click',()=>{ const t=box.innerText.trim(); if(t && !t.includes('Tap mic') && t!=='Listening...') speakClear(t); });
 document.getElementById('translateBtn').addEventListener('click',()=>{
   const t=box.innerText.trim(); if(!t || t.includes('Tap mic')) return alert('No text');
   document.getElementById('origText').value=t; document.getElementById('fromLang').value='auto'; document.getElementById('toLang').value=settings.translateTo; transModal.style.display='flex';
