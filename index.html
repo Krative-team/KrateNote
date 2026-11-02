@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>KrateNote V8.5 - Live Fixed</title>
+<title>KrateNote V8.6</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
@@ -13,18 +13,22 @@
   .main{max-width:1100px;margin:auto;display:flex;flex-direction:column;gap:12px} @media(min-width:900px){.main{flex-direction:row}}
   .card{background:var(--card);border-radius:14px;padding:14px;flex:1}
   #transcriptBox{min-height:220px;background:var(--box);border-radius:10px;padding:12px;line-height:26px;font-size:17px;white-space:pre-wrap;border:2px solid transparent;outline:none;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#888}
-  #transcriptBox.has-text{display:block;color:var(--text)}
-  #transcriptBox.listening{border-color:#6366f1}
+  #transcriptBox.has-text{display:block;color:var(--text)} #transcriptBox.listening{border-color:#6366f1}
   .emptyIcon{font-size:48px;margin-bottom:12px;opacity:.3} .emptyTxt{font-size:15px}
   .badge{font-size:12px;padding:5px 10px;border-radius:20px;display:none;margin-right:6px;font-weight:700} .badge.on{display:inline-block} #liveBadge{background:#10b981;color:#fff} #detectedBadge{background:#6366f1;color:#fff}
   input,select,textarea{width:100%;padding:12px;border-radius:8px;border:none;background:var(--muted);color:var(--text);margin-bottom:10px;font-size:15px}
   button{padding:12px 14px;border-radius:10px;border:none;font-weight:600;font-size:14px;cursor:pointer;display:inline-flex;gap:6px;justify-content:center;align-items:center}
   .full{width:100%;margin-top:8px} #recBtn{background:var(--primary);color:var(--bg);font-size:16px;padding:16px} #recBtn.rec{background:#e11d48;color:#fff}
   .iconBtn{width:auto;padding:6px 10px;border-radius:6px;background:var(--muted);color:var(--text);font-size:12px}
-  .note{background:var(--box);padding:10px;border-radius:10px;margin-bottom:10px}
-  .noteActions{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap} .actBtn{padding:6px 10px;border-radius:6px;background:var(--muted);color:var(--text);font-size:12px;cursor:pointer;border:none}
-  #settingsModal,#editModal,#translateModal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:999;padding:12px}
-  .modalBox{background:var(--card);width:100%;max-width:560px;border-radius:16px;padding:18px;max-height:90vh;overflow:auto}
+  .note{background:var(--box);padding:12px;border-radius:12px;margin-bottom:10px;border:1px solid transparent}
+  .noteActions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+  .actBtn{padding:7px 11px;border-radius:8px;background:var(--muted);color:var(--text);font-size:12px;cursor:pointer;border:none;display:inline-flex;gap:5px;align-items:center;transition:.15s}
+  .actBtn:hover{transform:translateY(-1px);filter:brightness(.95)}
+  .actBtn.edit{background:#e0e7ff;color:#3730a3} .actBtn.speak{background:#dcfce7;color:#166534} .actBtn.trans{background:#fef3c7;color:#92400e} .actBtn.del{background:#fee2e2;color:#991b1b}
+  #settingsModal,#editModal,#translateModal,#confirmModal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:999;padding:12px;backdrop-filter:blur(4px)}
+  .modalBox{background:var(--card);width:100%;max-width:560px;border-radius:16px;padding:18px;max-height:90vh;overflow:auto;animation:pop .2s ease}
+  @keyframes pop{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
+  .confirmIcon{width:56px;height:56px;border-radius:50%;background:#fee2e2;color:#dc2626;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 12px}
   .row{display:flex;justify-content:space-between;align-items:center;margin:12px 0}
   .switch{width:46px;height:28px;background:#ccc;border-radius:20px;position:relative;cursor:pointer} .switch.on{background:var(--primary)} .dot{width:24px;height:24px;background:#fff;border-radius:50%;position:absolute;top:2px;left:2px;transition:.2s} .switch.on .dot{left:20px}
   label{font-size:13px;font-weight:600;margin:8px 0 4px;display:block;opacity:.8}
@@ -46,179 +50,134 @@
     </div>
   </div>
   <div class="card">
-    <div style="display:flex;justify-content:space-between"><b>Notes (<span id="count">0</span>)</b><div style="display:flex;gap:4px"><button class="iconBtn" id="exportPdfBtn">PDF</button><button class="iconBtn" id="exportTxtBtn">TXT</button></div></div>
+    <div style="display:flex;justify-content:space-between"><b>Notes (<span id="count">0</span>)</b><div style="display:flex;gap:4px"><button class="iconBtn" id="exportPdfBtn"><i class="fa-solid fa-file-pdf"></i> PDF</button><button class="iconBtn" id="exportTxtBtn"><i class="fa-solid fa-file-lines"></i> TXT</button></div></div>
     <div id="notesList" style="margin-top:10px"></div>
   </div>
 </div>
 
+<!-- SETTINGS -->
 <div id="settingsModal"><div class="modalBox">
-  <div style="display:flex;justify-content:space-between"><h3>Settings</h3><button class="iconBtn" id="closeSetBtn"><i class="fa-solid fa-xmark"></i></button></div>
+  <div style="display:flex;justify-content:space-between"><h3><i class="fa-solid fa-gear"></i> Settings</h3><button class="iconBtn" id="closeSetBtn"><i class="fa-solid fa-xmark"></i></button></div>
   <input id="serverUrl" type="hidden" value="https://kratenote-1.onrender.com">
-  <label>Voice</label><select id="voiceSelect"><option>Loading...</option></select>
-  <label>Speech Language</label><select id="speechLang"></select>
-  <label>Translate To</label><select id="translateTo"></select>
-  <label>Speed: <span id="speedVal">0.9</span></label><input type="range" id="speedRange" min="0.5" max="1.5" step="0.1" value="0.9">
-  <label>Pitch: <span id="pitchVal">1.0</span></label><input type="range" id="pitchRange" min="0.5" max="1.5" step="0.1" value="1.0">
-  <label>Font Size</label><select id="fontSelect"><option value="15px">Small</option><option value="17px" selected>Medium</option><option value="20px">Large</option><option value="24px">XL</option></select>
-  <div class="row"><span>Dark Mode</span><div id="darkSwitch" class="switch"><div class="dot"></div></div></div>
-  <div class="row"><span>Auto Detect</span><div class="switch on" id="autoSwitch"><div class="dot"></div></div></div>
-  <button class="full" style="background:#fee2e2;color:#b91c1c;margin-top:10px" id="clearBtn"><i class="fa-solid fa-trash"></i> Clear All</button>
+  <label><i class="fa-solid fa-volume-high"></i> Voice</label><select id="voiceSelect"></select>
+  <label><i class="fa-solid fa-microphone"></i> Speech Language</label><select id="speechLang"></select>
+  <label><i class="fa-solid fa-language"></i> Translate To</label><select id="translateTo"></select>
+  <label><i class="fa-solid fa-gauge-high"></i> Speed: <span id="speedVal">0.9</span></label><input type="range" id="speedRange" min="0.5" max="1.5" step="0.1" value="0.9">
+  <label><i class="fa-solid fa-waveform"></i> Pitch: <span id="pitchVal">1.0</span></label><input type="range" id="pitchRange" min="0.5" max="1.5" step="0.1" value="1.0">
+  <label><i class="fa-solid fa-text-height"></i> Font Size</label><select id="fontSelect"><option value="15px">Small</option><option value="17px" selected>Medium</option><option value="20px">Large</option><option value="24px">XL</option></select>
+  <div class="row"><span><i class="fa-solid fa-moon"></i> Dark Mode</span><div id="darkSwitch" class="switch"><div class="dot"></div></div></div>
+  <div class="row"><span><i class="fa-solid fa-wand-magic-sparkles"></i> Auto Detect</span><div class="switch on" id="autoSwitch"><div class="dot"></div></div></div>
+  <button class="full" style="background:#fee2e2;color:#b91c1c;margin-top:10px" id="clearBtn"><i class="fa-solid fa-trash"></i> Clear All Notes</button>
 </div></div>
 
-<div id="editModal"><div class="modalBox"><div style="display:flex;justify-content:space-between"><h3>Edit</h3><button class="iconBtn" id="closeEditBtn"><i class="fa-solid fa-xmark"></i></button></div><label>Title</label><input id="editTitle"><label>Language</label><select id="editLang"></select><label>Text</label><textarea id="editText" rows="8"></textarea><label>Translate To</label><div style="display:flex;gap:6px"><select id="editTranslateTo"></select><button class="iconBtn" id="doEditTranslate">Translate</button></div><div style="display:flex;gap:6px;margin-top:10px"><button class="full" id="saveEditBtn" style="background:var(--primary);color:var(--bg)">Save</button><button class="full" id="cancelEditBtn" style="background:var(--muted)">Cancel</button></div></div></div>
+<!-- EDIT -->
+<div id="editModal"><div class="modalBox"><div style="display:flex;justify-content:space-between"><h3><i class="fa-solid fa-pen-to-square"></i> Edit</h3><button class="iconBtn" id="closeEditBtn"><i class="fa-solid fa-xmark"></i></button></div><label>Title</label><input id="editTitle"><label>Language</label><select id="editLang"></select><label>Text</label><textarea id="editText" rows="8"></textarea><label>Translate To</label><div style="display:flex;gap:6px"><select id="editTranslateTo"></select><button class="iconBtn" id="doEditTranslate"><i class="fa-solid fa-language"></i></button></div><div style="display:flex;gap:6px;margin-top:10px"><button class="full" id="saveEditBtn" style="background:var(--primary);color:var(--bg)"><i class="fa-solid fa-check"></i> Save</button><button class="full" id="cancelEditBtn" style="background:var(--muted)"><i class="fa-solid fa-xmark"></i> Cancel</button></div></div></div>
 
-<div id="translateModal"><div class="modalBox"><div style="display:flex;justify-content:space-between"><h3>Translate</h3><button class="iconBtn" id="closeTranslateBtn"><i class="fa-solid fa-xmark"></i></button></div><label>From</label><select id="fromLang"></select><label>To</label><select id="toLang"></select><label>Original</label><textarea id="origText" rows="4"></textarea><label>Translated</label><textarea id="transText" rows="4"></textarea><div style="display:flex;gap:6px"><button class="full" id="doTranslateBtn" style="background:var(--primary);color:var(--bg)">Translate</button><button class="full" id="speakTransBtn" style="background:var(--muted)">Speak</button></div><button class="full" id="saveTransBtn" style="background:#e0e7ff;color:#1e1b4b;margin-top:6px">Save</button></div></div>
+<!-- TRANSLATE -->
+<div id="translateModal"><div class="modalBox"><div style="display:flex;justify-content:space-between"><h3><i class="fa-solid fa-language"></i> Translate</h3><button class="iconBtn" id="closeTranslateBtn"><i class="fa-solid fa-xmark"></i></button></div><label>From</label><select id="fromLang"></select><label>To</label><select id="toLang"></select><label>Original</label><textarea id="origText" rows="4"></textarea><label>Translated</label><textarea id="transText" rows="4"></textarea><div style="display:flex;gap:6px"><button class="full" id="doTranslateBtn" style="background:var(--primary);color:var(--bg)"><i class="fa-solid fa-language"></i> Translate</button><button class="full" id="speakTransBtn" style="background:var(--muted)"><i class="fa-solid fa-volume-high"></i> Speak</button></div><button class="full" id="saveTransBtn" style="background:#e0e7ff;color:#1e1b4b;margin-top:6px"><i class="fa-solid fa-floppy-disk"></i> Save</button></div></div>
+
+<!-- NEW BEAUTIFUL CONFIRM DELETE -->
+<div id="confirmModal"><div class="modalBox" style="max-width:380px;text-align:center">
+  <div class="confirmIcon"><i class="fa-solid fa-trash"></i></div>
+  <h3 style="margin:0 0 6px">Delete Note?</h3>
+  <p id="confirmText" style="font-size:14px;opacity:.7;margin:0 0 16px;line-height:1.5">This action cannot be undone. Are you sure you want to delete this note permanently?</p>
+  <div style="display:flex;gap:8px">
+    <button class="full" id="confirmCancel" style="background:var(--muted)"><i class="fa-solid fa-xmark"></i> Cancel</button>
+    <button class="full" id="confirmDelete" style="background:#dc2626;color:#fff"><i class="fa-solid fa-trash"></i> Yes, Delete</button>
+  </div>
+</div></div>
 
 <script>
 const LANGS=[
-  {code:'auto',name:'Auto',flag:'🌐',tts:'en-US'},
-  {code:'en',name:'English',flag:'🇬🇧',tts:'en-US'},
-  {code:'ibb',name:'Ibibio',flag:'🇳🇬',tts:'en-NG'},
-  {code:'efi',name:'Efik',flag:'🇳🇬',tts:'en-NG'},
-  {code:'ha',name:'Hausa',flag:'🇳🇬',tts:'ha-NG'},
-  {code:'yo',name:'Yoruba',flag:'🇳🇬',tts:'yo-NG'},
-  {code:'ig',name:'Igbo',flag:'🇳🇬',tts:'ig-NG'},
-  {code:'pcm',name:'Pidgin',flag:'🇳🇬',tts:'en-NG'},
-  {code:'fr',name:'French',flag:'🇫🇷',tts:'fr-FR'},
-  {code:'es',name:'Spanish',flag:'🇪🇸',tts:'es-ES'},
-  {code:'de',name:'German',flag:'🇩🇪',tts:'de-DE'},
-  {code:'pt',name:'Portuguese',flag:'🇵🇹',tts:'pt-PT'},
-  {code:'it',name:'Italian',flag:'🇮🇹',tts:'it-IT'},
-  {code:'nl',name:'Dutch',flag:'🇳🇱',tts:'nl-NL'},
-  {code:'ar',name:'Arabic',flag:'🇸🇦',tts:'ar-SA'},
-  {code:'zh',name:'Chinese',flag:'🇨🇳',tts:'zh-CN'},
-  {code:'ja',name:'Japanese',flag:'🇯🇵',tts:'ja-JP'},
-  {code:'ko',name:'Korean',flag:'🇰🇷',tts:'ko-KR'},
-  {code:'ru',name:'Russian',flag:'🇷🇺',tts:'ru-RU'},
-  {code:'hi',name:'Hindi',flag:'🇮🇳',tts:'hi-IN'},
-  {code:'sw',name:'Swahili',flag:'🇰🇪',tts:'sw-KE'},
-  {code:'zu',name:'Zulu',flag:'🇿🇦',tts:'zu-ZA'},
-  {code:'am',name:'Amharic',flag:'🇪🇹',tts:'am-ET'},
-  {code:'tr',name:'Turkish',flag:'🇹🇷',tts:'tr-TR'},
-  {code:'el',name:'Greek',flag:'🇬🇷',tts:'el-GR'},
-  {code:'he',name:'Hebrew',flag:'🇮🇱',tts:'he-IL'},
-  {code:'sv',name:'Swedish',flag:'🇸🇪',tts:'sv-SE'},
-  {code:'no',name:'Norwegian',flag:'🇳🇴',tts:'nb-NO'},
-  {code:'pl',name:'Polish',flag:'🇵🇱',tts:'pl-PL'},
-  {code:'id',name:'Indonesian',flag:'🇮🇩',tts:'id-ID'},
-  {code:'th',name:'Thai',flag:'🇹🇭',tts:'th-TH'}
+  {code:'auto',name:'Auto',flag:'🌐',tts:'en-US'},{code:'en',name:'English',flag:'🇬🇧',tts:'en-US'},{code:'ibb',name:'Ibibio',flag:'🇳🇬',tts:'en-NG'},{code:'efi',name:'Efik',flag:'🇳🇬',tts:'en-NG'},{code:'ha',name:'Hausa',flag:'🇳🇬',tts:'ha-NG'},{code:'yo',name:'Yoruba',flag:'🇳🇬',tts:'yo-NG'},{code:'ig',name:'Igbo',flag:'🇳🇬',tts:'ig-NG'},{code:'pcm',name:'Pidgin',flag:'🇳🇬',tts:'en-NG'},{code:'fr',name:'French',flag:'🇫🇷',tts:'fr-FR'},{code:'es',name:'Spanish',flag:'🇪🇸',tts:'es-ES'},{code:'de',name:'German',flag:'🇩🇪',tts:'de-DE'},{code:'pt',name:'Portuguese',flag:'🇵🇹',tts:'pt-PT'},{code:'it',name:'Italian',flag:'🇮🇹',tts:'it-IT'},{code:'nl',name:'Dutch',flag:'🇳🇱',tts:'nl-NL'},{code:'ar',name:'Arabic',flag:'🇸🇦',tts:'ar-SA'},{code:'zh',name:'Chinese',flag:'🇨🇳',tts:'zh-CN'},{code:'ja',name:'Japanese',flag:'🇯🇵',tts:'ja-JP'},{code:'ko',name:'Korean',flag:'🇰🇷',tts:'ko-KR'},{code:'ru',name:'Russian',flag:'🇷🇺',tts:'ru-RU'},{code:'hi',name:'Hindi',flag:'🇮🇳',tts:'hi-IN'},{code:'sw',name:'Swahili',flag:'🇰🇪',tts:'sw-KE'},{code:'zu',name:'Zulu',flag:'🇿🇦',tts:'zu-ZA'},{code:'am',name:'Amharic',flag:'🇪🇹',tts:'am-ET'},{code:'tr',name:'Turkish',flag:'🇹🇷',tts:'tr-TR'},{code:'el',name:'Greek',flag:'🇬🇷',tts:'el-GR'},{code:'he',name:'Hebrew',flag:'🇮🇱',tts:'he-IL'},{code:'sv',name:'Swedish',flag:'🇸🇪',tts:'sv-SE'},{code:'no',name:'Norwegian',flag:'🇳🇴',tts:'nb-NO'},{code:'pl',name:'Polish',flag:'🇵🇱',tts:'pl-PL'},{code:'id',name:'Indonesian',flag:'🇮🇩',tts:'id-ID'},{code:'th',name:'Thai',flag:'🇹🇭',tts:'th-TH'}
 ];
-function fillLangSelects(){
-  const opts = LANGS.map(l=>`<option value="${l.code}">${l.flag} ${l.name}</option>`).join('');
-  const optsNoAuto = LANGS.filter(l=>l.code!=='auto').map(l=>`<option value="${l.code}">${l.flag} ${l.name}</option>`).join('');
-  document.getElementById('speechLang').innerHTML=opts; document.getElementById('translateTo').innerHTML=optsNoAuto;
-  document.getElementById('fromLang').innerHTML=opts; document.getElementById('toLang').innerHTML=optsNoAuto;
-  document.getElementById('editLang').innerHTML=optsNoAuto; document.getElementById('editTranslateTo').innerHTML=optsNoAuto;
-}
-function detectLanguage(text){
-  const t=(text||'').toLowerCase();
-  if(!t.trim()) return LANGS[0];
-  if(/(mmesiere|mma|nsido|idem|ufok|nwed|sosongo|eti|yak|mfin)/.test(t)) return LANGS.find(l=>l.code==='ibb');
-  if(/(emem|mokomor|efi|sosongho)/.test(t)) return LANGS.find(l=>l.code==='efi');
-  if(/(sannu|ina kwana|hausa)/.test(t)) return LANGS.find(l=>l.code==='ha');
-  if(/(bawo|kaaro|yoruba)/.test(t)) return LANGS.find(l=>l.code==='yo');
-  if(/(kedu|ndewo|igbo)/.test(t)) return LANGS.find(l=>l.code==='ig');
-  if(/(how una dey|wetin|na so|abi|shebi)/.test(t)) return LANGS.find(l=>l.code==='pcm');
-  if(/(bonjour|merci)/.test(t)) return LANGS.find(l=>l.code==='fr');
-  if(/(hola|gracias)/.test(t)) return LANGS.find(l=>l.code==='es');
-  return LANGS.find(l=>l.code==='en');
-}
-let isRec=false, mediaRecorder=null, audioChunks=[], transcript='', notes=[], audioStream=null, editingIndex=-1;
+function fillLangSelects(){const opts=LANGS.map(l=>`<option value="${l.code}">${l.flag} ${l.name}</option>`).join('');const optsNoAuto=LANGS.filter(l=>l.code!=='auto').map(l=>`<option value="${l.code}">${l.flag} ${l.name}</option>`).join('');document.getElementById('speechLang').innerHTML=opts;document.getElementById('translateTo').innerHTML=optsNoAuto;document.getElementById('fromLang').innerHTML=opts;document.getElementById('toLang').innerHTML=optsNoAuto;document.getElementById('editLang').innerHTML=optsNoAuto;document.getElementById('editTranslateTo').innerHTML=optsNoAuto;}
+function detectLanguage(text){const t=(text||'').toLowerCase();if(!t.trim())return LANGS[0];if(/(mmesiere|mma|nsido|idem|ufok|nwed|sosongo|eti|yak|mfin)/.test(t))return LANGS.find(l=>l.code==='ibb');if(/(emem|mokomor|efi|sosongho)/.test(t))return LANGS.find(l=>l.code==='efi');if(/(sannu|ina kwana|hausa)/.test(t))return LANGS.find(l=>l.code==='ha');if(/(bawo|kaaro|yoruba)/.test(t))return LANGS.find(l=>l.code==='yo');if(/(kedu|ndewo|igbo)/.test(t))return LANGS.find(l=>l.code==='ig');if(/(how una dey|wetin|na so|abi|shebi)/.test(t))return LANGS.find(l=>l.code==='pcm');if(/(bonjour|merci)/.test(t))return LANGS.find(l=>l.code==='fr');if(/(hola|gracias)/.test(t))return LANGS.find(l=>l.code==='es');return LANGS.find(l=>l.code==='en');}
+let isRec=false,mediaRecorder=null,audioChunks=[],transcript='',notes=[],audioStream=null,editingIndex=-1,pendingDeleteIndex=-1,pendingClearAll=false;
 let settings={dark:false,font:'17px',voiceURI:'',serverUrl:'https://kratenote-1.onrender.com',speed:0.9,pitch:1,speechLang:'auto',translateTo:'en',autoDetect:true};
-try{ notes=JSON.parse(localStorage.getItem('k_notes')||'[]'); const s=JSON.parse(localStorage.getItem('k_settings')||'{}'); settings={...settings,...s}; }catch(e){}
-const recBtn=document.getElementById('recBtn'), box=document.getElementById('transcriptBox'), modal=document.getElementById('settingsModal'), editModal=document.getElementById('editModal'), transModal=document.getElementById('translateModal'), liveBadge=document.getElementById('liveBadge'), detectedBadge=document.getElementById('detectedBadge'), statusTxt=document.getElementById('statusTxt');
-let voices=[], recognition=null, finalTranscriptLive='';
+try{notes=JSON.parse(localStorage.getItem('k_notes')||'[]');const s=JSON.parse(localStorage.getItem('k_settings')||'{}');settings={...settings,...s};}catch(e){}
+const recBtn=document.getElementById('recBtn'),box=document.getElementById('transcriptBox'),modal=document.getElementById('settingsModal'),editModal=document.getElementById('editModal'),transModal=document.getElementById('translateModal'),confirmModal=document.getElementById('confirmModal'),liveBadge=document.getElementById('liveBadge'),detectedBadge=document.getElementById('detectedBadge'),statusTxt=document.getElementById('statusTxt');
+let voices=[],recognition=null,finalTranscriptLive='';
+function setEmptyState(){box.classList.remove('has-text');box.innerHTML='<i class="fa-solid fa-waveform-lines emptyIcon"></i><div class="emptyTxt">Tap mic to start</div>';transcript='';finalTranscriptLive='';liveBadge.classList.remove('on');detectedBadge.textContent='🌐 Ready';detectedBadge.className='badge on';detectedBadge.style.background='#eee';detectedBadge.style.color='#666';statusTxt.textContent='';recBtn.innerHTML='<i class="fa-solid fa-microphone"></i> START RECORDING';recBtn.classList.remove('rec');isRec=false;}
+function loadVoices(){voices=speechSynthesis.getVoices();const sel=document.getElementById('voiceSelect');if(voices.length){sel.innerHTML=voices.map(v=>`<option value="${v.voiceURI}">${v.name} (${v.lang})</option>`).join('');if(settings.voiceURI)sel.value=settings.voiceURI;}}
+speechSynthesis.onvoiceschanged=loadVoices;setTimeout(loadVoices,800);
+function saveAll(){localStorage.setItem('k_notes',JSON.stringify(notes));localStorage.setItem('k_settings',JSON.stringify(settings));}
+function applySettings(){document.body.classList.toggle('dark',settings.dark);document.getElementById('darkSwitch').classList.toggle('on',settings.dark);document.getElementById('autoSwitch').classList.toggle('on',settings.autoDetect);document.getElementById('fontSelect').value=settings.font;document.getElementById('speechLang').value=settings.speechLang;document.getElementById('translateTo').value=settings.translateTo;document.getElementById('speedRange').value=settings.speed;document.getElementById('pitchRange').value=settings.pitch;document.getElementById('speedVal').textContent=settings.speed;document.getElementById('pitchVal').textContent=settings.pitch;box.style.fontSize=settings.font;}
+function speakClear(text,forcedLang=null){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);let langCode=forcedLang||settings.speechLang;if(langCode==='auto')langCode=detectLanguage(text).code;const langObj=LANGS.find(l=>l.code===langCode)||LANGS[1];u.lang=langObj.tts||'en-US';const voice=voices.find(v=>v.voiceURI===settings.voiceURI)||voices[0];if(voice)u.voice=voice;u.rate=parseFloat(settings.speed);u.pitch=parseFloat(settings.pitch);speechSynthesis.speak(u);}
+function showDetectedRealTime(text){const lang=detectLanguage(text);detectedBadge.textContent=lang.flag+' '+lang.name;detectedBadge.className='badge on';detectedBadge.style.background='#6366f1';detectedBadge.style.color='#fff';if(lang.code!=='en'&&lang.code!=='auto'){detectedBadge.style.background='#10b981';}}
+function createRecognition(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){alert('Use Chrome');return null;}const rec=new SR();rec.continuous=true;rec.interimResults=true;rec.lang='en-US';rec.onstart=()=>{liveBadge.classList.add('on');detectedBadge.textContent='🎙️ Listening...';detectedBadge.className='badge on';detectedBadge.style.background='#6366f1';detectedBadge.style.color='#fff';statusTxt.textContent='Listening...';box.classList.add('has-text');if(!finalTranscriptLive)box.textContent='';};rec.onresult=(e)=>{let interim='';let finalPart='';for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript;if(e.results[i].isFinal)finalPart+=t+' ';else interim+=t;}if(e.results[e.results.length-1].isFinal)finalTranscriptLive+=finalPart;const full=(finalTranscriptLive+interim).trim();if(full){box.textContent=full;transcript=full;showDetectedRealTime(full);}};rec.onerror=(e)=>{console.log('SR',e.error);};rec.onend=()=>{liveBadge.classList.remove('on');if(isRec){try{rec.start();}catch(err){}}};return rec;}
+async function startMic(){try{if(!audioStream)audioStream=await navigator.mediaDevices.getUserMedia({audio:true});let mime='audio/mp4';if(MediaRecorder.isTypeSupported('audio/mp4'))mime='audio/mp4';else if(MediaRecorder.isTypeSupported('audio/webm;codecs=opus'))mime='audio/webm;codecs=opus';mediaRecorder=new MediaRecorder(audioStream,{mimeType:mime});audioChunks=[];mediaRecorder.ondataavailable=e=>{if(e.data.size>0)audioChunks.push(e.data);};mediaRecorder.onstop=async()=>{if(!transcript||transcript==='Listening...'){const blob=new Blob(audioChunks,{type:mime});const form=new FormData();form.append('file',blob,mime.includes('mp4')?'recording.m4a':'recording.webm');try{statusTxt.textContent='Enhancing...';const res=await fetch(settings.serverUrl+'/transcribe',{method:'POST',body:form});const data=await res.json();if(data.text){transcript=data.text;box.textContent=data.text;showDetectedRealTime(data.text);}}catch(e){}}statusTxt.textContent='';};return mediaRecorder;}catch(e){alert('Mic error: '+e.message);return null;}}
+recBtn.addEventListener('click',async()=>{if(!isRec){finalTranscriptLive='';transcript='';audioChunks=[];box.textContent='Listening...';box.classList.add('has-text');const rec=await startMic();if(!rec)return;recognition=createRecognition();if(!recognition)return;try{recognition.start();}catch(e){}rec.start(100);isRec=true;recBtn.innerHTML='<i class="fa-solid fa-stop"></i> STOP';recBtn.classList.add('rec');}else{isRec=false;try{if(recognition)recognition.stop();}catch(e){}try{if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();}catch(e){}recBtn.innerHTML='<i class="fa-solid fa-microphone"></i> START RECORDING';recBtn.classList.remove('rec');liveBadge.classList.remove('on');if(transcript&&transcript!=='Listening...')statusTxt.textContent='Done - tap SAVE';}});
+async function translateText(text,to){try{statusTxt.textContent='Translating...';const res=await fetch(settings.serverUrl.replace(/\/$/,'')+'/translate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:text.substring(0,3000),to:to})});const data=await res.json();statusTxt.textContent='';if(data.translated)return data.translated;return text;}catch(e){statusTxt.textContent='';return text;}}
+function saveNote(){const txt=(box.innerText||'').trim()||transcript.trim();if(!txt||txt.includes('Tap mic')||txt==='Listening...'||txt.length<2)return alert('Speak first!');const title=document.getElementById('titleInput').value||txt.split(' ').slice(0,5).join(' ');const lang=detectLanguage(txt);notes.unshift({title,text:txt,date:new Date().toLocaleString(),lang:lang.name,code:lang.code,flag:lang.flag});saveAll();render();document.getElementById('titleInput').value='';setEmptyState();try{if(recognition)recognition.stop();}catch(e){}try{if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();}catch(e){}}
 
-function setEmptyState(){
-  box.classList.remove('has-text');
-  box.innerHTML='<i class="fa-solid fa-waveform-lines emptyIcon"></i><div class="emptyTxt">Tap mic to start</div>';
-  transcript=''; finalTranscriptLive=''; liveBadge.classList.remove('on');
-  detectedBadge.textContent='🌐 Ready'; detectedBadge.className='badge on'; detectedBadge.style.background='#eee'; detectedBadge.style.color='#666';
-  statusTxt.textContent=''; recBtn.innerHTML='<i class="fa-solid fa-microphone"></i> START RECORDING'; recBtn.classList.remove('rec'); isRec=false;
-}
-function loadVoices(){ voices=speechSynthesis.getVoices(); const sel=document.getElementById('voiceSelect'); if(voices.length){ sel.innerHTML=voices.map(v=>`<option value="${v.voiceURI}">${v.name} (${v.lang})</option>`).join(''); if(settings.voiceURI) sel.value=settings.voiceURI; } }
-speechSynthesis.onvoiceschanged=loadVoices; setTimeout(loadVoices,800);
-function saveAll(){localStorage.setItem('k_notes',JSON.stringify(notes)); localStorage.setItem('k_settings',JSON.stringify(settings));}
-function applySettings(){ document.body.classList.toggle('dark',settings.dark); document.getElementById('darkSwitch').classList.toggle('on',settings.dark); document.getElementById('autoSwitch').classList.toggle('on',settings.autoDetect); document.getElementById('fontSelect').value=settings.font; document.getElementById('speechLang').value=settings.speechLang; document.getElementById('translateTo').value=settings.translateTo; document.getElementById('speedRange').value=settings.speed; document.getElementById('pitchRange').value=settings.pitch; document.getElementById('speedVal').textContent=settings.speed; document.getElementById('pitchVal').textContent=settings.pitch; box.style.fontSize=settings.font; }
-function speakClear(text, forcedLang=null){ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(text); let langCode = forcedLang || settings.speechLang; if(langCode==='auto') langCode = detectLanguage(text).code; const langObj = LANGS.find(l=>l.code===langCode) || LANGS[1]; u.lang=langObj.tts||'en-US'; const voice=voices.find(v=>v.voiceURI===settings.voiceURI)||voices[0]; if(voice) u.voice=voice; u.rate=parseFloat(settings.speed); u.pitch=parseFloat(settings.pitch); speechSynthesis.speak(u); }
-
-function showDetectedRealTime(text){
-  const lang = detectLanguage(text);
-  detectedBadge.textContent = lang.flag+' '+lang.name;
-  detectedBadge.className='badge on';
-  detectedBadge.style.background='#6366f1'; detectedBadge.style.color='#fff';
-  if(lang.code!=='en' && lang.code!=='auto'){
-    detectedBadge.style.background='#10b981';
-  }
-}
-
-let recognitionActive=false;
-function createRecognition(){
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){ alert('Speech Recognition not supported in this browser. Use Chrome.'); return null; }
-  const rec=new SR();
-  rec.continuous=true; rec.interimResults=true; rec.lang='en-US';
-  rec.onstart=()=>{ recognitionActive=true; liveBadge.classList.add('on'); detectedBadge.textContent='🎙️ Listening...'; detectedBadge.className='badge on'; detectedBadge.style.background='#6366f1'; detectedBadge.style.color='#fff'; statusTxt.textContent='Listening... speak now'; box.classList.add('has-text'); if(!finalTranscriptLive) box.textContent=''; };
-  rec.onresult=(e)=>{
-    let interim=''; let finalPart='';
-    for(let i=e.resultIndex;i<e.results.length;i++){ const t=e.results[i][0].transcript; if(e.results[i].isFinal) finalPart+=t+' '; else interim+=t; }
-    if(e.results[e.results.length-1].isFinal) finalTranscriptLive+=finalPart;
-    const full = (finalTranscriptLive + interim).trim();
-    if(full){
-      box.textContent=full; transcript=full;
-      showDetectedRealTime(full);
-    }
-  };
-  rec.onerror=(e)=>{ console.log('SR error',e.error); if(e.error==='not-allowed') alert('Mic permission denied'); };
-  rec.onend=()=>{ recognitionActive=false; liveBadge.classList.remove('on'); if(isRec){ try{ rec.start(); }catch(err){} } };
-  return rec;
-}
-
-async function startMic(){
-  try{
-    if(!audioStream) audioStream=await navigator.mediaDevices.getUserMedia({audio:true});
-    let mime='audio/mp4'; if(MediaRecorder.isTypeSupported('audio/mp4')) mime='audio/mp4'; else if(MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) mime='audio/webm;codecs=opus';
-    mediaRecorder=new MediaRecorder(audioStream,{mimeType:mime}); audioChunks=[];
-    mediaRecorder.ondataavailable=e=>{ if(e.data.size>0) audioChunks.push(e.data); };
-    mediaRecorder.onstop=async()=>{
-      if(!transcript || transcript==='Listening...'){ const blob=new Blob(audioChunks,{type:mime}); const form=new FormData(); form.append('file',blob,mime.includes('mp4')?'recording.m4a':'recording.webm'); try{ statusTxt.textContent='Enhancing...'; const res=await fetch(settings.serverUrl+'/transcribe',{method:'POST',body:form}); const data=await res.json(); if(data.text){ transcript=data.text; box.textContent=data.text; showDetectedRealTime(data.text); } }catch(e){} }
-      statusTxt.textContent='';
-    };
-    return mediaRecorder;
-  }catch(e){ alert('Mic error: '+e.message); return null; }
-}
-
-recBtn.addEventListener('click',async()=>{
-  if(!isRec){
-    finalTranscriptLive=''; transcript=''; audioChunks=[];
-    box.textContent='Listening...'; box.classList.add('has-text');
-    const rec = await startMic(); if(!rec) return;
-    recognition = createRecognition(); if(!recognition) return;
-    try{ recognition.start(); }catch(e){ console.log(e); }
-    rec.start(100); isRec=true; recBtn.innerHTML='<i class="fa-solid fa-stop"></i> STOP'; recBtn.classList.add('rec');
+// NEW CONFIRM LOGIC
+function openConfirmDelete(index, isClearAll=false){
+  pendingDeleteIndex=index; pendingClearAll=isClearAll;
+  if(isClearAll){
+    document.querySelector('#confirmModal .confirmIcon').innerHTML='<i class="fa-solid fa-triangle-exclamation"></i>';
+    document.getElementById('confirmText').innerHTML=`<b>Delete all ${notes.length} notes?</b><br>This will permanently remove all your saved notes. This cannot be undone.`;
+    document.getElementById('confirmDelete').innerHTML='<i class="fa-solid fa-trash"></i> Yes, Delete All';
   }else{
-    isRec=false; try{ if(recognition) recognition.stop(); }catch(e){} try{ if(mediaRecorder && mediaRecorder.state==='recording') mediaRecorder.stop(); }catch(e){}
-    recBtn.innerHTML='<i class="fa-solid fa-microphone"></i> START RECORDING'; recBtn.classList.remove('rec'); liveBadge.classList.remove('on');
-    if(transcript && transcript!=='Listening...') statusTxt.textContent='Done - tap SAVE';
+    const note=notes[index];
+    document.querySelector('#confirmModal .confirmIcon').innerHTML='<i class="fa-solid fa-trash"></i>';
+    document.getElementById('confirmText').innerHTML=`Delete <b>"${note.title.substring(0,30)}"</b>?<br>This action cannot be undone.`;
+    document.getElementById('confirmDelete').innerHTML='<i class="fa-solid fa-trash"></i> Yes, Delete';
   }
+  confirmModal.style.display='flex';
+}
+document.getElementById('confirmCancel').addEventListener('click',()=>{ confirmModal.style.display='none'; pendingDeleteIndex=-1; pendingClearAll=false; });
+document.getElementById('confirmDelete').addEventListener('click',()=>{
+  if(pendingClearAll){ notes=[]; saveAll(); render(); modal.style.display='none'; }
+  else if(pendingDeleteIndex>=0){ notes.splice(pendingDeleteIndex,1); saveAll(); render(); }
+  confirmModal.style.display='none'; pendingDeleteIndex=-1; pendingClearAll=false;
 });
+confirmModal.addEventListener('click',(e)=>{ if(e.target===confirmModal) confirmModal.style.display='none'; });
 
-async function translateText(text,to){
-  try{ statusTxt.textContent='Translating...'; const res=await fetch(settings.serverUrl.replace(/\/$/,'')+'/translate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:text.substring(0,3000), to:to})}); const data=await res.json(); statusTxt.textContent=''; if(data.translated) return data.translated; return text; }catch(e){ statusTxt.textContent=''; return text; }
-}
-function saveNote(){
-  const txt=(box.innerText||'').trim()||transcript.trim(); if(!txt || txt.includes('Tap mic') || txt==='Listening...' || txt.length<2) return alert('Speak first!');
-  const title=document.getElementById('titleInput').value||txt.split(' ').slice(0,5).join(' '); const lang=detectLanguage(txt);
-  notes.unshift({title,text:txt,date:new Date().toLocaleString(),lang:lang.name,code:lang.code,flag:lang.flag}); saveAll(); render(); document.getElementById('titleInput').value=''; setEmptyState(); try{ if(recognition) recognition.stop(); }catch(e){} try{ if(mediaRecorder && mediaRecorder.state==='recording') mediaRecorder.stop(); }catch(e){}
-}
 document.getElementById('saveBtn').addEventListener('click',saveNote);
-document.getElementById('speakBtn').addEventListener('click',()=>{ const t=box.innerText.trim(); if(t && !t.includes('Tap mic') && t!=='Listening...') speakClear(t); });
-document.getElementById('translateBtn').addEventListener('click',()=>{ const t=box.innerText.trim(); if(!t || t.includes('Tap mic')) return alert('No text'); document.getElementById('origText').value=t; document.getElementById('fromLang').value='auto'; document.getElementById('toLang').value=settings.translateTo; transModal.style.display='flex'; });
-document.getElementById('doTranslateBtn').addEventListener('click',async()=>{ const orig=document.getElementById('origText').value; const to=document.getElementById('toLang').value; document.getElementById('transText').value='Translating...'; const tr=await translateText(orig,to); document.getElementById('transText').value=tr; });
-document.getElementById('speakTransBtn').addEventListener('click',()=>{ const txt=document.getElementById('transText').value; const to=document.getElementById('toLang').value; if(txt) speakClear(txt,to); });
-document.getElementById('saveTransBtn').addEventListener('click',()=>{ const txt=document.getElementById('transText').value; if(!txt) return; const lang=LANGS.find(l=>l.code===document.getElementById('toLang').value); notes.unshift({title:'Translated to '+lang.name,text:txt,date:new Date().toLocaleString(),lang:lang.name,code:lang.code,flag:lang.flag}); saveAll(); render(); transModal.style.display='none'; });
-function render(){ document.getElementById('count').textContent=notes.length; document.getElementById('notesList').innerHTML=notes.map((n,i)=>`<div class="note"><div style="display:flex;justify-content:space-between"><b>${n.flag||''} ${n.title}</b><small>${n.date}</small></div><small>${n.lang||''}</small><div style="margin-top:4px;white-space:pre-wrap">${n.text}</div><div class="noteActions"><button class="actBtn" data-edit="${i}">Edit</button><button class="actBtn" data-speak="${i}">Speak</button><button class="actBtn" data-trans="${i}">Translate</button><button class="actBtn" data-del="${i}" style="background:#fee2e2;color:#b91c1c">Delete</button></div></div>`).join(''); document.querySelectorAll('[data-del]').forEach(el=>el.addEventListener('click',()=>{ if(confirm('Delete?')){ notes.splice(parseInt(el.dataset.del),1); saveAll(); render(); }})); document.querySelectorAll('[data-speak]').forEach(el=>el.addEventListener('click',()=>{ const nn=notes[parseInt(el.dataset.speak)]; speakClear(nn.text,nn.code); })); document.querySelectorAll('[data-trans]').forEach(el=>el.addEventListener('click',()=>{ const nn=notes[parseInt(el.dataset.trans)]; document.getElementById('origText').value=nn.text; document.getElementById('toLang').value=settings.translateTo; transModal.style.display='flex'; })); document.querySelectorAll('[data-edit]').forEach(el=>el.addEventListener('click',()=>{ const idx=parseInt(el.dataset.edit); editingIndex=idx; document.getElementById('editTitle').value=notes[idx].title; document.getElementById('editText').value=notes[idx].text; document.getElementById('editLang').value=notes[idx].code||'en'; editModal.style.display='flex'; })); }
-document.getElementById('openSetBtn').addEventListener('click',()=>modal.style.display='flex'); document.getElementById('closeSetBtn').addEventListener('click',()=>modal.style.display='none'); document.getElementById('closeEditBtn').addEventListener('click',()=>editModal.style.display='none'); document.getElementById('cancelEditBtn').addEventListener('click',()=>editModal.style.display='none'); document.getElementById('closeTranslateBtn').addEventListener('click',()=>transModal.style.display='none'); document.getElementById('saveEditBtn').addEventListener('click',()=>{ if(editingIndex>=0){ notes[editingIndex].title=document.getElementById('editTitle').value; notes[editingIndex].text=document.getElementById('editText').value; const lang=LANGS.find(l=>l.code===document.getElementById('editLang').value); notes[editingIndex].code=lang.code; notes[editingIndex].lang=lang.name; notes[editingIndex].flag=lang.flag; notes[editingIndex].date=new Date().toLocaleString()+' (edited)'; saveAll(); render(); editModal.style.display='none'; }}); document.getElementById('doEditTranslate').addEventListener('click',async()=>{ const to=document.getElementById('editTranslateTo').value; const orig=document.getElementById('editText').value; document.getElementById('editText').value='Translating...'; const tr=await translateText(orig,to); document.getElementById('editText').value=tr; document.getElementById('editLang').value=to; }); document.getElementById('voiceSelect').addEventListener('change',e=>{ settings.voiceURI=e.target.value; saveAll(); }); document.getElementById('speechLang').addEventListener('change',e=>{ settings.speechLang=e.target.value; saveAll(); }); document.getElementById('translateTo').addEventListener('change',e=>{ settings.translateTo=e.target.value; saveAll(); }); document.getElementById('fontSelect').addEventListener('change',e=>{ settings.font=e.target.value; box.style.fontSize=settings.font; saveAll(); }); document.getElementById('speedRange').addEventListener('input',e=>{ settings.speed=e.target.value; document.getElementById('speedVal').textContent=e.target.value; saveAll(); }); document.getElementById('pitchRange').addEventListener('input',e=>{ settings.pitch=e.target.value; document.getElementById('pitchVal').textContent=e.target.value; saveAll(); }); document.getElementById('darkSwitch').addEventListener('click',()=>{ settings.dark=!settings.dark; document.body.classList.toggle('dark',settings.dark); document.getElementById('darkSwitch').classList.toggle('on',settings.dark); saveAll(); }); document.getElementById('autoSwitch').addEventListener('click',()=>{ settings.autoDetect=!settings.autoDetect; document.getElementById('autoSwitch').classList.toggle('on',settings.autoDetect); saveAll(); }); document.getElementById('clearBtn').addEventListener('click',()=>{ if(confirm('Clear all?')){ notes=[]; saveAll(); render(); modal.style.display='none'; }}); document.getElementById('exportPdfBtn').addEventListener('click',()=>{ if(!notes.length) return alert('No notes'); const {jsPDF}=window.jspdf; const doc=new jsPDF(); doc.setFontSize(14); doc.text("KrateNote Notes",10,15); let y=25; notes.forEach((n,i)=>{ doc.setFontSize(11); doc.setFont(undefined,'bold'); doc.text(`${i+1}. ${n.title} [${n.lang||''}]`,10,y); y+=6; doc.setFont(undefined,'normal'); const lines=doc.splitTextToSize(n.text,180); if(y+lines.length*6>280){ doc.addPage(); y=15; } doc.text(lines,10,y); y+=lines.length*6+10; }); doc.save('KrateNote.pdf'); }); document.getElementById('exportTxtBtn').addEventListener('click',()=>{ const txt=notes.map(n=>`${n.title}\n${n.date}\n${n.text}\n`).join('\n---\n\n'); const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([txt])); a.download='KrateNote.txt'; a.click(); }); fillLangSelects(); applySettings(); setEmptyState(); render();
+document.getElementById('speakBtn').addEventListener('click',()=>{const t=box.innerText.trim();if(t&&!t.includes('Tap mic')&&t!=='Listening...')speakClear(t);});
+document.getElementById('translateBtn').addEventListener('click',()=>{const t=box.innerText.trim();if(!t||t.includes('Tap mic'))return alert('No text');document.getElementById('origText').value=t;document.getElementById('fromLang').value='auto';document.getElementById('toLang').value=settings.translateTo;transModal.style.display='flex';});
+document.getElementById('doTranslateBtn').addEventListener('click',async()=>{const orig=document.getElementById('origText').value;const to=document.getElementById('toLang').value;document.getElementById('transText').value='Translating...';const tr=await translateText(orig,to);document.getElementById('transText').value=tr;});
+document.getElementById('speakTransBtn').addEventListener('click',()=>{const txt=document.getElementById('transText').value;const to=document.getElementById('toLang').value;if(txt)speakClear(txt,to);});
+document.getElementById('saveTransBtn').addEventListener('click',()=>{const txt=document.getElementById('transText').value;if(!txt)return;const lang=LANGS.find(l=>l.code===document.getElementById('toLang').value);notes.unshift({title:'Translated to '+lang.name,text:txt,date:new Date().toLocaleString(),lang:lang.name,code:lang.code,flag:lang.flag});saveAll();render();transModal.style.display='none';});
+function render(){
+  document.getElementById('count').textContent=notes.length;
+  document.getElementById('notesList').innerHTML=notes.map((n,i)=>`
+    <div class="note">
+      <div style="display:flex;justify-content:space-between"><b>${n.flag||''} ${n.title}</b><small>${n.date}</small></div>
+      <small style="opacity:.6">${n.lang||''}</small>
+      <div style="margin-top:6px;white-space:pre-wrap">${n.text}</div>
+      <div class="noteActions">
+        <button class="actBtn edit" data-edit="${i}"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
+        <button class="actBtn speak" data-speak="${i}"><i class="fa-solid fa-volume-high"></i> Speak</button>
+        <button class="actBtn trans" data-trans="${i}"><i class="fa-solid fa-language"></i> Translate</button>
+        <button class="actBtn del" data-del="${i}"><i class="fa-solid fa-trash"></i> Delete</button>
+      </div>
+    </div>`).join('') || '<div style="text-align:center;padding:20px;opacity:.4"><i class="fa-solid fa-inbox" style="font-size:32px;display:block;margin-bottom:8px"></i>No notes yet</div>';
+  document.querySelectorAll('[data-del]').forEach(el=>el.addEventListener('click',()=>{ openConfirmDelete(parseInt(el.dataset.del),false); }));
+  document.querySelectorAll('[data-speak]').forEach(el=>el.addEventListener('click',()=>{ const nn=notes[parseInt(el.dataset.speak)]; speakClear(nn.text,nn.code); }));
+  document.querySelectorAll('[data-trans]').forEach(el=>el.addEventListener('click',()=>{ const nn=notes[parseInt(el.dataset.trans)]; document.getElementById('origText').value=nn.text; document.getElementById('toLang').value=settings.translateTo; transModal.style.display='flex'; }));
+  document.querySelectorAll('[data-edit]').forEach(el=>el.addEventListener('click',()=>{ const idx=parseInt(el.dataset.edit); editingIndex=idx; document.getElementById('editTitle').value=notes[idx].title; document.getElementById('editText').value=notes[idx].text; document.getElementById('editLang').value=notes[idx].code||'en'; editModal.style.display='flex'; }));
+}
+document.getElementById('openSetBtn').addEventListener('click',()=>modal.style.display='flex');
+document.getElementById('closeSetBtn').addEventListener('click',()=>modal.style.display='none');
+document.getElementById('closeEditBtn').addEventListener('click',()=>editModal.style.display='none');
+document.getElementById('cancelEditBtn').addEventListener('click',()=>editModal.style.display='none');
+document.getElementById('closeTranslateBtn').addEventListener('click',()=>transModal.style.display='none');
+document.getElementById('saveEditBtn').addEventListener('click',()=>{ if(editingIndex>=0){ notes[editingIndex].title=document.getElementById('editTitle').value; notes[editingIndex].text=document.getElementById('editText').value; const lang=LANGS.find(l=>l.code===document.getElementById('editLang').value); notes[editingIndex].code=lang.code; notes[editingIndex].lang=lang.name; notes[editingIndex].flag=lang.flag; notes[editingIndex].date=new Date().toLocaleString()+' (edited)'; saveAll(); render(); editModal.style.display='none'; }});
+document.getElementById('doEditTranslate').addEventListener('click',async()=>{ const to=document.getElementById('editTranslateTo').value; const orig=document.getElementById('editText').value; document.getElementById('editText').value='Translating...'; const tr=await translateText(orig,to); document.getElementById('editText').value=tr; document.getElementById('editLang').value=to; });
+document.getElementById('voiceSelect').addEventListener('change',e=>{ settings.voiceURI=e.target.value; saveAll(); });
+document.getElementById('speechLang').addEventListener('change',e=>{ settings.speechLang=e.target.value; saveAll(); });
+document.getElementById('translateTo').addEventListener('change',e=>{ settings.translateTo=e.target.value; saveAll(); });
+document.getElementById('fontSelect').addEventListener('change',e=>{ settings.font=e.target.value; box.style.fontSize=settings.font; saveAll(); });
+document.getElementById('speedRange').addEventListener('input',e=>{ settings.speed=e.target.value; document.getElementById('speedVal').textContent=e.target.value; saveAll(); });
+document.getElementById('pitchRange').addEventListener('input',e=>{ settings.pitch=e.target.value; document.getElementById('pitchVal').textContent=e.target.value; saveAll(); });
+document.getElementById('darkSwitch').addEventListener('click',()=>{ settings.dark=!settings.dark; document.body.classList.toggle('dark',settings.dark); document.getElementById('darkSwitch').classList.toggle('on',settings.dark); saveAll(); });
+document.getElementById('autoSwitch').addEventListener('click',()=>{ settings.autoDetect=!settings.autoDetect; document.getElementById('autoSwitch').classList.toggle('on',settings.autoDetect); saveAll(); });
+document.getElementById('clearBtn').addEventListener('click',()=>{ if(notes.length===0) return alert('No notes'); openConfirmDelete(-1,true); });
+document.getElementById('exportPdfBtn').addEventListener('click',()=>{ if(!notes.length) return alert('No notes'); const {jsPDF}=window.jspdf; const doc=new jsPDF(); doc.setFontSize(14); doc.text("KrateNote Notes",10,15); let y=25; notes.forEach((n,i)=>{ doc.setFontSize(11); doc.setFont(undefined,'bold'); doc.text(`${i+1}. ${n.title} [${n.lang||''}]`,10,y); y+=6; doc.setFont(undefined,'normal'); const lines=doc.splitTextToSize(n.text,180); if(y+lines.length*6>280){ doc.addPage(); y=15; } doc.text(lines,10,y); y+=lines.length*6+10; }); doc.save('KrateNote.pdf'); });
+document.getElementById('exportTxtBtn').addEventListener('click',()=>{ const txt=notes.map(n=>`${n.title}\n${n.date}\n${n.text}\n`).join('\n---\n\n'); const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([txt])); a.download='KrateNote.txt'; a.click(); });
+fillLangSelects(); applySettings(); setEmptyState(); render();
 </script>
 </body>
 </html>
