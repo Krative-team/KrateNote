@@ -1,11 +1,18 @@
 import os
+import json
+import hashlib
+from datetime import datetime, timedelta
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
 
+# ===== CONFIG =====
 GROQ_KEY = os.environ.get("GROQ_API_KEY", "").strip()
+SECRET = os.environ.get("SECRET_KEY", "kratenote-secret-2025-super")
+USERS_FILE = "users.json"
+
 client = None
 if GROQ_KEY:
     try:
@@ -17,17 +24,123 @@ if GROQ_KEY:
         import traceback
         traceback.print_exc()
 
+# ===== USER DB HELPERS =====
+def load_users():
+    if not os.path.exists(USERS_FILE):
+        return {}
+    try:
+        return json.loads(open(USERS_FILE, 'r').read())
+    except:
+        return {}
+
+def save_users(users):
+    with open(USERS_FILE, 'w') as f:
+        json.dump(users, f, indent=2)
+
+def hash_pw(pw):
+    return hashlib.sha256(pw.encode()).hexdigest()
+
+# ===== HOME =====
 @app.route("/", methods=["GET"])
 def home():
     return jsonify({
-        "status": "KrateNote Online",
+        "status": "KrateNote Online V8.7",
         "groq_ready": client is not None,
         "key_exists": bool(GROQ_KEY),
         "key_len": len(GROQ_KEY),
         "translate": True,
-        "model": "openai/gpt-oss-20b + dictionary"
+        "auth": True,
+        "model": "openai/gpt-oss-20b + dictionary",
+        "users_count": len(load_users())
     })
 
+# ===== AUTH ROUTES =====
+@app.route("/register", methods=["POST", "OPTIONS"])
+def register():
+    if request.method == "OPTIONS":
+        return "", 200
+    data = request.get_json() or {}
+    email = data.get("email","").lower().strip()
+    name = data.get("name","").strip()
+    password = data.get("password","")
+
+    if not email or "@" not in email:
+        return jsonify({"error": "Valid email required"}), 400
+    if not name:
+        return jsonify({"error": "Name required"}), 400
+    if not password or len(password) < 6:
+        return jsonify({"error": "Password must be at least 6 characters"}), 400
+
+    users = load_users()
+    if email in users:
+        return jsonify({"error": "Email already registered. Please login"}), 400
+
+    users[email] = {
+        "name": name,
+        "email": email,
+        "pw": hash_pw(password),
+        "created": datetime.now().isoformat()
+    }
+    save_users(users)
+    print(f"New user registered: {email}")
+    return jsonify({"message": "Account created! Please login", "email": email})
+
+@app.route("/login", methods=["POST", "OPTIONS"])
+def login():
+    if request.method == "OPTIONS":
+        return "", 200
+    data = request.get_json() or {}
+    email = data.get("email","").lower().strip()
+    password = data.get("password","")
+
+    if not email or not password:
+        return jsonify({"error": "Email and password required"}), 400
+
+    users = load_users()
+    if email not in users:
+        return jsonify({"error": "Account not found. Please register"}), 401
+    
+    if users[email]["pw"] != hash_pw(password):
+        return jsonify({"error": "Invalid password"}), 401
+
+    # Create JWT token - 7 days
+    try:
+        import jwt
+        payload = {
+            "email": email,
+            "name": users[email]["name"],
+            "exp": datetime.utcnow() + timedelta(days=7)
+        }
+        token = jwt.encode(payload, SECRET, algorithm="HS256")
+    except ImportError:
+        # Fallback if PyJWT not installed - simple token
+        token = hashlib.sha256(f"{email}{SECRET}{datetime.now()}".encode()).hexdigest()
+
+    print(f"User login: {email}")
+    return jsonify({
+        "token": token,
+        "name": users[email]["name"],
+        "email": email,
+        "message": "Login successful"
+    })
+
+@app.route("/me", methods=["GET", "OPTIONS"])
+def me():
+    if request.method == "OPTIONS":
+        return "", 200
+    # Optional: verify token
+    auth = request.headers.get("Authorization","")
+    if not auth.startswith("Bearer "):
+        return jsonify({"error": "No token"}), 401
+    token = auth.replace("Bearer ","")
+    try:
+        import jwt
+        decoded = jwt.decode(token, SECRET, algorithms=["HS256"])
+        return jsonify({"email": decoded["email"], "name": decoded.get("name","User")})
+    except Exception as e:
+        return jsonify({"error": "Invalid token", "details": str(e)}), 401
+
+# ===== TRANSCRIBE =====
 @app.route("/transcribe", methods=["POST", "OPTIONS"])
 def transcribe():
     if request.method == "OPTIONS":
@@ -46,8 +159,10 @@ def transcribe():
         )
         return jsonify({"text": transcription.text, "language": getattr(transcription, 'language', 'en')})
     except Exception as e:
+        print(f"Transcribe error: {e}")
         return jsonify({"error": str(e)}), 500
 
+# ===== TRANSLATE =====
 @app.route("/translate", methods=["POST", "OPTIONS"])
 def translate():
     if request.method == "OPTIONS":
@@ -115,7 +230,6 @@ Translate to Efik. Only return translation."""
         system_prompt = f"You are a professional translator. Translate to {target}. Only return translation, no explanation."
 
     try:
-        # First try with 20b
         comp = client.chat.completions.create(
             model="openai/gpt-oss-20b",
             messages=[
@@ -127,7 +241,6 @@ Translate to Efik. Only return translation."""
         )
         translated = comp.choices[0].message.content.strip()
         
-        # If model says it can't translate Ibibio/Efik, try bigger model
         if to_code in ["ibb","efi"] and ("cannot" in translated.lower() or "sorry" in translated.lower() or len(translated) < 5):
             comp = client.chat.completions.create(
                 model="openai/gpt-oss-120b",
@@ -143,7 +256,6 @@ Translate to Efik. Only return translation."""
         return jsonify({"translated": translated, "to": to_code})
     except Exception as e:
         print(f"Translate error: {e}")
-        # Try fallback to 120b on error
         try:
             comp = client.chat.completions.create(
                 model="openai/gpt-oss-120b",
