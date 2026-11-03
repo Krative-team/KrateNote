@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>KrateNote V12 - Sub Record</title>
+<title>KrateNote V12.3 - Final</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
@@ -24,7 +24,9 @@
   .noteActions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
   .actBtn{padding:7px 11px;border-radius:8px;font-size:12px;border:none;display:inline-flex;gap:5px;align-items:center;cursor:pointer}
   .actBtn.edit{background:#e0e7ff;color:#3730a3} .actBtn.speak{background:#dcfce7;color:#166534} .actBtn.del{background:#fee2e2;color:#991b1b} .actBtn.pdf{background:#ede9fe;color:#5b21b6} .actBtn.share{background:#d1fae5;color:#065f46} .actBtn.sub{background:#fef9c3;color:#854d0e}
-  .subNote{margin-top:8px;padding:8px 10px;background:var(--card);border-radius:8px;border-left:3px solid #6366f1;font-size:13px}
+  .subNote{margin-top:10px;padding:10px 12px;background:var(--card);border-radius:8px;border-left:3px solid #6366f1}
+  .subNote-header{font-weight:700;font-size:14px;color:var(--text);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+  .subNote-content{font-size:13px;line-height:20px;white-space:pre-wrap;opacity:.9}
   .toolbar{display:flex;gap:6px;margin:10px 0 8px} .searchBox{position:relative;flex:1} .searchBox i{position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:.4;font-size:12px} .searchBox input{padding-left:28px;margin:0}
   .suggestions{position:absolute;top:100%;left:0;right:0;background:var(--card);border-radius:10px;box-shadow:0 10px 25px rgba(0,0,0,.18);z-index:30;display:none;max-height:200px;overflow:auto;border:1px solid var(--muted);margin-top:4px}
   .suggestions.on{display:block} .sugItem{padding:10px 12px;cursor:pointer;font-size:13px;display:flex;justify-content:space-between;align-items:center} .sugItem:hover{background:var(--box)}
@@ -32,7 +34,7 @@
   .modalBox{background:var(--card);width:100%;max-width:560px;border-radius:16px;padding:18px;max-height:90vh;overflow:auto;animation:pop .25s ease}
   @keyframes pop{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
   .confirmIcon{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 12px}
-  .confirmIcon.delete{background:#fee2e2;color:#dc2626} .confirmIcon.logout{background:#fef3c7;color:#d97706}
+  .confirmIcon.delete{background:#fee2e2;color:#dc2626} .confirmIcon.logout{background:#fef3c7;color:#d97706} .confirmIcon.sub{background:#fef9c3;color:#a16207}
   .row{display:flex;justify-content:space-between;align-items:center;margin:12px 0}
   .switch{width:46px;height:28px;background:#ccc;border-radius:20px;position:relative;cursor:pointer} .switch.on{background:var(--primary)} .dot{width:24px;height:24px;background:#fff;border-radius:50%;position:absolute;top:2px;left:2px;transition:.2s} .switch.on .dot{left:20px}
   label{font-size:13px;font-weight:600;margin:8px 0 4px;display:block;opacity:.8}
@@ -80,13 +82,15 @@
 <div style="display:flex;gap:6px;margin-top:12px"><button class="full" id="saveEditBtn" style="background:var(--primary);color:var(--bg)"><i class="fa-solid fa-check"></i> Save</button><button class="full" id="cancelEditBtn" style="background:var(--muted)"><i class="fa-solid fa-xmark"></i> Cancel</button></div></div></div>
 
 <div id="subModal"><div class="modalBox" style="max-width:420px"><div style="display:flex;justify-content:space-between"><h3><i class="fa-solid fa-list-ul"></i> Add Sub-Topic</h3><button class="iconBtn" id="closeSubBtn"><i class="fa-solid fa-xmark"></i></button></div>
-<label>Sub Title</label><input id="subTitle" placeholder="e.g. Key Point 1">
-<label>Sub Note - Type or Record</label><div id="subTranscript" contenteditable="true" placeholder="Type manually or tap record..."></div>
+<label>Sub Title (becomes bold sub-header)</label><input id="subTitle" placeholder="e.g. Introduction, Methodology">
+<label>Sub Note - Type bullets or Record</label><div id="subTranscript" contenteditable="true" placeholder="Type like: 1. Point one&#10;2. Point two&#10;Or record..."></div>
 <div style="display:flex;gap:6px;margin-bottom:10px"><button class="subRecBtn" id="subRecBtn"><i class="fa-solid fa-microphone"></i> Record Sub</button><span id="subStatus" style="font-size:11px;color:#6366f1;display:flex;align-items:center"></span></div>
 <button class="full" id="saveSubBtn" style="background:var(--primary);color:var(--bg)"><i class="fa-solid fa-plus"></i> Add Sub-Topic</button></div></div>
 
 <div id="translateModal"><div class="modalBox"><div style="display:flex;justify-content:space-between"><h3>Translate</h3><button class="iconBtn" id="closeTranslateBtn"><i class="fa-solid fa-xmark"></i></button></div><label>From</label><select id="fromLang"></select><label>To</label><select id="toLang"></select><label>Original</label><textarea id="origText" rows="4"></textarea><label>Translated</label><textarea id="transText" rows="4"></textarea><div style="display:flex;gap:6px"><button class="full" id="doTranslateBtn" style="background:var(--primary);color:var(--bg)">Translate</button><button class="full" id="speakTransBtn" style="background:var(--muted)"><i class="fa-solid fa-volume-high"></i> Speak</button></div><button class="full" id="saveTransBtn" style="background:#e0e7ff;color:#1e1b4b;margin-top:6px"><i class="fa-solid fa-floppy-disk"></i> Save</button></div></div>
-<div id="confirmModal"><div class="modalBox" style="max-width:380px;text-align:center"><div class="confirmIcon delete"><i class="fa-solid fa-trash"></i></div><h3>Delete Note?</h3><p id="confirmText" style="font-size:14px;opacity:.7;margin:0 0 16px"></p><div style="display:flex;gap:8px"><button class="full" id="confirmCancel" style="background:var(--muted)"><i class="fa-solid fa-xmark"></i> Cancel</button><button class="full" id="confirmDelete" style="background:#dc2626;color:#fff"><i class="fa-solid fa-trash"></i> Yes, Delete</button></div></div></div>
+
+<div id="confirmModal"><div class="modalBox" style="max-width:380px;text-align:center"><div class="confirmIcon delete"><i class="fa-solid fa-trash"></i></div><h3 id="confirmTitle">Delete Note?</h3><p id="confirmText" style="font-size:14px;opacity:.7;margin:0 0 16px"></p><div style="display:flex;gap:8px"><button class="full" id="confirmCancel" style="background:var(--muted)"><i class="fa-solid fa-xmark"></i> Cancel</button><button class="full" id="confirmDelete" style="background:#dc2626;color:#fff"><i class="fa-solid fa-trash"></i> Yes, Delete</button></div></div></div>
+
 <div id="logoutModal"><div class="modalBox" style="max-width:380px;text-align:center"><div class="confirmIcon logout"><i class="fa-solid fa-right-from-bracket"></i></div><h3>Logout from KrateNote?</h3><p style="font-size:14px;opacity:.7;margin:0 0 6px">You will need to login again.</p><div style="background:var(--box);border-radius:10px;padding:10px;margin:12px 0;display:flex;align-items:center;gap:10px;text-align:left"><div style="width:36px;height:36px;border-radius:50%;background:#6366f1;color:#fff;display:flex;align-items:center;justify-content:center"><i class="fa-solid fa-user"></i></div><div><b id="logoutName"></b><br><small id="logoutEmail" style="opacity:.6;font-size:11px"></small></div></div><div style="display:flex;gap:8px"><button class="full" id="logoutCancel" style="background:var(--muted)"><i class="fa-solid fa-xmark"></i> Stay</button><button class="full" id="logoutConfirm" style="background:#111;color:#fff"><i class="fa-solid fa-right-from-bracket"></i> Yes, Logout</button></div></div></div>
 
 <script>
@@ -107,7 +111,7 @@ logoutModal.addEventListener('click',(e)=>{ if(e.target===logoutModal) logoutMod
 const LANGS=[{code:'auto',name:'Auto',flag:'🌐',tts:'en-US'},{code:'en',name:'English',flag:'🇬🇧',tts:'en-US'},{code:'ibb',name:'Ibibio',flag:'🇳🇬',tts:'en-NG'},{code:'efi',name:'Efik',flag:'🇳🇬',tts:'en-NG'},{code:'ha',name:'Hausa',flag:'🇳🇬',tts:'ha-NG'},{code:'yo',name:'Yoruba',flag:'🇳🇬',tts:'yo-NG'},{code:'ig',name:'Igbo',flag:'🇳🇬',tts:'ig-NG'},{code:'pcm',name:'Pidgin',flag:'🇳🇬',tts:'en-NG'},{code:'fr',name:'French',flag:'🇫🇷',tts:'fr-FR'},{code:'es',name:'Spanish',flag:'🇪🇸',tts:'es-ES'},{code:'de',name:'German',flag:'🇩🇪',tts:'de-DE'},{code:'pt',name:'Portuguese',flag:'🇵🇹',tts:'pt-PT'},{code:'it',name:'Italian',flag:'🇮🇹',tts:'it-IT'},{code:'nl',name:'Dutch',flag:'🇳🇱',tts:'nl-NL'},{code:'ar',name:'Arabic',flag:'🇸🇦',tts:'ar-SA'},{code:'zh',name:'Chinese',flag:'🇨🇳',tts:'zh-CN'},{code:'ja',name:'Japanese',flag:'🇯🇵',tts:'ja-JP'},{code:'ko',name:'Korean',flag:'🇰🇷',tts:'ko-KR'},{code:'ru',name:'Russian',flag:'🇷🇺',tts:'ru-RU'},{code:'hi',name:'Hindi',flag:'🇮🇳',tts:'hi-IN'},{code:'sw',name:'Swahili',flag:'🇰🇪',tts:'sw-KE'},{code:'zu',name:'Zulu',flag:'🇿🇦',tts:'zu-ZA'},{code:'am',name:'Amharic',flag:'🇪🇹',tts:'am-ET'},{code:'tr',name:'Turkish',flag:'🇹🇷',tts:'tr-TR'},{code:'el',name:'Greek',flag:'🇬🇷',tts:'el-GR'},{code:'he',name:'Hebrew',flag:'🇮🇱',tts:'he-IL'},{code:'sv',name:'Swedish',flag:'🇸🇪',tts:'sv-SE'},{code:'no',name:'Norwegian',flag:'🇳🇴',tts:'nb-NO'},{code:'pl',name:'Polish',flag:'🇵🇱',tts:'pl-PL'},{code:'id',name:'Indonesian',flag:'🇮🇩',tts:'id-ID'},{code:'th',name:'Thai',flag:'🇹🇭',tts:'th-TH'}];
 function fillLangSelects(){const opts=LANGS.map(l=>`<option value="${l.code}">${l.flag} ${l.name}</option>`).join('');const optsNoAuto=LANGS.filter(l=>l.code!=='auto').map(l=>`<option value="${l.code}">${l.flag} ${l.name}</option>`).join('');document.getElementById('speechLang').innerHTML=opts;document.getElementById('translateTo').innerHTML=optsNoAuto;document.getElementById('fromLang').innerHTML=opts;document.getElementById('toLang').innerHTML=optsNoAuto;document.getElementById('editLang').innerHTML=optsNoAuto;document.getElementById('editTranslateTo').innerHTML=optsNoAuto;}
 function detectLanguage(text){const t=(text||'').toLowerCase();if(!t.trim())return LANGS[0];if(/(mmesiere|mma|nsido|idem|ufok|nwed|sosongo|eti|yak|mfin)/.test(t))return LANGS.find(l=>l.code==='ibb');if(/(emem|mokomor|efi|sosongho)/.test(t))return LANGS.find(l=>l.code==='efi');if(/(sannu|ina kwana|hausa)/.test(t))return LANGS.find(l=>l.code==='ha');if(/(bawo|kaaro|yoruba)/.test(t))return LANGS.find(l=>l.code==='yo');if(/(kedu|ndewo|igbo)/.test(t))return LANGS.find(l=>l.code==='ig');if(/(how una dey|wetin|na so|abi|shebi)/.test(t))return LANGS.find(l=>l.code==='pcm');if(/(bonjour|merci)/.test(t))return LANGS.find(l=>l.code==='fr');if(/(hola|gracias)/.test(t))return LANGS.find(l=>l.code==='es');return LANGS.find(l=>l.code==='en');}
-let isRec=false,mediaRecorder=null,audioChunks=[],transcript='',notes=[],audioStream=null,editingIndex=-1,pendingDeleteIndex=-1,pendingClearAll=false,subParentIndex=-1;
+let isRec=false,mediaRecorder=null,audioChunks=[],transcript='',notes=[],audioStream=null,editingIndex=-1,pendingDeleteIndex=-1,pendingClearAll=false,subParentIndex=-1,pendingSubParent=-1,pendingSubIndex=-1;
 let settings={dark:false,font:'17px',voiceURI:'',serverUrl:'https://kratenote-1.onrender.com',speed:0.9,pitch:1,speechLang:'auto',translateTo:'en',autoDetect:true};
 let showAll=false, searchQuery='', sortBy='newest';
 try{const userEmail = user?.email || 'guest'; notes=JSON.parse(localStorage.getItem('k_notes_'+userEmail)||localStorage.getItem('k_notes')||'[]'); const s=JSON.parse(localStorage.getItem('k_settings')||'{}');settings={...settings,...s};}catch(e){}
@@ -127,10 +131,51 @@ async function startMic(){try{if(!audioStream)audioStream=await navigator.mediaD
 recBtn.addEventListener('click',async()=>{if(!isRec){finalTranscriptLive='';transcript='';audioChunks=[];box.textContent='Listening...';box.classList.add('has-text');const rec=await startMic();if(!rec)return;recognition=createRecognition();if(!recognition)return;try{recognition.start();}catch(e){}rec.start(100);isRec=true;recBtn.innerHTML='<i class="fa-solid fa-stop"></i> STOP';recBtn.classList.add('rec');}else{isRec=false;try{if(recognition)recognition.stop();}catch(e){}try{if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();}catch(e){}recBtn.innerHTML='<i class="fa-solid fa-microphone"></i> START RECORDING';recBtn.classList.remove('rec');liveBadge.classList.remove('on');if(transcript&&transcript!=='Listening...')statusTxt.textContent='Done - tap SAVE';}});
 async function translateText(text,to){try{statusTxt.textContent='Translating...';const res=await fetch(settings.serverUrl.replace(/\/$/,'')+'/translate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:text.substring(0,3000),to:to})});const data=await res.json();statusTxt.textContent='';if(data.translated)return data.translated;return text;}catch(e){statusTxt.textContent='';return text;}}
 function saveNote(){const txt=(box.innerText||'').trim()||transcript.trim();if(!txt||txt.includes('Tap mic')||txt==='Listening...'||txt.length<2)return alert('Type or record something first!');const title=document.getElementById('titleInput').value||txt.split(' ').slice(0,5).join(' ');const lang=detectLanguage(txt);notes.unshift({title,text:txt,date:new Date().toLocaleString(),lang:lang.name,code:lang.code,flag:lang.flag, ts: Date.now(), subs:[]});saveAll();render();document.getElementById('titleInput').value='';setEmptyState();}
-function openConfirmDelete(index,isClearAll=false){pendingDeleteIndex=index;pendingClearAll=isClearAll;if(isClearAll){document.querySelector('#confirmModal .confirmIcon').innerHTML='<i class="fa-solid fa-triangle-exclamation"></i>';document.getElementById('confirmText').innerHTML=`<b>Delete all ${notes.length} notes?</b><br>This will permanently remove all your saved notes.`;document.getElementById('confirmDelete').innerHTML='<i class="fa-solid fa-trash"></i> Yes, Delete All';}else{const note=notes[index];document.querySelector('#confirmModal .confirmIcon').innerHTML='<i class="fa-solid fa-trash"></i>';document.getElementById('confirmText').innerHTML=`Delete <b>"${note.title.substring(0,30)}"</b>?`;document.getElementById('confirmDelete').innerHTML='<i class="fa-solid fa-trash"></i> Yes, Delete';}confirmModal.style.display='flex';}
-document.getElementById('confirmCancel').addEventListener('click',()=>{confirmModal.style.display='none';pendingDeleteIndex=-1;pendingClearAll=false;});
-document.getElementById('confirmDelete').addEventListener('click',()=>{if(pendingClearAll){notes=[];saveAll();render();modal.style.display='none';}else if(pendingDeleteIndex>=0){notes.splice(pendingDeleteIndex,1);saveAll();render();}confirmModal.style.display='none';pendingDeleteIndex=-1;pendingClearAll=false;});
-confirmModal.addEventListener('click',(e)=>{if(e.target===confirmModal)confirmModal.style.display='none';});
+function openConfirmDelete(index,isClearAll=false){
+  pendingDeleteIndex=index;pendingClearAll=isClearAll;pendingSubParent=-1;pendingSubIndex=-1;
+  const icon=document.querySelector('#confirmModal .confirmIcon');
+  const title=document.getElementById('confirmTitle');
+  icon.className='confirmIcon delete'; icon.innerHTML='<i class="fa-solid fa-trash"></i>'; title.textContent='Delete Note?';
+  if(isClearAll){
+    document.getElementById('confirmText').innerHTML=`<b>Delete all ${notes.length} notes?</b><br>This will permanently remove all your saved notes.`;
+    document.getElementById('confirmDelete').innerHTML='<i class="fa-solid fa-trash"></i> Yes, Delete All';
+  }else{
+    const note=notes[index];
+    document.getElementById('confirmText').innerHTML=`Delete <b>"${note.title.substring(0,30)}"</b>?`;
+    document.getElementById('confirmDelete').innerHTML='<i class="fa-solid fa-trash"></i> Yes, Delete';
+  }
+  confirmModal.style.display='flex';
+}
+function openConfirmSubDelete(parentIdx, subIdx){
+  pendingSubParent=parentIdx; pendingSubIndex=subIdx;
+  pendingDeleteIndex=-1; pendingClearAll=false;
+  const sub = notes[parentIdx].subs[subIdx];
+  const icon=document.querySelector('#confirmModal .confirmIcon');
+  icon.className='confirmIcon sub'; icon.innerHTML='<i class="fa-solid fa-list-ul"></i>';
+  document.getElementById('confirmTitle').textContent='Remove Sub-topic?';
+  document.getElementById('confirmText').innerHTML=`Remove sub-topic <b>"${sub.title.substring(0,30)}"</b>?<br><small>This cannot be undone.</small>`;
+  document.getElementById('confirmDelete').innerHTML='<i class="fa-solid fa-trash"></i> Yes, Remove';
+  confirmModal.style.display='flex';
+}
+function resetConfirmModal(){
+  pendingDeleteIndex=-1;pendingClearAll=false;pendingSubParent=-1;pendingSubIndex=-1;
+  document.getElementById('confirmTitle').textContent='Delete Note?';
+  const icon=document.querySelector('#confirmModal .confirmIcon');
+  icon.className='confirmIcon delete'; icon.innerHTML='<i class="fa-solid fa-trash"></i>';
+}
+document.getElementById('confirmCancel').addEventListener('click',()=>{confirmModal.style.display='none';resetConfirmModal();});
+document.getElementById('confirmDelete').addEventListener('click',()=>{
+  if(pendingSubParent>=0 && pendingSubIndex>=0){
+    notes[pendingSubParent].subs.splice(pendingSubIndex,1);
+    saveAll(); render();
+  } else if(pendingClearAll){
+    notes=[];saveAll();render();modal.style.display='none';
+  } else if(pendingDeleteIndex>=0){
+    notes.splice(pendingDeleteIndex,1);saveAll();render();
+  }
+  confirmModal.style.display='none';resetConfirmModal();
+});
+confirmModal.addEventListener('click',(e)=>{if(e.target===confirmModal){confirmModal.style.display='none';resetConfirmModal();}});
 
 function getFilteredSortedNotes(){
   let filtered = notes.filter(n=> {
@@ -150,21 +195,22 @@ function downloadSinglePdf(note){
   doc.setFontSize(16); doc.setFont(undefined,'bold'); doc.text(note.title,10,15);
   doc.setFontSize(10); doc.setFont(undefined,'normal'); doc.text(`${note.lang||''} | ${note.date} | ${user?.name||''}`,10,22);
   doc.setFontSize(11); let y=32;
-  let allText = note.text + (note.subs && note.subs.length ? "\n\nSub-topics:\n" + note.subs.map(s=>`• ${s.title}: ${s.text}`).join("\n") : "");
+  let allText = note.text + (note.subs && note.subs.length ? "\n\nSub-topics:\n" + note.subs.map(s=>`${s.title}:\n${s.text}`).join("\n\n") : "");
   const lines=doc.splitTextToSize(allText,180);
   lines.forEach(line=>{ if(y>270){ doc.addPage(); y=15; } doc.text(line,10,y); y+=6; });
   doc.save(`${note.title.replace(/[^a-z0-9]/gi,'_')}.pdf`);
 }
 async function shareNote(note){
-  const shareData = { title: note.title, text: `${note.title}\n\n${note.text}\n\n- via KrateNote` };
+  let fullText = `${note.title}\n\n${note.text}`;
+  if(note.subs && note.subs.length){ fullText += "\n\n" + note.subs.map(s=>`${s.title}:\n${s.text}`).join("\n\n"); }
+  const shareData = { title: note.title, text: fullText + "\n\n- via KrateNote" };
   if(navigator.share){
     try{ await navigator.share(shareData); }catch(e){}
   } else {
-    try{ await navigator.clipboard.writeText(`${shareData.title}\n${shareData.text}`); alert('Note copied!'); }catch(e){ alert(`${shareData.title}\n\n${note.text}`); }
+    try{ await navigator.clipboard.writeText(`${shareData.title}\n${shareData.text}`); alert('Note copied!'); }catch(e){ alert(`${shareData.title}\n\n${fullText}`); }
   }
 }
 
-// Sub-topic recording logic
 let subRec=false, subRecognition=null, subFinal='';
 const subBox=document.getElementById('subTranscript');
 const subRecBtn=document.getElementById('subRecBtn');
@@ -217,7 +263,7 @@ document.getElementById('notesList').addEventListener('click',(e)=>{
   else if(action==='pdf'){ downloadSinglePdf(notes[idx]); }
   else if(action==='share'){ shareNote(notes[idx]); }
   else if(action==='sub'){ subParentIndex=idx; document.getElementById('subTitle').value=''; subBox.innerHTML=''; subBox.classList.remove('has-text'); subFinal=''; subRec=false; subRecBtn.innerHTML='<i class="fa-solid fa-microphone"></i> Record Sub'; subRecBtn.classList.remove('rec'); subStatus.textContent=''; subModal.style.display='flex'; }
-  else if(action==='delsub'){ const parent=parseInt(btn.dataset.parent); const subIdx=parseInt(btn.dataset.sub); notes[parent].subs.splice(subIdx,1); saveAll(); render(); }
+  else if(action==='delsub'){ const parent=parseInt(btn.dataset.parent); const subIdx=parseInt(btn.dataset.sub); openConfirmSubDelete(parent, subIdx); }
 });
 
 document.getElementById('closeSubBtn').addEventListener('click',()=>{ if(subRec){ try{ subRecognition.stop(); }catch(e){} subRec=false; } subModal.style.display='none'; });
@@ -247,7 +293,7 @@ function render(){
     const toShow = showAll ? filtered : filtered.slice(0,2);
     document.getElementById('notesList').innerHTML=toShow.map((n)=>{
       const realIndex = notes.indexOf(n);
-      const subsHtml = (n.subs||[]).map((s,si)=>`<div class="subNote"><div style="display:flex;justify-content:space-between"><b><i class="fa-solid fa-diagram-next"></i> ${s.title}</b><small>${s.date}</small></div><div style="margin-top:4px">${s.text}</div><button class="iconBtn" data-action="delsub" data-parent="${realIndex}" data-sub="${si}" style="margin-top:6px;background:#fee2e2;color:#991b1b;font-size:10px"><i class="fa-solid fa-trash"></i> Remove</button></div>`).join('');
+      const subsHtml = (n.subs||[]).map((s,si)=>`<div class="subNote"><div class="subNote-header"><span>${s.title}</span><small>${s.date.split(',')[0]}</small></div><div class="subNote-content">${s.text}</div><button class="iconBtn" data-action="delsub" data-parent="${realIndex}" data-sub="${si}" style="margin-top:8px;background:#fee2e2;color:#991b1b;font-size:10px"><i class="fa-solid fa-trash"></i> Remove</button></div>`).join('');
       return `<div class="note">
         <div style="display:flex;justify-content:space-between"><b>${n.flag||''} ${n.title}</b><small>${n.date}</small></div>
         <small style="opacity:.6">${n.lang||''}</small>
