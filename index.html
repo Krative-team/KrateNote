@@ -169,7 +169,6 @@ let isRec=false,mediaRecorder=null,audioChunks=[],transcript='',notes=[],audioSt
 let settings={dark:false,font:'17px',voiceURI:'',serverUrl:'https://kratenote-1.onrender.com',speed:0.9,pitch:1,speechLang:'auto',translateTo:'en',autoDetect:true};
 let showAll=false, searchQuery='', sortBy='newest';
 try{const userEmail = user?.email || 'guest'; notes=JSON.parse(localStorage.getItem('k_notes_'+userEmail)||localStorage.getItem('k_notes')||'[]'); const s=JSON.parse(localStorage.getItem('k_settings')||'{}');settings={...settings,...s}; 
-// SYNC: k_theme is master - if e dey, e go override settings.dark
 var _t = localStorage.getItem('k_theme'); if(_t) settings.dark = (_t==='dark');
 notes.forEach(n=>{ if(!n.folder) n.folder='General'; if(!n.subject) n.subject='General'; if(n.pinned===undefined) n.pinned=false; if(!n.subs) n.subs=[]; if(!n.flag){ const lf=LANGS.find(l=>l.code===n.code); n.flag=lf?lf.flag:'🇬🇧'; } });}catch(e){}
 const recBtn=document.getElementById('recBtn'),box=document.getElementById('transcriptBox'),modal=document.getElementById('settingsModal'),editModal=document.getElementById('editModal'),transModal=document.getElementById('translateModal'),confirmModal=document.getElementById('confirmModal'),liveBadge=document.getElementById('liveBadge'),detectedBadge=document.getElementById('detectedBadge'),statusTxt=document.getElementById('statusTxt'),subModal=document.getElementById('subModal');
@@ -237,7 +236,7 @@ function getFilteredSortedNotes(){
   let filtered = notes.filter(n=> {
     const q=searchQuery.toLowerCase();
     const matchesQ = n.title.toLowerCase().includes(q) || n.date.toLowerCase().includes(q) || n.text.toLowerCase().includes(q);
-    const matchesCtx = (n.folder||'General')===currentFolder && (n.subject||'General')===currentSubject;
+    const matchesCtx = (n.folder||'General').toLowerCase()===currentFolder.toLowerCase() && (n.subject||'General').toLowerCase()===currentSubject.toLowerCase();
     return matchesQ && matchesCtx;
   });
   filtered.forEach((n,i)=>{ if(!n.ts) n.ts=Date.now()-i*1000; });
@@ -316,7 +315,7 @@ document.getElementById('viewMoreBtn').addEventListener('click',()=>{ showAll=!s
 const titlesModal=document.getElementById('titlesModal');
 document.getElementById('listBtn').addEventListener('click',()=>{
   const listEl=document.getElementById('titlesList');
-  const ctxNotes = notes.filter(n=> (n.folder||'General')===currentFolder && (n.subject||'General')===currentSubject);
+  const ctxNotes = notes.filter(n=> (n.folder||'General').toLowerCase()===currentFolder.toLowerCase() && (n.subject||'General').toLowerCase()===currentSubject.toLowerCase());
   if(ctxNotes.length===0){
     listEl.innerHTML='<div style="text-align:center;padding:20px;opacity:.5">No notes yet in '+currentSubject+'</div>';
   } else {
