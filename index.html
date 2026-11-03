@@ -14,7 +14,7 @@
   .main{max-width:1100px;margin:auto;display:flex;flex-direction:column;gap:14px} @media(min-width:900px){.main{flex-direction:row}}
   .card{background:var(--card);border-radius:14px;padding:16px;flex:1}
   #transcriptBox{min-height:180px;background:var(--box);border-radius:10px;padding:14px;line-height:26px;font-size:17px;white-space:pre-wrap;border:2px solid transparent;outline:none;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#888}
-  #transcriptBox.has-text{display:block;color:var(--text)} #transcriptBox:focus{border-color:#6366f1} .emptyIcon{font-size:48px;margin-bottom:12px;opacity:.3} .emptyTxt{font-size:15px}
+  #transcriptBox.has-text{display:block;color:var(--text)} #transcriptBox:focus{border-color:#6366f1} .emptyIcon{font-size:48px;margin-bottom:12px;opacity:.3} .emptyTxt{font-size:15px;white-space:nowrap;text-align:center}
   .badge{font-size:12px;padding:6px 11px;border-radius:20px;display:none;margin-right:8px;font-weight:700} .badge.on{display:inline-block} #liveBadge{background:#10b981;color:#fff} #detectedBadge{background:#6366f1;color:#fff}
   input,select,textarea{width:100%;padding:12px;border-radius:8px;border:none;background:var(--muted);color:var(--text);margin-bottom:10px;font-size:15px}
   button{padding:12px 14px;border-radius:10px;border:none;font-weight:600;font-size:14px;cursor:pointer;display:inline-flex;gap:7px;justify-content:center;align-items:center}
@@ -31,7 +31,7 @@
   .toolbar{display:flex;gap:10px;margin:12px 0 10px} .searchBox{position:relative;flex:1} .searchBox i{position:absolute;left:11px;top:50%;transform:translateY(-50%);opacity:.4;font-size:12px} .searchBox input{padding-left:30px;margin:0}
   .suggestions{position:absolute;top:100%;left:0;right:0;background:var(--card);border-radius:10px;box-shadow:0 10px 25px rgba(0,0,0,.18);z-index:30;display:none;max-height:200px;overflow:auto;border:1px solid var(--muted);margin-top:6px}
   .suggestions.on{display:block} .sugItem{padding:11px 13px;cursor:pointer;font-size:13px;display:flex;justify-content:space-between;align-items:center;gap:10px} .sugItem:hover{background:var(--box)}
-  #settingsModal,#editModal,#translateModal,#confirmModal,#logoutModal,#subModal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:999;padding:12px;backdrop-filter:blur(6px)}
+  #settingsModal,#editModal,#translateModal,#confirmModal,#logoutModal,#subModal,#titlesModal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:999;padding:12px;backdrop-filter:blur(6px)}
   .modalBox{background:var(--card);width:100%;max-width:560px;border-radius:16px;padding:20px;max-height:90vh;overflow:auto;animation:pop .25s ease}
   @keyframes pop{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
   .confirmIcon{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 14px}
@@ -50,6 +50,8 @@
   .langTag{font-size:11px;padding:5px 10px;border-radius:12px;background:#eee;display:inline-flex;gap:5px;align-items:center}
   .contextBar{background:#111;color:#fff;border-radius:12px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:14px} .dark .contextBar{background:#fff;color:#111}
   .actionRow{display:flex;gap:10px} .actionRow button{flex:1}
+  .titleItem{padding:12px 13px;cursor:pointer;font-size:14px;display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid var(--muted)} .titleItem:last-child{border-bottom:none} .titleItem:hover{background:var(--box)}
+  @media(max-width:480px){ .emptyTxt{font-size:13px} }
 </style>
 </head>
 <body>
@@ -87,7 +89,7 @@
     </div>
   </div>
   <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><b>Notes (<span id="count">0</span>)</b><span style="font-size:11px;opacity:.6" id="pinnedCount"></span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><b>Notes (<span id="count">0</span>)</b><div style="display:flex;gap:8px;align-items:center"><button class="iconBtn" id="listBtn"><i class="fa-solid fa-list"></i> List</button><span style="font-size:11px;opacity:.6" id="pinnedCount"></span></div></div>
     <div class="toolbar">
       <div class="searchBox"><i class="fa-solid fa-magnifying-glass"></i><input id="searchInput" placeholder="Search by title or date..." autocomplete="off"><div id="suggestions" class="suggestions"></div></div>
       <select id="sortSelect" style="width:auto;min-width:110px;margin:0;padding:10px 8px;font-size:12px"><option value="" disabled selected>Sort by</option><option value="newest">Newest</option><option value="oldest">Oldest</option><option value="az">A-Z</option><option value="za">Z-A</option></select>
@@ -111,6 +113,8 @@
 <button class="full" id="saveSubBtn" style="background:var(--primary);color:var(--bg)"><i class="fa-solid fa-plus"></i> Add Sub-Topic</button></div></div>
 
 <div id="translateModal"><div class="modalBox"><div style="display:flex;justify-content:space-between;gap:10px"><h3>Translate</h3><button class="iconBtn" id="closeTranslateBtn"><i class="fa-solid fa-xmark"></i></button></div><label>From</label><select id="fromLang"></select><label>To</label><select id="toLang"></select><label>Original</label><textarea id="origText" rows="4"></textarea><label>Translated</label><textarea id="transText" rows="4"></textarea><div style="display:flex;gap:10px"><button class="full" id="doTranslateBtn" style="background:var(--primary);color:var(--bg)">Translate</button><button class="full" id="speakTransBtn" style="background:var(--muted)"><i class="fa-solid fa-volume-high"></i> Speak</button></div><button class="full" id="saveTransBtn" style="background:#e0e7ff;color:#1e1b4b;margin-top:8px"><i class="fa-solid fa-floppy-disk"></i> Save</button></div></div>
+
+<div id="titlesModal"><div class="modalBox" style="max-width:420px"><div style="display:flex;justify-content:space-between;gap:10px"><h3><i class="fa-solid fa-list"></i> All Saved Notes</h3><button class="iconBtn" id="closeTitlesBtn"><i class="fa-solid fa-xmark"></i></button></div><div id="titlesList" style="margin-top:10px;max-height:60vh;overflow:auto"></div></div></div>
 
 <div id="confirmModal"><div class="modalBox" style="max-width:380px;text-align:center"><div class="confirmIcon delete"><i class="fa-solid fa-trash"></i></div><h3 id="confirmTitle">Delete Note?</h3><p id="confirmText" style="font-size:14px;opacity:.7;margin:0 0 18px"></p><div style="display:flex;gap:10px"><button class="full" id="confirmCancel" style="background:var(--muted)"><i class="fa-solid fa-xmark"></i> Cancel</button><button class="full" id="confirmDelete" style="background:#dc2626;color:#fff"><i class="fa-solid fa-trash"></i> Yes, Delete</button></div></div></div>
 
@@ -157,7 +161,7 @@ let showAll=false, searchQuery='', sortBy='newest';
 try{const userEmail = user?.email || 'guest'; notes=JSON.parse(localStorage.getItem('k_notes_'+userEmail)||localStorage.getItem('k_notes')||'[]'); const s=JSON.parse(localStorage.getItem('k_settings')||'{}');settings={...settings,...s}; notes.forEach(n=>{ if(!n.folder) n.folder='General'; if(!n.subject) n.subject='General'; if(n.pinned===undefined) n.pinned=false; if(!n.subs) n.subs=[]; if(!n.flag){ const lf=LANGS.find(l=>l.code===n.code); n.flag=lf?lf.flag:'🇬🇧'; } });}catch(e){}
 const recBtn=document.getElementById('recBtn'),box=document.getElementById('transcriptBox'),modal=document.getElementById('settingsModal'),editModal=document.getElementById('editModal'),transModal=document.getElementById('translateModal'),confirmModal=document.getElementById('confirmModal'),liveBadge=document.getElementById('liveBadge'),detectedBadge=document.getElementById('detectedBadge'),statusTxt=document.getElementById('statusTxt'),subModal=document.getElementById('subModal');
 let voices=[],recognition=null,finalTranscriptLive='';
-function setEmptyState(){box.classList.remove('has-text');box.innerHTML='<i class="fa-solid fa-waveform-lines emptyIcon"></i><div class="emptyTxt">Tap mic to record OR click to type manually</div>';transcript='';finalTranscriptLive='';liveBadge.classList.remove('on');detectedBadge.textContent='🌐 Ready - Type or Record';detectedBadge.className='badge on';detectedBadge.style.background='#eee';detectedBadge.style.color='#666';statusTxt.textContent='';recBtn.innerHTML='<i class="fa-solid fa-microphone"></i> START RECORDING';recBtn.classList.remove('rec');isRec=false;}
+function setEmptyState(){box.classList.remove('has-text');box.innerHTML='<i class="fa-solid fa-waveform-lines emptyIcon"></i><div class="emptyTxt">Tap mic to record OR type note manually</div>';transcript='';finalTranscriptLive='';liveBadge.classList.remove('on');detectedBadge.textContent='🌐 Ready - Type or Record';detectedBadge.className='badge on';detectedBadge.style.background='#eee';detectedBadge.style.color='#666';statusTxt.textContent='';recBtn.innerHTML='<i class="fa-solid fa-microphone"></i> START RECORDING';recBtn.classList.remove('rec');isRec=false;}
 box.addEventListener('focus',()=>{ if(!box.classList.contains('has-text')){ box.innerHTML=''; box.classList.add('has-text'); } });
 box.addEventListener('input',()=>{ transcript=box.innerText; if(transcript.trim()){ showDetectedRealTime(transcript); } });
 function loadVoices(){voices=speechSynthesis.getVoices();const sel=document.getElementById('voiceSelect');if(voices.length){sel.innerHTML=voices.map(v=>`<option value="${v.voiceURI}">${v.name} (${v.lang})</option>`).join('');if(settings.voiceURI)sel.value=settings.voiceURI;}}
@@ -300,6 +304,28 @@ searchInput.addEventListener('input',(e)=>{
 document.addEventListener('click',(e)=>{ if(!e.target.closest('.searchBox')) suggBox.classList.remove('on'); });
 document.getElementById('sortSelect').addEventListener('change',(e)=>{ sortBy=e.target.value; showAll=false; render(); });
 document.getElementById('viewMoreBtn').addEventListener('click',()=>{ showAll=!showAll; render(); });
+
+// ===== LIST BUTTON - Show all titles =====
+const titlesModal=document.getElementById('titlesModal');
+document.getElementById('listBtn').addEventListener('click',()=>{
+  const listEl=document.getElementById('titlesList');
+  const ctxNotes = notes.filter(n=> (n.folder||'General')===currentFolder && (n.subject||'General')===currentSubject);
+  if(ctxNotes.length===0){
+    listEl.innerHTML='<div style="text-align:center;padding:20px;opacity:.5">No notes yet in '+currentSubject+'</div>';
+  } else {
+    listEl.innerHTML = ctxNotes.map((n)=>{
+      const escTitle = n.title.replace(/"/g,'&quot;');
+      return `<div class="titleItem" data-title="${escTitle}"><span>${n.pinned?'📌 ':''}${n.flag||'🇬🇧'} ${n.title}</span><small style="opacity:.5;white-space:nowrap">${n.date.split(',')[0]}</small></div>`;
+    }).join('');
+    listEl.querySelectorAll('.titleItem').forEach(el=>el.addEventListener('click',()=>{
+      searchInput.value=el.dataset.title; searchQuery=el.dataset.title.toLowerCase(); showAll=true; titlesModal.style.display='none'; render();
+      document.getElementById('notesList').scrollIntoView({behavior:'smooth'});
+    }));
+  }
+  titlesModal.style.display='flex';
+});
+document.getElementById('closeTitlesBtn').addEventListener('click',()=>{ titlesModal.style.display='none'; });
+titlesModal.addEventListener('click',(e)=>{ if(e.target===titlesModal) titlesModal.style.display='none'; });
 
 document.getElementById('notesList').addEventListener('click',(e)=>{
   const btn=e.target.closest('[data-action]');
