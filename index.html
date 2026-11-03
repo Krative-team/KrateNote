@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>KrateNote V8.9 - Search Sort</title>
+<title>KrateNote V10 - Suggestions + PDF</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
@@ -10,8 +10,7 @@
   .dark{--bg:#121212;--card:#1e1e1e;--text:#fff;--muted:#2a2a2a;--box:#252525;--primary:#fff}
   *{box-sizing:border-box;font-family:-apple-system,sans-serif} body{margin:0;background:var(--bg);color:var(--text);padding:12px}
   .header{display:flex;justify-content:space-between;align-items:center;background:var(--card);padding:14px 18px;border-radius:14px;margin-bottom:12px;flex-wrap:wrap;gap:8px}
-  .brand{display:flex;flex-direction:column;line-height:1.2}
-  .userTag{font-size:11px;background:#e0e7ff;color:#3730a3;padding:3px 8px;border-radius:12px;display:inline-flex;gap:4px;align-items:center;margin-top:4px;width:fit-content}
+  .brand{display:flex;flex-direction:column;line-height:1.2} .userTag{font-size:11px;background:#e0e7ff;color:#3730a3;padding:3px 8px;border-radius:12px;display:inline-flex;gap:4px;align-items:center;margin-top:4px;width:fit-content}
   .main{max-width:1100px;margin:auto;display:flex;flex-direction:column;gap:12px} @media(min-width:900px){.main{flex-direction:row}}
   .card{background:var(--card);border-radius:14px;padding:14px;flex:1}
   #transcriptBox{min-height:220px;background:var(--box);border-radius:10px;padding:12px;line-height:26px;font-size:17px;white-space:pre-wrap;border:2px solid transparent;outline:none;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#888}
@@ -24,8 +23,10 @@
   .note{background:var(--box);padding:12px;border-radius:12px;margin-bottom:10px}
   .noteActions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
   .actBtn{padding:7px 11px;border-radius:8px;font-size:12px;border:none;display:inline-flex;gap:5px;align-items:center;cursor:pointer}
-  .actBtn.edit{background:#e0e7ff;color:#3730a3} .actBtn.speak{background:#dcfce7;color:#166534} .actBtn.trans{background:#fef3c7;color:#92400e} .actBtn.del{background:#fee2e2;color:#991b1b}
+  .actBtn.edit{background:#e0e7ff;color:#3730a3} .actBtn.speak{background:#dcfce7;color:#166534} .actBtn.trans{background:#fef3c7;color:#92400e} .actBtn.del{background:#fee2e2;color:#991b1b} .actBtn.pdf{background:#ede9fe;color:#5b21b6}
   .toolbar{display:flex;gap:6px;margin:10px 0 8px} .searchBox{position:relative;flex:1} .searchBox i{position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:.4;font-size:12px} .searchBox input{padding-left:28px;margin:0}
+  .suggestions{position:absolute;top:100%;left:0;right:0;background:var(--card);border-radius:10px;box-shadow:0 10px 25px rgba(0,0,0,.18);z-index:30;display:none;max-height:200px;overflow:auto;border:1px solid var(--muted);margin-top:4px}
+  .suggestions.on{display:block} .sugItem{padding:10px 12px;cursor:pointer;font-size:13px;display:flex;justify-content:space-between;align-items:center} .sugItem:hover{background:var(--box)} .sugItem small{opacity:.5}
   #settingsModal,#editModal,#translateModal,#confirmModal,#logoutModal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:999;padding:12px;backdrop-filter:blur(6px)}
   .modalBox{background:var(--card);width:100%;max-width:560px;border-radius:16px;padding:18px;max-height:90vh;overflow:auto;animation:pop .25s ease}
   @keyframes pop{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
@@ -38,14 +39,8 @@
 </head>
 <body>
 <div class="header">
-  <div class="brand">
-    <div><b><i class="fa-solid fa-microphone-lines"></i> KrateNote</b> <small id="statusTxt" style="color:#6366f1;margin-left:8px;display:inline"></small></div>
-    <span id="userInfo" class="userTag" style="display:none"><i class="fa-solid fa-user"></i> <span id="userNameText"></span></span>
-  </div>
-  <div style="display:flex;gap:6px;align-items:center">
-    <button class="iconBtn" id="openSetBtn"><i class="fa-solid fa-gear"></i> Settings</button>
-    <button class="iconBtn" id="logoutBtn" style="background:#fee2e2;color:#991b1b"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
-  </div>
+  <div class="brand"><div><b><i class="fa-solid fa-microphone-lines"></i> KrateNote</b> <small id="statusTxt" style="color:#6366f1;margin-left:8px;display:inline"></small></div><span id="userInfo" class="userTag" style="display:none"><i class="fa-solid fa-user"></i> <span id="userNameText"></span></span></div>
+  <div style="display:flex;gap:6px;align-items:center"><button class="iconBtn" id="openSetBtn"><i class="fa-solid fa-gear"></i> Settings</button><button class="iconBtn" id="logoutBtn" style="background:#fee2e2;color:#991b1b"><i class="fa-solid fa-right-from-bracket"></i> Logout</button></div>
 </div>
 
 <div class="main">
@@ -62,32 +57,22 @@
   </div>
   <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center"><b>Notes (<span id="count">0</span>)</b><div style="display:flex;gap:4px"><button class="iconBtn" id="exportPdfBtn"><i class="fa-solid fa-file-pdf"></i> PDF</button><button class="iconBtn" id="exportTxtBtn"><i class="fa-solid fa-file-lines"></i> TXT</button></div></div>
-    
-    <!-- NEW TOOLBAR: SEARCH + SORT -->
     <div class="toolbar">
-      <div class="searchBox"><i class="fa-solid fa-magnifying-glass"></i><input id="searchInput" placeholder="Search by title..."></div>
-      <select id="sortSelect" style="width:auto;min-width:110px;margin:0;padding:10px 8px;font-size:12px">
-        <option value="" disabled selected>Sort by</option>
-        <option value="newest">Newest</option>
-        <option value="oldest">Oldest</option>
-        <option value="az">A-Z</option>
-        <option value="za">Z-A</option>
-      </select>
+      <div class="searchBox"><i class="fa-solid fa-magnifying-glass"></i><input id="searchInput" placeholder="Search by title..." autocomplete="off"><div id="suggestions" class="suggestions"></div></div>
+      <select id="sortSelect" style="width:auto;min-width:110px;margin:0;padding:10px 8px;font-size:12px"><option value="" disabled selected>Sort by</option><option value="newest">Newest</option><option value="oldest">Oldest</option><option value="az">A-Z</option><option value="za">Z-A</option></select>
     </div>
-
     <div id="notesList" style="margin-top:10px"></div>
     <button id="viewMoreBtn" class="full" style="display:none;background:var(--muted);margin-top:10px"><i class="fa-solid fa-chevron-down"></i> View More (<span id="moreCount">0</span> hidden)</button>
   </div>
 </div>
 
-<div id="settingsModal"><div class="modalBox"><div style="display:flex;justify-content:space-between"><h3><i class="fa-solid fa-gear"></i> Settings</h3><button class="iconBtn" id="closeSetBtn"><i class="fa-solid fa-xmark"></i></button></div><input id="serverUrl" type="hidden" value="https://kratenote-1.onrender.com"><label><i class="fa-solid fa-volume-high"></i> Voice</label><select id="voiceSelect"></select><label><i class="fa-solid fa-microphone"></i> Speech Language</label><select id="speechLang"></select><label><i class="fa-solid fa-language"></i> Translate To</label><select id="translateTo"></select><label>Speed: <span id="speedVal">0.9</span></label><input type="range" id="speedRange" min="0.5" max="1.5" step="0.1" value="0.9"><label>Pitch: <span id="pitchVal">1.0</span></label><input type="range" id="pitchRange" min="0.5" max="1.5" step="0.1" value="1.0"><label>Font Size</label><select id="fontSelect"><option value="15px">Small</option><option value="17px" selected>Medium</option><option value="20px">Large</option><option value="24px">XL</option></select><div class="row"><span><i class="fa-solid fa-moon"></i> Dark Mode</span><div id="darkSwitch" class="switch"><div class="dot"></div></div></div><div class="row"><span><i class="fa-solid fa-wand-magic-sparkles"></i> Auto Detect</span><div class="switch on" id="autoSwitch"><div class="dot"></div></div></div><button class="full" style="background:#fee2e2;color:#b91c1c;margin-top:10px" id="clearBtn"><i class="fa-solid fa-trash"></i> Clear All Notes</button></div></div>
-<div id="editModal"><div class="modalBox"><div style="display:flex;justify-content:space-between"><h3><i class="fa-solid fa-pen-to-square"></i> Edit</h3><button class="iconBtn" id="closeEditBtn"><i class="fa-solid fa-xmark"></i></button></div><label>Title</label><input id="editTitle"><label>Language</label><select id="editLang"></select><label>Text</label><textarea id="editText" rows="8"></textarea><label>Translate To</label><div style="display:flex;gap:6px"><select id="editTranslateTo"></select><button class="iconBtn" id="doEditTranslate"><i class="fa-solid fa-language"></i></button></div><div style="display:flex;gap:6px;margin-top:10px"><button class="full" id="saveEditBtn" style="background:var(--primary);color:var(--bg)"><i class="fa-solid fa-check"></i> Save</button><button class="full" id="cancelEditBtn" style="background:var(--muted)"><i class="fa-solid fa-xmark"></i> Cancel</button></div></div></div>
-<div id="translateModal"><div class="modalBox"><div style="display:flex;justify-content:space-between"><h3><i class="fa-solid fa-language"></i> Translate</h3><button class="iconBtn" id="closeTranslateBtn"><i class="fa-solid fa-xmark"></i></button></div><label>From</label><select id="fromLang"></select><label>To</label><select id="toLang"></select><label>Original</label><textarea id="origText" rows="4"></textarea><label>Translated</label><textarea id="transText" rows="4"></textarea><div style="display:flex;gap:6px"><button class="full" id="doTranslateBtn" style="background:var(--primary);color:var(--bg)"><i class="fa-solid fa-language"></i> Translate</button><button class="full" id="speakTransBtn" style="background:var(--muted)"><i class="fa-solid fa-volume-high"></i> Speak</button></div><button class="full" id="saveTransBtn" style="background:#e0e7ff;color:#1e1b4b;margin-top:6px"><i class="fa-solid fa-floppy-disk"></i> Save</button></div></div>
-<div id="confirmModal"><div class="modalBox" style="max-width:380px;text-align:center"><div class="confirmIcon delete"><i class="fa-solid fa-trash"></i></div><h3 style="margin:0 0 6px">Delete Note?</h3><p id="confirmText" style="font-size:14px;opacity:.7;margin:0 0 16px"></p><div style="display:flex;gap:8px"><button class="full" id="confirmCancel" style="background:var(--muted)"><i class="fa-solid fa-xmark"></i> Cancel</button><button class="full" id="confirmDelete" style="background:#dc2626;color:#fff"><i class="fa-solid fa-trash"></i> Yes, Delete</button></div></div></div>
-<div id="logoutModal"><div class="modalBox" style="max-width:380px;text-align:center"><div class="confirmIcon logout"><i class="fa-solid fa-right-from-bracket"></i></div><h3>Logout from KrateNote?</h3><p style="font-size:14px;opacity:.7;margin:0 0 6px">You will need to login again.</p><div style="background:var(--box);border-radius:10px;padding:10px;margin:12px 0;display:flex;align-items:center;gap:10px;text-align:left"><div style="width:36px;height:36px;border-radius:50%;background:#6366f1;color:#fff;display:flex;align-items:center;justify-content:center"><i class="fa-solid fa-user"></i></div><div><b id="logoutName" style="font-size:13px"></b><br><small id="logoutEmail" style="opacity:.6;font-size:11px"></small></div></div><div style="display:flex;gap:8px"><button class="full" id="logoutCancel" style="background:var(--muted)"><i class="fa-solid fa-xmark"></i> Stay</button><button class="full" id="logoutConfirm" style="background:#111;color:#fff"><i class="fa-solid fa-right-from-bracket"></i> Yes, Logout</button></div></div></div>
+<div id="settingsModal"><div class="modalBox"><div style="display:flex;justify-content:space-between"><h3><i class="fa-solid fa-gear"></i> Settings</h3><button class="iconBtn" id="closeSetBtn"><i class="fa-solid fa-xmark"></i></button></div><input id="serverUrl" type="hidden" value="https://kratenote-1.onrender.com"><label>Voice</label><select id="voiceSelect"></select><label>Speech Language</label><select id="speechLang"></select><label>Translate To</label><select id="translateTo"></select><label>Speed: <span id="speedVal">0.9</span></label><input type="range" id="speedRange" min="0.5" max="1.5" step="0.1" value="0.9"><label>Pitch: <span id="pitchVal">1.0</span></label><input type="range" id="pitchRange" min="0.5" max="1.5" step="0.1" value="1.0"><label>Font Size</label><select id="fontSelect"><option value="15px">Small</option><option value="17px" selected>Medium</option><option value="20px">Large</option><option value="24px">XL</option></select><div class="row"><span>Dark Mode</span><div id="darkSwitch" class="switch"><div class="dot"></div></div></div><div class="row"><span>Auto Detect</span><div class="switch on" id="autoSwitch"><div class="dot"></div></div></div><button class="full" style="background:#fee2e2;color:#b91c1c;margin-top:10px" id="clearBtn"><i class="fa-solid fa-trash"></i> Clear All Notes</button></div></div>
+<div id="editModal"><div class="modalBox"><div style="display:flex;justify-content:space-between"><h3>Edit</h3><button class="iconBtn" id="closeEditBtn"><i class="fa-solid fa-xmark"></i></button></div><label>Title</label><input id="editTitle"><label>Language</label><select id="editLang"></select><label>Text</label><textarea id="editText" rows="8"></textarea><label>Translate To</label><div style="display:flex;gap:6px"><select id="editTranslateTo"></select><button class="iconBtn" id="doEditTranslate"><i class="fa-solid fa-language"></i></button></div><div style="display:flex;gap:6px;margin-top:10px"><button class="full" id="saveEditBtn" style="background:var(--primary);color:var(--bg)"><i class="fa-solid fa-check"></i> Save</button><button class="full" id="cancelEditBtn" style="background:var(--muted)"><i class="fa-solid fa-xmark"></i> Cancel</button></div></div></div>
+<div id="translateModal"><div class="modalBox"><div style="display:flex;justify-content:space-between"><h3>Translate</h3><button class="iconBtn" id="closeTranslateBtn"><i class="fa-solid fa-xmark"></i></button></div><label>From</label><select id="fromLang"></select><label>To</label><select id="toLang"></select><label>Original</label><textarea id="origText" rows="4"></textarea><label>Translated</label><textarea id="transText" rows="4"></textarea><div style="display:flex;gap:6px"><button class="full" id="doTranslateBtn" style="background:var(--primary);color:var(--bg)">Translate</button><button class="full" id="speakTransBtn" style="background:var(--muted)"><i class="fa-solid fa-volume-high"></i> Speak</button></div><button class="full" id="saveTransBtn" style="background:#e0e7ff;color:#1e1b4b;margin-top:6px"><i class="fa-solid fa-floppy-disk"></i> Save</button></div></div>
+<div id="confirmModal"><div class="modalBox" style="max-width:380px;text-align:center"><div class="confirmIcon delete"><i class="fa-solid fa-trash"></i></div><h3>Delete Note?</h3><p id="confirmText" style="font-size:14px;opacity:.7;margin:0 0 16px"></p><div style="display:flex;gap:8px"><button class="full" id="confirmCancel" style="background:var(--muted)"><i class="fa-solid fa-xmark"></i> Cancel</button><button class="full" id="confirmDelete" style="background:#dc2626;color:#fff"><i class="fa-solid fa-trash"></i> Yes, Delete</button></div></div></div>
+<div id="logoutModal"><div class="modalBox" style="max-width:380px;text-align:center"><div class="confirmIcon logout"><i class="fa-solid fa-right-from-bracket"></i></div><h3>Logout from KrateNote?</h3><p style="font-size:14px;opacity:.7;margin:0 0 6px">You will need to login again.</p><div style="background:var(--box);border-radius:10px;padding:10px;margin:12px 0;display:flex;align-items:center;gap:10px;text-align:left"><div style="width:36px;height:36px;border-radius:50%;background:#6366f1;color:#fff;display:flex;align-items:center;justify-content:center"><i class="fa-solid fa-user"></i></div><div><b id="logoutName"></b><br><small id="logoutEmail" style="opacity:.6;font-size:11px"></small></div></div><div style="display:flex;gap:8px"><button class="full" id="logoutCancel" style="background:var(--muted)"><i class="fa-solid fa-xmark"></i> Stay</button><button class="full" id="logoutConfirm" style="background:#111;color:#fff"><i class="fa-solid fa-right-from-bracket"></i> Yes, Logout</button></div></div></div>
 
 <script>
-// AUTH
 const token = localStorage.getItem('k_token');
 const user = JSON.parse(localStorage.getItem('k_user')||'null');
 if(!token || !user){ location.href='login.html'; } else {
@@ -108,11 +93,7 @@ function detectLanguage(text){const t=(text||'').toLowerCase();if(!t.trim())retu
 let isRec=false,mediaRecorder=null,audioChunks=[],transcript='',notes=[],audioStream=null,editingIndex=-1,pendingDeleteIndex=-1,pendingClearAll=false;
 let settings={dark:false,font:'17px',voiceURI:'',serverUrl:'https://kratenote-1.onrender.com',speed:0.9,pitch:1,speechLang:'auto',translateTo:'en',autoDetect:true};
 let showAll=false, searchQuery='', sortBy='newest';
-try{
-  const userEmail = user?.email || 'guest';
-  notes=JSON.parse(localStorage.getItem('k_notes_'+userEmail)||localStorage.getItem('k_notes')||'[]');
-  const s=JSON.parse(localStorage.getItem('k_settings')||'{}');settings={...settings,...s};
-}catch(e){}
+try{const userEmail = user?.email || 'guest'; notes=JSON.parse(localStorage.getItem('k_notes_'+userEmail)||localStorage.getItem('k_notes')||'[]'); const s=JSON.parse(localStorage.getItem('k_settings')||'{}');settings={...settings,...s};}catch(e){}
 const recBtn=document.getElementById('recBtn'),box=document.getElementById('transcriptBox'),modal=document.getElementById('settingsModal'),editModal=document.getElementById('editModal'),transModal=document.getElementById('translateModal'),confirmModal=document.getElementById('confirmModal'),liveBadge=document.getElementById('liveBadge'),detectedBadge=document.getElementById('detectedBadge'),statusTxt=document.getElementById('statusTxt');
 let voices=[],recognition=null,finalTranscriptLive='';
 function setEmptyState(){box.classList.remove('has-text');box.innerHTML='<i class="fa-solid fa-waveform-lines emptyIcon"></i><div class="emptyTxt">Tap mic to start</div>';transcript='';finalTranscriptLive='';liveBadge.classList.remove('on');detectedBadge.textContent='🌐 Ready';detectedBadge.className='badge on';detectedBadge.style.background='#eee';detectedBadge.style.color='#666';statusTxt.textContent='';recBtn.innerHTML='<i class="fa-solid fa-microphone"></i> START RECORDING';recBtn.classList.remove('rec');isRec=false;}
@@ -132,14 +113,8 @@ document.getElementById('confirmCancel').addEventListener('click',()=>{confirmMo
 document.getElementById('confirmDelete').addEventListener('click',()=>{if(pendingClearAll){notes=[];saveAll();render();modal.style.display='none';}else if(pendingDeleteIndex>=0){notes.splice(pendingDeleteIndex,1);saveAll();render();}confirmModal.style.display='none';pendingDeleteIndex=-1;pendingClearAll=false;});
 confirmModal.addEventListener('click',(e)=>{if(e.target===confirmModal)confirmModal.style.display='none';});
 
-// SEARCH + SORT + VIEW MORE LOGIC
-document.getElementById('searchInput').addEventListener('input',(e)=>{ searchQuery=e.target.value.toLowerCase(); showAll=false; render(); });
-document.getElementById('sortSelect').addEventListener('change',(e)=>{ sortBy=e.target.value; showAll=false; render(); });
-document.getElementById('viewMoreBtn').addEventListener('click',()=>{ showAll=!showAll; render(); });
-
 function getFilteredSortedNotes(){
   let filtered = notes.filter(n=> n.title.toLowerCase().includes(searchQuery));
-  // ensure ts exists
   filtered.forEach((n,i)=>{ if(!n.ts) n.ts=Date.now()-i*1000; });
   if(sortBy==='newest') filtered.sort((a,b)=>b.ts-a.ts);
   else if(sortBy==='oldest') filtered.sort((a,b)=>a.ts-b.ts);
@@ -149,17 +124,57 @@ function getFilteredSortedNotes(){
   return filtered;
 }
 
+function downloadSinglePdf(note){
+  const {jsPDF}=window.jspdf; const doc=new jsPDF();
+  doc.setFontSize(16); doc.setFont(undefined,'bold'); doc.text(note.title,10,15);
+  doc.setFontSize(10); doc.setFont(undefined,'normal'); doc.text(`${note.lang||''} | ${note.date} | ${user?.name||''}`,10,22);
+  doc.setFontSize(11); const lines=doc.splitTextToSize(note.text,180); let y=32;
+  lines.forEach(line=>{ if(y>270){ doc.addPage(); y=15; } doc.text(line,10,y); y+=6; });
+  doc.save(`${note.title.replace(/[^a-z0-9]/gi,'_')}.pdf`);
+}
+
+// SEARCH WITH LIVE SUGGESTIONS
+const searchInput=document.getElementById('searchInput');
+const suggBox=document.getElementById('suggestions');
+searchInput.addEventListener('input',(e)=>{
+  searchQuery=e.target.value.toLowerCase(); showAll=false;
+  if(searchQuery.length>=1){
+    const matches = notes.filter(n=> n.title.toLowerCase().includes(searchQuery)).slice(0,5);
+    if(matches.length>0){
+      suggBox.innerHTML=matches.map(n=>`<div class="sugItem" data-title="${n.title.replace(/"/g,'&quot;')}"><span><i class="fa-solid fa-magnifying-glass"></i> ${n.flag||''} ${n.title}</span><small>${n.lang||''}</small></div>`).join('');
+      suggBox.classList.add('on');
+      suggBox.querySelectorAll('.sugItem').forEach(el=>el.addEventListener('click',()=>{
+        searchInput.value=el.dataset.title; searchQuery=el.dataset.title.toLowerCase(); suggBox.classList.remove('on'); render();
+      }));
+    } else {
+      suggBox.classList.remove('on');
+    }
+  } else {
+    suggBox.classList.remove('on');
+  }
+  render();
+});
+document.addEventListener('click',(e)=>{ if(!e.target.closest('.searchBox')) suggBox.classList.remove('on'); });
+
+document.getElementById('sortSelect').addEventListener('change',(e)=>{ sortBy=e.target.value; showAll=false; render(); });
+document.getElementById('viewMoreBtn').addEventListener('click',()=>{ showAll=!showAll; render(); });
+
 function render(){
   const filtered = getFilteredSortedNotes();
   document.getElementById('count').textContent=filtered.length;
   const viewMoreBtn=document.getElementById('viewMoreBtn');
   const moreCountSpan=document.getElementById('moreCount');
-  const toShow = showAll ? filtered : filtered.slice(0,2);
 
   if(filtered.length===0){
-    document.getElementById('notesList').innerHTML = searchQuery ? `<div style="text-align:center;padding:20px;opacity:.5"><i class="fa-solid fa-magnifying-glass" style="font-size:28px;display:block;margin-bottom:8px"></i>No results for "${searchQuery}"</div>` : '<div style="text-align:center;padding:20px;opacity:.4"><i class="fa-solid fa-inbox" style="font-size:32px;display:block;margin-bottom:8px"></i>No notes yet</div>';
+    if(searchQuery){
+      document.getElementById('notesList').innerHTML=`<div style="text-align:center;padding:24px;background:var(--box);border-radius:12px;border:1px dashed #ccc"><i class="fa-solid fa-circle-exclamation" style="font-size:36px;color:#f59e0b;display:block;margin-bottom:10px"></i><b>No match found</b><br><small style="opacity:.7">No note matches "<b>${searchQuery}</b>"</small><br><button id="clearSearchLink" style="margin-top:10px;background:#e0e7ff;color:#3730a3;padding:8px 14px;border-radius:8px;border:none;font-size:12px;cursor:pointer"><i class="fa-solid fa-xmark"></i> Clear search</button></div>`;
+      const link=document.getElementById('clearSearchLink'); if(link) link.addEventListener('click',()=>{ searchInput.value=''; searchQuery=''; suggBox.classList.remove('on'); render(); });
+    } else {
+      document.getElementById('notesList').innerHTML='<div style="text-align:center;padding:20px;opacity:.4"><i class="fa-solid fa-inbox" style="font-size:32px;display:block;margin-bottom:8px"></i>No notes yet</div>';
+    }
     viewMoreBtn.style.display='none';
   } else {
+    const toShow = showAll ? filtered : filtered.slice(0,2);
     document.getElementById('notesList').innerHTML=toShow.map((n)=>{
       const realIndex = notes.indexOf(n);
       return `<div class="note">
@@ -170,24 +185,23 @@ function render(){
           <button class="actBtn edit" data-edit="${realIndex}"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
           <button class="actBtn speak" data-speak="${realIndex}"><i class="fa-solid fa-volume-high"></i> Speak</button>
           <button class="actBtn trans" data-trans="${realIndex}"><i class="fa-solid fa-language"></i> Translate</button>
+          <button class="actBtn pdf" data-pdf="${realIndex}"><i class="fa-solid fa-file-pdf"></i> PDF</button>
           <button class="actBtn del" data-del="${realIndex}"><i class="fa-solid fa-trash"></i> Delete</button>
         </div>
       </div>`;
     }).join('');
-
     if(filtered.length>2){
-      viewMoreBtn.style.display='flex';
-      moreCountSpan.textContent=filtered.length-2;
+      viewMoreBtn.style.display='flex'; moreCountSpan.textContent=filtered.length-2;
       viewMoreBtn.innerHTML = showAll ? `<i class="fa-solid fa-chevron-up"></i> Show Less` : `<i class="fa-solid fa-chevron-down"></i> View More (${filtered.length-2} hidden)`;
     } else {
       viewMoreBtn.style.display='none';
     }
   }
-
   document.querySelectorAll('[data-del]').forEach(el=>el.addEventListener('click',()=>{ openConfirmDelete(parseInt(el.dataset.del),false); }));
   document.querySelectorAll('[data-speak]').forEach(el=>el.addEventListener('click',()=>{ const nn=notes[parseInt(el.dataset.speak)]; speakClear(nn.text,nn.code); }));
   document.querySelectorAll('[data-trans]').forEach(el=>el.addEventListener('click',()=>{ const nn=notes[parseInt(el.dataset.trans)]; document.getElementById('origText').value=nn.text; document.getElementById('toLang').value=settings.translateTo; transModal.style.display='flex'; }));
   document.querySelectorAll('[data-edit]').forEach(el=>el.addEventListener('click',()=>{ const idx=parseInt(el.dataset.edit); editingIndex=idx; document.getElementById('editTitle').value=notes[idx].title; document.getElementById('editText').value=notes[idx].text; document.getElementById('editLang').value=notes[idx].code||'en'; editModal.style.display='flex'; }));
+  document.querySelectorAll('[data-pdf]').forEach(el=>el.addEventListener('click',()=>{ const nn=notes[parseInt(el.dataset.pdf)]; downloadSinglePdf(nn); }));
 }
 document.getElementById('openSetBtn').addEventListener('click',()=>modal.style.display='flex');
 document.getElementById('closeSetBtn').addEventListener('click',()=>modal.style.display='none');
