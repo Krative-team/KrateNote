@@ -8,29 +8,30 @@
 <style>
   :root{--bg:#F6F7FB;--card:#fff;--text:#111;--muted:#eee;--box:#f9f9f9;--primary:#111}
   .dark{--bg:#121212;--card:#1e1e1e;--text:#fff;--muted:#2a2a2a;--box:#252525;--primary:#fff}
-  *{box-sizing:border-box;font-family:-apple-system,sans-serif} body{margin:0;background:var(--bg);color:var(--text);padding:12px}
+  *{box-sizing:border-box;font-family:-apple-system,sans-serif} body{margin:0;background:var(--bg);color:var(--text);padding:12px;padding-bottom:90px}
   .header{display:flex;justify-content:space-between;align-items:center;background:var(--card);padding:14px 18px;border-radius:14px;margin-bottom:12px;flex-wrap:wrap;gap:8px}
   .brand{display:flex;flex-direction:column;line-height:1.2} .userTag{font-size:11px;background:#e0e7ff;color:#3730a3;padding:3px 8px;border-radius:12px;display:inline-flex;gap:4px;align-items:center;margin-top:4px;width:fit-content}
   .main{max-width:1100px;margin:auto;display:flex;flex-direction:column;gap:12px} @media(min-width:900px){.main{flex-direction:row}}
   .card{background:var(--card);border-radius:14px;padding:14px;flex:1}
-  #transcriptBox{min-height:220px;background:var(--box);border-radius:10px;padding:12px;line-height:26px;font-size:17px;white-space:pre-wrap;border:2px solid transparent;outline:none;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#888}
+  #transcriptBox{min-height:180px;background:var(--box);border-radius:10px;padding:12px;line-height:26px;font-size:17px;white-space:pre-wrap;border:2px solid transparent;outline:none;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#888}
   #transcriptBox.has-text{display:block;color:var(--text)} #transcriptBox:focus{border-color:#6366f1} .emptyIcon{font-size:48px;margin-bottom:12px;opacity:.3} .emptyTxt{font-size:15px}
   .badge{font-size:12px;padding:5px 10px;border-radius:20px;display:none;margin-right:6px;font-weight:700} .badge.on{display:inline-block} #liveBadge{background:#10b981;color:#fff} #detectedBadge{background:#6366f1;color:#fff}
   input,select,textarea{width:100%;padding:12px;border-radius:8px;border:none;background:var(--muted);color:var(--text);margin-bottom:10px;font-size:15px}
   button{padding:12px 14px;border-radius:10px;border:none;font-weight:600;font-size:14px;cursor:pointer;display:inline-flex;gap:6px;justify-content:center;align-items:center}
   .full{width:100%;margin-top:8px} #recBtn{background:var(--primary);color:var(--bg);font-size:16px;padding:16px} #recBtn.rec{background:#e11d48;color:#fff}
   .iconBtn{width:auto;padding:6px 10px;border-radius:6px;background:var(--muted);color:var(--text);font-size:12px}
-  .note{background:var(--box);padding:12px;border-radius:12px;margin-bottom:10px}
+  .note{background:var(--box);padding:12px;border-radius:12px;margin-bottom:10px;position:relative}
+  .note.pinned{border:2px solid #f59e0b}
   .noteActions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
   .actBtn{padding:7px 11px;border-radius:8px;font-size:12px;border:none;display:inline-flex;gap:5px;align-items:center;cursor:pointer}
-  .actBtn.edit{background:#e0e7ff;color:#3730a3} .actBtn.speak{background:#dcfce7;color:#166534} .actBtn.del{background:#fee2e2;color:#991b1b} .actBtn.pdf{background:#ede9fe;color:#5b21b6} .actBtn.share{background:#d1fae5;color:#065f46} .actBtn.sub{background:#fef9c3;color:#854d0e}
+  .actBtn.edit{background:#e0e7ff;color:#3730a3} .actBtn.speak{background:#dcfce7;color:#166534} .actBtn.del{background:#fee2e2;color:#991b1b} .actBtn.pdf{background:#ede9fe;color:#5b21b6} .actBtn.share{background:#d1fae5;color:#065f46} .actBtn.sub{background:#fef9c3;color:#854d0e} .actBtn.pin{background:#fef3c7;color:#92400e} .actBtn.check{background:#e0f2fe;color:#075985}
   .subNote{margin-top:10px;padding:10px 12px;background:var(--card);border-radius:8px;border-left:3px solid #6366f1}
   .subNote-header{font-weight:700;font-size:14px;color:var(--text);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
   .subNote-content{font-size:13px;line-height:20px;white-space:pre-wrap;opacity:.9}
   .toolbar{display:flex;gap:6px;margin:10px 0 8px} .searchBox{position:relative;flex:1} .searchBox i{position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:.4;font-size:12px} .searchBox input{padding-left:28px;margin:0}
   .suggestions{position:absolute;top:100%;left:0;right:0;background:var(--card);border-radius:10px;box-shadow:0 10px 25px rgba(0,0,0,.18);z-index:30;display:none;max-height:200px;overflow:auto;border:1px solid var(--muted);margin-top:4px}
   .suggestions.on{display:block} .sugItem{padding:10px 12px;cursor:pointer;font-size:13px;display:flex;justify-content:space-between;align-items:center} .sugItem:hover{background:var(--box)}
-  #settingsModal,#editModal,#translateModal,#confirmModal,#logoutModal,#subModal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:999;padding:12px;backdrop-filter:blur(6px)}
+  #settingsModal,#editModal,#translateModal,#confirmModal,#logoutModal,#subModal,#checkModal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:999;padding:12px;backdrop-filter:blur(6px)}
   .modalBox{background:var(--card);width:100%;max-width:560px;border-radius:16px;padding:18px;max-height:90vh;overflow:auto;animation:pop .25s ease}
   @keyframes pop{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
   .confirmIcon{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 12px}
@@ -43,6 +44,13 @@
   #subTranscript.has-text{color:var(--text)} #subTranscript:focus{border-color:#6366f1}
   .subRecBtn{padding:10px 12px;font-size:12px;background:var(--primary);color:var(--bg);border-radius:8px}
   .subRecBtn.rec{background:#e11d48;color:#fff}
+  .tplRow{display:flex;gap:6px;overflow:auto;padding-bottom:4px;scrollbar-width:none} .tplRow::-webkit-scrollbar{display:none}
+  .tplBtn{white-space:nowrap;padding:8px 12px;border-radius:20px;background:var(--muted);font-size:12px;border:none;cursor:pointer;flex:0 0 auto} .tplBtn.active{background:#111;color:#fff} .dark .tplBtn.active{background:#fff;color:#111}
+  .folderRow{display:flex;gap:6px;overflow:auto;padding-bottom:2px;scrollbar-width:none} .folderRow::-webkit-scrollbar{display:none}
+  .folderChip{white-space:nowrap;padding:7px 11px;border-radius:20px;background:var(--muted);font-size:12px;border:none;cursor:pointer;display:inline-flex;gap:5px;align-items:center} .folderChip.active{background:#6366f1;color:#fff}
+  .folderTag{font-size:10px;padding:3px 8px;border-radius:12px;font-weight:700;display:inline-flex;gap:4px;align-items:center}
+  .checkItem{display:flex;gap:8px;align-items:center;padding:7px 8px;background:var(--card);border-radius:8px;margin-top:6px;font-size:13px} .checkItem.done{opacity:.55;text-decoration:line-through} .checkItem input{width:auto;margin:0;accent-color:#6366f1}
+  .fab{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:14px 22px;border-radius:30px;font-size:15px;box-shadow:0 10px 25px rgba(0,0,0,.3);z-index:100;display:flex;gap:8px;align-items:center} .dark .fab{background:#fff;color:#111}
 </style>
 </head>
 <body>
@@ -53,7 +61,17 @@
 
 <div class="main">
   <div class="card">
-    <input id="titleInput" placeholder="Note Title">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b style="font-size:15px">✨ Create New</b><span style="font-size:11px;opacity:.6">Pick a template to start faster</span></div>
+    <div class="tplRow" id="tplRow">
+      <button class="tplBtn active" data-tpl="blank">📝 Blank</button>
+      <button class="tplBtn" data-tpl="meeting">🤝 Meeting</button>
+      <button class="tplBtn" data-tpl="class">📚 Class</button>
+      <button class="tplBtn" data-tpl="sermon">⛪ Sermon</button>
+      <button class="tplBtn" data-tpl="business">💼 Business</button>
+      <button class="tplBtn" data-tpl="journal">📓 Journal</button>
+      <button class="tplBtn" data-tpl="idea">💡 Idea</button>
+    </div>
+    <div style="display:flex;gap:6px"><input id="titleInput" placeholder="Note Title (optional - we auto-fill)" style="flex:2"><select id="folderSelect" style="flex:1;margin:0"><option value="General">📁 General</option><option value="School">📚 School</option><option value="Work">💼 Work</option><option value="Church">⛪ Church</option><option value="Personal">👤 Personal</option><option value="Business">📈 Business</option></select></div>
     <div style="margin-bottom:8px"><span id="liveBadge" class="badge">● LIVE</span><span id="detectedBadge" class="badge on" style="background:#eee;color:#666">🌐 Ready - Type or Record</span></div>
     <div id="transcriptBox" contenteditable="true"></div>
     <button class="full" id="recBtn"><i class="fa-solid fa-microphone"></i> START RECORDING</button>
@@ -64,7 +82,16 @@
     </div>
   </div>
   <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center"><b>Notes (<span id="count">0</span>)</b></div>
+    <div style="display:flex;justify-content:space-between;align-items:center"><b>Notes (<span id="count">0</span>)</b><span style="font-size:11px;opacity:.6" id="pinnedCount"></span></div>
+    <div class="folderRow" id="folderFilter" style="margin-top:10px">
+      <button class="folderChip active" data-folder="All">All</button>
+      <button class="folderChip" data-folder="School">📚 School</button>
+      <button class="folderChip" data-folder="Work">💼 Work</button>
+      <button class="folderChip" data-folder="Church">⛪ Church</button>
+      <button class="folderChip" data-folder="Personal">👤 Personal</button>
+      <button class="folderChip" data-folder="Business">📈 Business</button>
+      <button class="folderChip" data-folder="General">📁 General</button>
+    </div>
     <div class="toolbar">
       <div class="searchBox"><i class="fa-solid fa-magnifying-glass"></i><input id="searchInput" placeholder="Search by title or date..." autocomplete="off"><div id="suggestions" class="suggestions"></div></div>
       <select id="sortSelect" style="width:auto;min-width:110px;margin:0;padding:10px 8px;font-size:12px"><option value="" disabled selected>Sort by</option><option value="newest">Newest</option><option value="oldest">Oldest</option><option value="az">A-Z</option><option value="za">Z-A</option></select>
@@ -74,10 +101,12 @@
   </div>
 </div>
 
+<button class="fab" id="fabBtn"><i class="fa-solid fa-plus"></i> New Note</button>
+
 <div id="settingsModal"><div class="modalBox"><div style="display:flex;justify-content:space-between"><h3>Settings</h3><button class="iconBtn" id="closeSetBtn"><i class="fa-solid fa-xmark"></i></button></div><input id="serverUrl" type="hidden" value="https://kratenote-1.onrender.com"><label>Voice</label><select id="voiceSelect"></select><label>Speech Language</label><select id="speechLang"></select><label>Translate To</label><select id="translateTo"></select><label>Speed: <span id="speedVal">0.9</span></label><input type="range" id="speedRange" min="0.5" max="1.5" step="0.1" value="0.9"><label>Pitch: <span id="pitchVal">1.0</span></label><input type="range" id="pitchRange" min="0.5" max="1.5" step="0.1" value="1.0"><label>Font Size</label><select id="fontSelect"><option value="15px">Small</option><option value="17px" selected>Medium</option><option value="20px">Large</option><option value="24px">XL</option></select><div class="row"><span>Dark Mode</span><div id="darkSwitch" class="switch"><div class="dot"></div></div></div><div class="row"><span>Auto Detect</span><div class="switch on" id="autoSwitch"><div class="dot"></div></div></div><button class="full" style="background:#fee2e2;color:#b91c1c;margin-top:10px" id="clearBtn"><i class="fa-solid fa-trash"></i> Clear All Notes</button></div></div>
 
 <div id="editModal"><div class="modalBox"><div style="display:flex;justify-content:space-between"><h3>Edit Note</h3><button class="iconBtn" id="closeEditBtn"><i class="fa-solid fa-xmark"></i></button></div>
-<label>Title</label><input id="editTitle"><label>Language</label><select id="editLang"></select><label>Text</label><textarea id="editText" rows="8"></textarea>
+<label>Title</label><input id="editTitle"><label>Folder</label><select id="editFolder"><option>General</option><option>School</option><option>Work</option><option>Church</option><option>Personal</option><option>Business</option></select><label>Language</label><select id="editLang"></select><label>Text</label><textarea id="editText" rows="8"></textarea>
 <label>Translate To</label><div class="compactRow"><select id="editTranslateTo"></select><button class="iconBtn" id="doEditTranslate"><i class="fa-solid fa-language"></i></button><button class="iconBtn" id="editSpeakBtn" style="background:#dcfce7;color:#166534"><i class="fa-solid fa-volume-high"></i></button></div>
 <div style="display:flex;gap:6px;margin-top:12px"><button class="full" id="saveEditBtn" style="background:var(--primary);color:var(--bg)"><i class="fa-solid fa-check"></i> Save</button><button class="full" id="cancelEditBtn" style="background:var(--muted)"><i class="fa-solid fa-xmark"></i> Cancel</button></div></div></div>
 
@@ -86,6 +115,10 @@
 <label>Note</label><div id="subTranscript" contenteditable="true" placeholder="Type like: 1. Point one&#10;2. Point two&#10;Or record..."></div>
 <div style="display:flex;gap:6px;margin-bottom:10px"><button class="subRecBtn" id="subRecBtn"><i class="fa-solid fa-microphone"></i> Record Sub</button><span id="subStatus" style="font-size:11px;color:#6366f1;display:flex;align-items:center"></span></div>
 <button class="full" id="saveSubBtn" style="background:var(--primary);color:var(--bg)"><i class="fa-solid fa-plus"></i> Add Sub-Topic</button></div></div>
+
+<div id="checkModal"><div class="modalBox" style="max-width:420px"><div style="display:flex;justify-content:space-between"><h3>✅ Add Checklist Item</h3><button class="iconBtn" id="closeCheckBtn"><i class="fa-solid fa-xmark"></i></button></div>
+<label>What needs to be done?</label><input id="checkInput" placeholder="e.g. Buy books, Call John...">
+<button class="full" id="saveCheckBtn" style="background:var(--primary);color:var(--bg)"><i class="fa-solid fa-plus"></i> Add Item</button></div></div>
 
 <div id="translateModal"><div class="modalBox"><div style="display:flex;justify-content:space-between"><h3>Translate</h3><button class="iconBtn" id="closeTranslateBtn"><i class="fa-solid fa-xmark"></i></button></div><label>From</label><select id="fromLang"></select><label>To</label><select id="toLang"></select><label>Original</label><textarea id="origText" rows="4"></textarea><label>Translated</label><textarea id="transText" rows="4"></textarea><div style="display:flex;gap:6px"><button class="full" id="doTranslateBtn" style="background:var(--primary);color:var(--bg)">Translate</button><button class="full" id="speakTransBtn" style="background:var(--muted)"><i class="fa-solid fa-volume-high"></i> Speak</button></div><button class="full" id="saveTransBtn" style="background:#e0e7ff;color:#1e1b4b;margin-top:6px"><i class="fa-solid fa-floppy-disk"></i> Save</button></div></div>
 
@@ -109,13 +142,23 @@ document.getElementById('logoutConfirm').addEventListener('click',()=>{ localSto
 logoutModal.addEventListener('click',(e)=>{ if(e.target===logoutModal) logoutModal.style.display='none'; });
 
 const LANGS=[{code:'auto',name:'Auto',flag:'🌐',tts:'en-US'},{code:'en',name:'English',flag:'🇬🇧',tts:'en-US'},{code:'ibb',name:'Ibibio',flag:'🇳🇬',tts:'en-NG'},{code:'efi',name:'Efik',flag:'🇳🇬',tts:'en-NG'},{code:'ha',name:'Hausa',flag:'🇳🇬',tts:'ha-NG'},{code:'yo',name:'Yoruba',flag:'🇳🇬',tts:'yo-NG'},{code:'ig',name:'Igbo',flag:'🇳🇬',tts:'ig-NG'},{code:'pcm',name:'Pidgin',flag:'🇳🇬',tts:'en-NG'},{code:'fr',name:'French',flag:'🇫🇷',tts:'fr-FR'},{code:'es',name:'Spanish',flag:'🇪🇸',tts:'es-ES'},{code:'de',name:'German',flag:'🇩🇪',tts:'de-DE'},{code:'pt',name:'Portuguese',flag:'🇵🇹',tts:'pt-PT'},{code:'it',name:'Italian',flag:'🇮🇹',tts:'it-IT'},{code:'nl',name:'Dutch',flag:'🇳🇱',tts:'nl-NL'},{code:'ar',name:'Arabic',flag:'🇸🇦',tts:'ar-SA'},{code:'zh',name:'Chinese',flag:'🇨🇳',tts:'zh-CN'},{code:'ja',name:'Japanese',flag:'🇯🇵',tts:'ja-JP'},{code:'ko',name:'Korean',flag:'🇰🇷',tts:'ko-KR'},{code:'ru',name:'Russian',flag:'🇷🇺',tts:'ru-RU'},{code:'hi',name:'Hindi',flag:'🇮🇳',tts:'hi-IN'},{code:'sw',name:'Swahili',flag:'🇰🇪',tts:'sw-KE'},{code:'zu',name:'Zulu',flag:'🇿🇦',tts:'zu-ZA'},{code:'am',name:'Amharic',flag:'🇪🇹',tts:'am-ET'},{code:'tr',name:'Turkish',flag:'🇹🇷',tts:'tr-TR'},{code:'el',name:'Greek',flag:'🇬🇷',tts:'el-GR'},{code:'he',name:'Hebrew',flag:'🇮🇱',tts:'he-IL'},{code:'sv',name:'Swedish',flag:'🇸🇪',tts:'sv-SE'},{code:'no',name:'Norwegian',flag:'🇳🇴',tts:'nb-NO'},{code:'pl',name:'Polish',flag:'🇵🇱',tts:'pl-PL'},{code:'id',name:'Indonesian',flag:'🇮🇩',tts:'id-ID'},{code:'th',name:'Thai',flag:'🇹🇭',tts:'th-TH'}];
+const FOLDERS={School:{emoji:'📚',bg:'#e0e7ff',c:'#3730a3'},Work:{emoji:'💼',bg:'#dbeafe',c:'#1e40af'},Church:{emoji:'⛪',bg:'#fef3c7',c:'#92400e'},Personal:{emoji:'👤',bg:'#fce7f3',c:'#9d174d'},Business:{emoji:'📈',bg:'#dcfce7',c:'#166534'},General:{emoji:'📁',bg:'#eee',c:'#333'}};
+const TEMPLATES={
+  blank:{title:'',text:''},
+  meeting:{title:'Meeting - ',text:'Date:\nAttendees:\n\n📌 Agenda:\n1. \n2. \n\n✅ Decisions:\n- \n\n📝 Action Items:\n- '},
+  class:{title:'Class - ',text:'Topic:\nLecturer:\n\n📌 Key Points:\n1. \n2. \n3. \n\n❓ Questions:\n- \n\n📚 Assignment:\n- '},
+  sermon:{title:'Sermon - ',text:'Text:\nTheme:\n\n📌 Main Points:\n1. \n2. \n3. \n\n💡 Application:\n- \n\n🙏 Prayer:\n'},
+  business:{title:'Business Idea - ',text:'Idea:\nProblem:\nSolution:\n\n🎯 Target Customer:\n\n💰 How it makes money:\n\n📝 Next Steps:\n1. \n2. '},
+  journal:{title:'Journal - '+new Date().toLocaleDateString(),text:'Today I feel...\n\nGrateful for:\n- \n\nWhat happened today:\n\nTomorrow I will:\n'},
+  idea:{title:'Idea - ',text:'💡 Idea:\n\nWhy it matters:\n\nHow to start:\n1. \n'}
+};
 function fillLangSelects(){const opts=LANGS.map(l=>`<option value="${l.code}">${l.flag} ${l.name}</option>`).join('');const optsNoAuto=LANGS.filter(l=>l.code!=='auto').map(l=>`<option value="${l.code}">${l.flag} ${l.name}</option>`).join('');document.getElementById('speechLang').innerHTML=opts;document.getElementById('translateTo').innerHTML=optsNoAuto;document.getElementById('fromLang').innerHTML=opts;document.getElementById('toLang').innerHTML=optsNoAuto;document.getElementById('editLang').innerHTML=optsNoAuto;document.getElementById('editTranslateTo').innerHTML=optsNoAuto;}
 function detectLanguage(text){const t=(text||'').toLowerCase();if(!t.trim())return LANGS[0];if(/(mmesiere|mma|nsido|idem|ufok|nwed|sosongo|eti|yak|mfin)/.test(t))return LANGS.find(l=>l.code==='ibb');if(/(emem|mokomor|efi|sosongho)/.test(t))return LANGS.find(l=>l.code==='efi');if(/(sannu|ina kwana|hausa)/.test(t))return LANGS.find(l=>l.code==='ha');if(/(bawo|kaaro|yoruba)/.test(t))return LANGS.find(l=>l.code==='yo');if(/(kedu|ndewo|igbo)/.test(t))return LANGS.find(l=>l.code==='ig');if(/(how una dey|wetin|na so|abi|shebi)/.test(t))return LANGS.find(l=>l.code==='pcm');if(/(bonjour|merci)/.test(t))return LANGS.find(l=>l.code==='fr');if(/(hola|gracias)/.test(t))return LANGS.find(l=>l.code==='es');return LANGS.find(l=>l.code==='en');}
-let isRec=false,mediaRecorder=null,audioChunks=[],transcript='',notes=[],audioStream=null,editingIndex=-1,pendingDeleteIndex=-1,pendingClearAll=false,subParentIndex=-1,pendingSubParent=-1,pendingSubIndex=-1;
+let isRec=false,mediaRecorder=null,audioChunks=[],transcript='',notes=[],audioStream=null,editingIndex=-1,pendingDeleteIndex=-1,pendingClearAll=false,subParentIndex=-1,pendingSubParent=-1,pendingSubIndex=-1,checkParentIndex=-1,activeFolder='All',currentTpl='blank';
 let settings={dark:false,font:'17px',voiceURI:'',serverUrl:'https://kratenote-1.onrender.com',speed:0.9,pitch:1,speechLang:'auto',translateTo:'en',autoDetect:true};
 let showAll=false, searchQuery='', sortBy='newest';
-try{const userEmail = user?.email || 'guest'; notes=JSON.parse(localStorage.getItem('k_notes_'+userEmail)||localStorage.getItem('k_notes')||'[]'); const s=JSON.parse(localStorage.getItem('k_settings')||'{}');settings={...settings,...s};}catch(e){}
-const recBtn=document.getElementById('recBtn'),box=document.getElementById('transcriptBox'),modal=document.getElementById('settingsModal'),editModal=document.getElementById('editModal'),transModal=document.getElementById('translateModal'),confirmModal=document.getElementById('confirmModal'),liveBadge=document.getElementById('liveBadge'),detectedBadge=document.getElementById('detectedBadge'),statusTxt=document.getElementById('statusTxt'),subModal=document.getElementById('subModal');
+try{const userEmail = user?.email || 'guest'; notes=JSON.parse(localStorage.getItem('k_notes_'+userEmail)||localStorage.getItem('k_notes')||'[]'); const s=JSON.parse(localStorage.getItem('k_settings')||'{}');settings={...settings,...s}; notes.forEach(n=>{ if(!n.folder) n.folder='General'; if(n.pinned===undefined) n.pinned=false; if(!n.checks) n.checks=[]; if(!n.subs) n.subs=[]; });}catch(e){}
+const recBtn=document.getElementById('recBtn'),box=document.getElementById('transcriptBox'),modal=document.getElementById('settingsModal'),editModal=document.getElementById('editModal'),transModal=document.getElementById('translateModal'),confirmModal=document.getElementById('confirmModal'),liveBadge=document.getElementById('liveBadge'),detectedBadge=document.getElementById('detectedBadge'),statusTxt=document.getElementById('statusTxt'),subModal=document.getElementById('subModal'),checkModal=document.getElementById('checkModal');
 let voices=[],recognition=null,finalTranscriptLive='';
 function setEmptyState(){box.classList.remove('has-text');box.innerHTML='<i class="fa-solid fa-waveform-lines emptyIcon"></i><div class="emptyTxt">Tap mic to record OR click to type manually</div>';transcript='';finalTranscriptLive='';liveBadge.classList.remove('on');detectedBadge.textContent='🌐 Ready - Type or Record';detectedBadge.className='badge on';detectedBadge.style.background='#eee';detectedBadge.style.color='#666';statusTxt.textContent='';recBtn.innerHTML='<i class="fa-solid fa-microphone"></i> START RECORDING';recBtn.classList.remove('rec');isRec=false;}
 box.addEventListener('focus',()=>{ if(!box.classList.contains('has-text')){ box.innerHTML=''; box.classList.add('has-text'); } });
@@ -130,7 +173,7 @@ function createRecognition(){const SR=window.SpeechRecognition||window.webkitSpe
 async function startMic(){try{if(!audioStream)audioStream=await navigator.mediaDevices.getUserMedia({audio:true});let mime='audio/mp4';if(MediaRecorder.isTypeSupported('audio/mp4'))mime='audio/mp4';else if(MediaRecorder.isTypeSupported('audio/webm;codecs=opus'))mime='audio/webm;codecs=opus';mediaRecorder=new MediaRecorder(audioStream,{mimeType:mime});audioChunks=[];mediaRecorder.ondataavailable=e=>{if(e.data.size>0)audioChunks.push(e.data);};mediaRecorder.onstop=async()=>{if(!transcript||transcript==='Listening...'){const blob=new Blob(audioChunks,{type:mime});const form=new FormData();form.append('file',blob,mime.includes('mp4')?'recording.m4a':'recording.webm');try{statusTxt.textContent='Enhancing...';const res=await fetch(settings.serverUrl+'/transcribe',{method:'POST',body:form});const data=await res.json();if(data.text){transcript=data.text;box.textContent=data.text;showDetectedRealTime(data.text);}}catch(e){}}statusTxt.textContent='';};return mediaRecorder;}catch(e){alert('Mic error: '+e.message);return null;}}
 recBtn.addEventListener('click',async()=>{if(!isRec){finalTranscriptLive='';transcript='';audioChunks=[];box.textContent='Listening...';box.classList.add('has-text');const rec=await startMic();if(!rec)return;recognition=createRecognition();if(!recognition)return;try{recognition.start();}catch(e){}rec.start(100);isRec=true;recBtn.innerHTML='<i class="fa-solid fa-stop"></i> STOP';recBtn.classList.add('rec');}else{isRec=false;try{if(recognition)recognition.stop();}catch(e){}try{if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();}catch(e){}recBtn.innerHTML='<i class="fa-solid fa-microphone"></i> START RECORDING';recBtn.classList.remove('rec');liveBadge.classList.remove('on');if(transcript&&transcript!=='Listening...')statusTxt.textContent='Done - tap SAVE';}});
 async function translateText(text,to){try{statusTxt.textContent='Translating...';const res=await fetch(settings.serverUrl.replace(/\/$/,'')+'/translate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:text.substring(0,3000),to:to})});const data=await res.json();statusTxt.textContent='';if(data.translated)return data.translated;return text;}catch(e){statusTxt.textContent='';return text;}}
-function saveNote(){const txt=(box.innerText||'').trim()||transcript.trim();if(!txt||txt.includes('Tap mic')||txt==='Listening...'||txt.length<2)return alert('Type or record something first!');const title=document.getElementById('titleInput').value||txt.split(' ').slice(0,5).join(' ');const lang=detectLanguage(txt);notes.unshift({title,text:txt,date:new Date().toLocaleString(),lang:lang.name,code:lang.code,flag:lang.flag, ts: Date.now(), subs:[]});saveAll();render();document.getElementById('titleInput').value='';setEmptyState();}
+function saveNote(){const txt=(box.innerText||'').trim()||transcript.trim();if(!txt||txt.includes('Tap mic')||txt==='Listening...'||txt.length<2)return alert('Type or record something first!');let title=document.getElementById('titleInput').value.trim();if(!title){ title=txt.split('\n')[0].split(' ').slice(0,6).join(' '); } const folder=document.getElementById('folderSelect').value||'General'; const lang=detectLanguage(txt);notes.unshift({title,text:txt,date:new Date().toLocaleString(),lang:lang.name,code:lang.code,flag:lang.flag, ts: Date.now(), subs:[], folder, pinned:false, checks:[]});saveAll();render();document.getElementById('titleInput').value='';setEmptyState();document.querySelectorAll('.tplBtn').forEach(b=>b.classList.remove('active'));document.querySelector('[data-tpl="blank"]').classList.add('active');}
 function openConfirmDelete(index,isClearAll=false){
   pendingDeleteIndex=index;pendingClearAll=isClearAll;pendingSubParent=-1;pendingSubIndex=-1;
   const icon=document.querySelector('#confirmModal .confirmIcon');
@@ -180,14 +223,15 @@ confirmModal.addEventListener('click',(e)=>{if(e.target===confirmModal){confirmM
 function getFilteredSortedNotes(){
   let filtered = notes.filter(n=> {
     const q=searchQuery.toLowerCase();
-    return n.title.toLowerCase().includes(q) || n.date.toLowerCase().includes(q) || n.text.toLowerCase().includes(q);
+    const matchesQ = n.title.toLowerCase().includes(q) || n.date.toLowerCase().includes(q) || n.text.toLowerCase().includes(q);
+    const matchesFolder = activeFolder==='All' || (n.folder||'General')===activeFolder;
+    return matchesQ && matchesFolder;
   });
   filtered.forEach((n,i)=>{ if(!n.ts) n.ts=Date.now()-i*1000; });
-  if(sortBy==='newest') filtered.sort((a,b)=>b.ts-a.ts);
-  else if(sortBy==='oldest') filtered.sort((a,b)=>a.ts-b.ts);
-  else if(sortBy==='az') filtered.sort((a,b)=>a.title.localeCompare(b.title));
-  else if(sortBy==='za') filtered.sort((a,b)=>b.title.localeCompare(a.title));
-  else filtered.sort((a,b)=>b.ts-a.ts);
+  filtered.sort((a,b)=> (b.pinned?1:0)-(a.pinned?1:0) || b.ts-a.ts);
+  if(sortBy==='oldest') filtered.sort((a,b)=> (b.pinned?1:0)-(a.pinned?1:0) || a.ts-b.ts);
+  else if(sortBy==='az') filtered.sort((a,b)=> (b.pinned?1:0)-(a.pinned?1:0) || a.title.localeCompare(b.title));
+  else if(sortBy==='za') filtered.sort((a,b)=> (b.pinned?1:0)-(a.pinned?1:0) || b.title.localeCompare(a.title));
   return filtered;
 }
 function downloadSinglePdf(note){
@@ -195,7 +239,7 @@ function downloadSinglePdf(note){
   doc.setFontSize(16); doc.setFont(undefined,'bold'); doc.text(note.title,10,15);
   doc.setFontSize(10); doc.setFont(undefined,'normal'); doc.text(`${note.lang||''} | ${note.date} | ${user?.name||''}`,10,22);
   doc.setFontSize(11); let y=32;
-  let allText = note.text + (note.subs && note.subs.length ? "\n\nSub-topics:\n" + note.subs.map(s=>`${s.title}:\n${s.text}`).join("\n\n") : "");
+  let allText = note.text + (note.subs && note.subs.length ? "\n\nSub-topics:\n" + note.subs.map(s=>`${s.title}:\n${s.text}`).join("\n\n") : "") + (note.checks && note.checks.length ? "\n\nChecklist:\n"+note.checks.map(c=>(c.done?'[x] ':'[ ] ')+c.text).join("\n") : "");
   const lines=doc.splitTextToSize(allText,180);
   lines.forEach(line=>{ if(y>270){ doc.addPage(); y=15; } doc.text(line,10,y); y+=6; });
   doc.save(`${note.title.replace(/[^a-z0-9]/gi,'_')}.pdf`);
@@ -203,6 +247,7 @@ function downloadSinglePdf(note){
 async function shareNote(note){
   let fullText = `${note.title}\n\n${note.text}`;
   if(note.subs && note.subs.length){ fullText += "\n\n" + note.subs.map(s=>`${s.title}:\n${s.text}`).join("\n\n"); }
+  if(note.checks && note.checks.length){ fullText += "\n\nChecklist:\n" + note.checks.map(c=>(c.done?'✅ ':'⬜ ')+c.text).join("\n"); }
   const shareData = { title: note.title, text: fullText + "\n\n- via KrateNote" };
   if(navigator.share){
     try{ await navigator.share(shareData); }catch(e){}
@@ -234,6 +279,24 @@ subRecBtn.addEventListener('click',()=>{
   }
 });
 
+document.querySelectorAll('.tplBtn').forEach(btn=>btn.addEventListener('click',()=>{
+  document.querySelectorAll('.tplBtn').forEach(b=>b.classList.remove('active')); btn.classList.add('active');
+  const t=TEMPLATES[btn.dataset.tpl]; currentTpl=btn.dataset.tpl;
+  document.getElementById('titleInput').value=t.title;
+  if(t.text){ box.classList.add('has-text'); box.textContent=t.text; transcript=t.text; } else { setEmptyState(); }
+  if(btn.dataset.tpl==='meeting') document.getElementById('folderSelect').value='Work';
+  if(btn.dataset.tpl==='class') document.getElementById('folderSelect').value='School';
+  if(btn.dataset.tpl==='sermon') document.getElementById('folderSelect').value='Church';
+  if(btn.dataset.tpl==='business') document.getElementById('folderSelect').value='Business';
+  if(btn.dataset.tpl==='journal') document.getElementById('folderSelect').value='Personal';
+  box.focus();
+}));
+document.querySelectorAll('#folderFilter .folderChip').forEach(chip=>chip.addEventListener('click',()=>{
+  document.querySelectorAll('#folderFilter .folderChip').forEach(c=>c.classList.remove('active')); chip.classList.add('active');
+  activeFolder=chip.dataset.folder; showAll=false; render();
+}));
+document.getElementById('fabBtn').addEventListener('click',()=>{ window.scrollTo({top:0,behavior:'smooth'}); document.getElementById('titleInput').focus(); });
+
 const searchInput=document.getElementById('searchInput');
 const suggBox=document.getElementById('suggestions');
 searchInput.addEventListener('input',(e)=>{
@@ -253,17 +316,22 @@ document.getElementById('sortSelect').addEventListener('change',(e)=>{ sortBy=e.
 document.getElementById('viewMoreBtn').addEventListener('click',()=>{ showAll=!showAll; render(); });
 
 document.getElementById('notesList').addEventListener('click',(e)=>{
+  const chk=e.target.closest('[data-check]');
+  if(chk){ const p=parseInt(chk.dataset.parent); const ci=parseInt(chk.dataset.check); notes[p].checks[ci].done=!notes[p].checks[ci].done; saveAll(); render(); return; }
   const btn=e.target.closest('[data-action]');
   if(!btn) return;
   const idx=parseInt(btn.dataset.index);
   const action=btn.dataset.action;
   if(action==='del'){ openConfirmDelete(idx,false); }
+  else if(action==='pin'){ notes[idx].pinned=!notes[idx].pinned; saveAll(); render(); }
   else if(action==='speak'){ const nn=notes[idx]; speakClear(nn.text,nn.code); }
-  else if(action==='edit'){ editingIndex=idx; document.getElementById('editTitle').value=notes[idx].title; document.getElementById('editText').value=notes[idx].text; document.getElementById('editLang').value=notes[idx].code||'en'; editModal.style.display='flex'; }
+  else if(action==='edit'){ editingIndex=idx; document.getElementById('editTitle').value=notes[idx].title; document.getElementById('editText').value=notes[idx].text; document.getElementById('editLang').value=notes[idx].code||'en'; document.getElementById('editFolder').value=notes[idx].folder||'General'; editModal.style.display='flex'; }
   else if(action==='pdf'){ downloadSinglePdf(notes[idx]); }
   else if(action==='share'){ shareNote(notes[idx]); }
   else if(action==='sub'){ subParentIndex=idx; document.getElementById('subTitle').value=''; subBox.innerHTML=''; subBox.classList.remove('has-text'); subFinal=''; subRec=false; subRecBtn.innerHTML='<i class="fa-solid fa-microphone"></i> Record Sub'; subRecBtn.classList.remove('rec'); subStatus.textContent=''; subModal.style.display='flex'; }
+  else if(action==='check'){ checkParentIndex=idx; document.getElementById('checkInput').value=''; checkModal.style.display='flex'; }
   else if(action==='delsub'){ const parent=parseInt(btn.dataset.parent); const subIdx=parseInt(btn.dataset.sub); openConfirmSubDelete(parent, subIdx); }
+  else if(action==='delcheck'){ const parent=parseInt(btn.dataset.parent); const ci=parseInt(btn.dataset.check); notes[parent].checks.splice(ci,1); saveAll(); render(); }
 });
 
 document.getElementById('closeSubBtn').addEventListener('click',()=>{ if(subRec){ try{ subRecognition.stop(); }catch(e){} subRec=false; } subModal.style.display='none'; });
@@ -277,29 +345,46 @@ document.getElementById('saveSubBtn').addEventListener('click',()=>{
 });
 subModal.addEventListener('click',(e)=>{ if(e.target===subModal){ if(subRec){ try{ subRecognition.stop(); }catch(e){} subRec=false; } subModal.style.display='none'; } });
 
+document.getElementById('closeCheckBtn').addEventListener('click',()=>{ checkModal.style.display='none'; });
+document.getElementById('saveCheckBtn').addEventListener('click',()=>{
+  const v=document.getElementById('checkInput').value.trim(); if(!v) return alert('Type an item');
+  if(!notes[checkParentIndex].checks) notes[checkParentIndex].checks=[];
+  notes[checkParentIndex].checks.push({text:v,done:false}); saveAll(); render(); checkModal.style.display='none';
+});
+checkModal.addEventListener('click',(e)=>{ if(e.target===checkModal) checkModal.style.display='none'; });
+
 function render(){
   const filtered = getFilteredSortedNotes();
   document.getElementById('count').textContent=filtered.length;
+  const pinnedN=notes.filter(n=>n.pinned).length;
+  document.getElementById('pinnedCount').textContent = pinnedN? `📌 ${pinnedN} pinned` : '';
   const viewMoreBtn=document.getElementById('viewMoreBtn');
   if(filtered.length===0){
-    if(searchQuery){
-      document.getElementById('notesList').innerHTML=`<div style="text-align:center;padding:24px;background:var(--box);border-radius:12px;border:1px dashed #ccc"><i class="fa-solid fa-circle-exclamation" style="font-size:36px;color:#f59e0b;display:block;margin-bottom:10px"></i><b>No match found</b><br><small style="opacity:.7">No note matches "<b>${searchQuery}</b>"</small><br><button id="clearSearchLink" style="margin-top:10px;background:#e0e7ff;color:#3730a3;padding:8px 14px;border-radius:8px;border:none;font-size:12px;cursor:pointer"><i class="fa-solid fa-xmark"></i> Clear search</button></div>`;
-      const link=document.getElementById('clearSearchLink'); if(link) link.addEventListener('click',()=>{ searchInput.value=''; searchQuery=''; suggBox.classList.remove('on'); render(); });
+    if(searchQuery || activeFolder!=='All'){
+      document.getElementById('notesList').innerHTML=`<div style="text-align:center;padding:24px;background:var(--box);border-radius:12px;border:1px dashed #ccc"><i class="fa-solid fa-circle-exclamation" style="font-size:36px;color:#f59e0b;display:block;margin-bottom:10px"></i><b>No match found</b><br><small style="opacity:.7">No note in ${activeFolder} matches "${searchQuery}"</small><br><button id="clearSearchLink" style="margin-top:10px;background:#e0e7ff;color:#3730a3;padding:8px 14px;border-radius:8px;border:none;font-size:12px;cursor:pointer"><i class="fa-solid fa-xmark"></i> Clear filter</button></div>`;
+      const link=document.getElementById('clearSearchLink'); if(link) link.addEventListener('click',()=>{ searchInput.value=''; searchQuery=''; activeFolder='All'; document.querySelectorAll('#folderFilter .folderChip').forEach(c=>c.classList.toggle('active',c.dataset.folder==='All')); suggBox.classList.remove('on'); render(); });
     } else {
-      document.getElementById('notesList').innerHTML='<div style="text-align:center;padding:20px;opacity:.4"><i class="fa-solid fa-inbox" style="font-size:32px;display:block;margin-bottom:8px"></i>No notes yet<br><small>Type or record first note</small></div>';
+      document.getElementById('notesList').innerHTML='<div style="text-align:center;padding:20px;opacity:.4"><i class="fa-solid fa-inbox" style="font-size:32px;display:block;margin-bottom:8px"></i>No notes yet<br><small>Tap a template above or + New Note</small></div>';
     }
     viewMoreBtn.style.display='none';
   } else {
-    const toShow = showAll ? filtered : filtered.slice(0,2);
+    const toShow = showAll ? filtered : filtered.slice(0,3);
     document.getElementById('notesList').innerHTML=toShow.map((n)=>{
       const realIndex = notes.indexOf(n);
+      const f=FOLDERS[n.folder||'General']||FOLDERS.General;
+      const folderTag=`<span class="folderTag" style="background:${f.bg};color:${f.c}">${f.emoji} ${n.folder||'General'}</span>`;
       const subsHtml = (n.subs||[]).map((s,si)=>`<div class="subNote"><div class="subNote-header"><span>${s.title}</span><small>${s.date.split(',')[0]}</small></div><div class="subNote-content">${s.text}</div><button class="iconBtn" data-action="delsub" data-parent="${realIndex}" data-sub="${si}" style="margin-top:8px;background:#fee2e2;color:#991b1b;font-size:10px"><i class="fa-solid fa-trash"></i> Remove</button></div>`).join('');
-      return `<div class="note">
-        <div style="display:flex;justify-content:space-between"><b>${n.flag||''} ${n.title}</b><small>${n.date}</small></div>
-        <small style="opacity:.6">${n.lang||''}</small>
+      const checksHtml = (n.checks||[]).map((c,ci)=>`<div class="checkItem ${c.done?'done':''}"><input type="checkbox" ${c.done?'checked':''} data-check="${ci}" data-parent="${realIndex}"><span style="flex:1">${c.text}</span><button class="iconBtn" data-action="delcheck" data-parent="${realIndex}" data-check="${ci}" style="padding:2px 6px">✕</button></div>`).join('');
+      const checksSection = checksHtml ? `<div style="margin-top:8px"><b style="font-size:12px">✅ Checklist (${n.checks.filter(c=>c.done).length}/${n.checks.length})</b>${checksHtml}</div>` : '';
+      return `<div class="note ${n.pinned?'pinned':''}">
+        <div style="display:flex;justify-content:space-between;gap:6px"><b>${n.pinned?'📌 ':''}${n.flag||''} ${n.title}</b><small>${n.date}</small></div>
+        <div style="display:flex;gap:6px;margin-top:6px;align-items:center">${folderTag}<small style="opacity:.6">${n.lang||''}</small></div>
         <div style="margin-top:6px;white-space:pre-wrap">${n.text}</div>
         ${subsHtml}
+        ${checksSection}
         <div class="noteActions">
+          <button class="actBtn pin" data-action="pin" data-index="${realIndex}"><i class="fa-solid fa-thumbtack"></i> ${n.pinned?'Unpin':'Pin'}</button>
+          <button class="actBtn check" data-action="check" data-index="${realIndex}"><i class="fa-solid fa-square-check"></i> Checklist</button>
           <button class="actBtn edit" data-action="edit" data-index="${realIndex}"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
           <button class="actBtn speak" data-action="speak" data-index="${realIndex}"><i class="fa-solid fa-volume-high"></i> Speak</button>
           <button class="actBtn pdf" data-action="pdf" data-index="${realIndex}"><i class="fa-solid fa-file-pdf"></i> PDF</button>
@@ -309,9 +394,9 @@ function render(){
         </div>
       </div>`;
     }).join('');
-    if(filtered.length>2){
+    if(filtered.length>3){
       viewMoreBtn.style.display='flex';
-      viewMoreBtn.innerHTML = showAll ? `<i class="fa-solid fa-chevron-up"></i> View Less` : `<i class="fa-solid fa-chevron-down"></i> View More (${filtered.length-2} hidden)`;
+      viewMoreBtn.innerHTML = showAll ? `<i class="fa-solid fa-chevron-up"></i> View Less` : `<i class="fa-solid fa-chevron-down"></i> View More (${filtered.length-3} hidden)`;
     } else {
       viewMoreBtn.style.display='none';
     }
@@ -322,7 +407,7 @@ document.getElementById('closeSetBtn').addEventListener('click',()=>modal.style.
 document.getElementById('closeEditBtn').addEventListener('click',()=>editModal.style.display='none');
 document.getElementById('cancelEditBtn').addEventListener('click',()=>editModal.style.display='none');
 document.getElementById('closeTranslateBtn').addEventListener('click',()=>transModal.style.display='none');
-document.getElementById('saveEditBtn').addEventListener('click',()=>{ if(editingIndex>=0){ notes[editingIndex].title=document.getElementById('editTitle').value; notes[editingIndex].text=document.getElementById('editText').value; const lang=LANGS.find(l=>l.code===document.getElementById('editLang').value); notes[editingIndex].code=lang.code; notes[editingIndex].lang=lang.name; notes[editingIndex].flag=lang.flag; notes[editingIndex].date=new Date().toLocaleString()+' (edited)'; notes[editingIndex].ts=Date.now(); saveAll(); render(); editModal.style.display='none'; }});
+document.getElementById('saveEditBtn').addEventListener('click',()=>{ if(editingIndex>=0){ notes[editingIndex].title=document.getElementById('editTitle').value; notes[editingIndex].folder=document.getElementById('editFolder').value; notes[editingIndex].text=document.getElementById('editText').value; const lang=LANGS.find(l=>l.code===document.getElementById('editLang').value); notes[editingIndex].code=lang.code; notes[editingIndex].lang=lang.name; notes[editingIndex].flag=lang.flag; notes[editingIndex].date=new Date().toLocaleString()+' (edited)'; notes[editingIndex].ts=Date.now(); saveAll(); render(); editModal.style.display='none'; }});
 document.getElementById('doEditTranslate').addEventListener('click',async()=>{ const to=document.getElementById('editTranslateTo').value; const orig=document.getElementById('editText').value; document.getElementById('editText').value='Translating...'; const tr=await translateText(orig,to); document.getElementById('editText').value=tr; document.getElementById('editLang').value=to; });
 document.getElementById('editSpeakBtn').addEventListener('click',()=>{ const txt=document.getElementById('editText').value; const code=document.getElementById('editLang').value; if(txt) speakClear(txt,code); });
 document.getElementById('voiceSelect').addEventListener('change',e=>{ settings.voiceURI=e.target.value; saveAll(); });
@@ -339,7 +424,7 @@ document.getElementById('speakBtn').addEventListener('click',()=>{const t=box.in
 document.getElementById('translateBtn').addEventListener('click',()=>{const t=box.innerText.trim();if(!t||t.includes('Tap mic'))return alert('No text');document.getElementById('origText').value=t;document.getElementById('fromLang').value='auto';document.getElementById('toLang').value=settings.translateTo;transModal.style.display='flex';});
 document.getElementById('doTranslateBtn').addEventListener('click',async()=>{const orig=document.getElementById('origText').value;const to=document.getElementById('toLang').value;document.getElementById('transText').value='Translating...';const tr=await translateText(orig,to);document.getElementById('transText').value=tr;});
 document.getElementById('speakTransBtn').addEventListener('click',()=>{const txt=document.getElementById('transText').value;const to=document.getElementById('toLang').value;if(txt)speakClear(txt,to);});
-document.getElementById('saveTransBtn').addEventListener('click',()=>{const txt=document.getElementById('transText').value;if(!txt)return;const lang=LANGS.find(l=>l.code===document.getElementById('toLang').value);notes.unshift({title:'Translated to '+lang.name,text:txt,date:new Date().toLocaleString(),lang:lang.name,code:lang.code,flag:lang.flag,ts:Date.now(),subs:[]});saveAll();render();transModal.style.display='none';});
+document.getElementById('saveTransBtn').addEventListener('click',()=>{const txt=document.getElementById('transText').value;if(!txt)return;const lang=LANGS.find(l=>l.code===document.getElementById('toLang').value);notes.unshift({title:'Translated to '+lang.name,text:txt,date:new Date().toLocaleString(),lang:lang.name,code:lang.code,flag:lang.flag,ts:Date.now(),subs:[],folder:'General',pinned:false,checks:[]});saveAll();render();transModal.style.display='none';});
 fillLangSelects(); applySettings(); setEmptyState(); render();
 </script>
 </body>
