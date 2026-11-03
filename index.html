@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>KrateNote V11 - Final</title>
+<title>KrateNote V12 - Sub Record</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
@@ -25,7 +25,6 @@
   .actBtn{padding:7px 11px;border-radius:8px;font-size:12px;border:none;display:inline-flex;gap:5px;align-items:center;cursor:pointer}
   .actBtn.edit{background:#e0e7ff;color:#3730a3} .actBtn.speak{background:#dcfce7;color:#166534} .actBtn.del{background:#fee2e2;color:#991b1b} .actBtn.pdf{background:#ede9fe;color:#5b21b6} .actBtn.share{background:#d1fae5;color:#065f46} .actBtn.sub{background:#fef9c3;color:#854d0e}
   .subNote{margin-top:8px;padding:8px 10px;background:var(--card);border-radius:8px;border-left:3px solid #6366f1;font-size:13px}
-  .subNote b{font-size:12px} .subNote small{opacity:.6}
   .toolbar{display:flex;gap:6px;margin:10px 0 8px} .searchBox{position:relative;flex:1} .searchBox i{position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:.4;font-size:12px} .searchBox input{padding-left:28px;margin:0}
   .suggestions{position:absolute;top:100%;left:0;right:0;background:var(--card);border-radius:10px;box-shadow:0 10px 25px rgba(0,0,0,.18);z-index:30;display:none;max-height:200px;overflow:auto;border:1px solid var(--muted);margin-top:4px}
   .suggestions.on{display:block} .sugItem{padding:10px 12px;cursor:pointer;font-size:13px;display:flex;justify-content:space-between;align-items:center} .sugItem:hover{background:var(--box)}
@@ -37,7 +36,11 @@
   .row{display:flex;justify-content:space-between;align-items:center;margin:12px 0}
   .switch{width:46px;height:28px;background:#ccc;border-radius:20px;position:relative;cursor:pointer} .switch.on{background:var(--primary)} .dot{width:24px;height:24px;background:#fff;border-radius:50%;position:absolute;top:2px;left:2px;transition:.2s} .switch.on .dot{left:20px}
   label{font-size:13px;font-weight:600;margin:8px 0 4px;display:block;opacity:.8}
-  .compactRow{display:flex;gap:6px;align-items:center} .compactRow select{flex:0 0 60%;margin:0} .compactRow button{flex:1;margin:0}
+  .compactRow{display:flex;gap:6px;align-items:center;flex-wrap:nowrap} .compactRow select{flex:1 1 auto;min-width:0;margin:0;padding:10px 8px;font-size:13px} .compactRow .iconBtn{flex:0 0 auto;white-space:nowrap;padding:10px 12px}
+  #subTranscript{min-height:100px;background:var(--box);border-radius:10px;padding:12px;font-size:14px;white-space:pre-wrap;border:2px solid transparent;outline:none;margin-bottom:8px;max-height:150px;overflow:auto}
+  #subTranscript.has-text{color:var(--text)} #subTranscript:focus{border-color:#6366f1}
+  .subRecBtn{padding:10px 12px;font-size:12px;background:var(--primary);color:var(--bg);border-radius:8px}
+  .subRecBtn.rec{background:#e11d48;color:#fff}
 </style>
 </head>
 <body>
@@ -73,10 +76,14 @@
 
 <div id="editModal"><div class="modalBox"><div style="display:flex;justify-content:space-between"><h3>Edit Note</h3><button class="iconBtn" id="closeEditBtn"><i class="fa-solid fa-xmark"></i></button></div>
 <label>Title</label><input id="editTitle"><label>Language</label><select id="editLang"></select><label>Text</label><textarea id="editText" rows="8"></textarea>
-<label>Translate To (compact)</label><div class="compactRow"><select id="editTranslateTo"></select><button class="iconBtn" id="doEditTranslate" style="background:#fef3c7;color:#92400e"><i class="fa-solid fa-language"></i> Translate</button><button class="iconBtn" id="editSpeakBtn" style="background:#dcfce7;color:#166534"><i class="fa-solid fa-volume-high"></i> Speak</button></div>
+<label>Translate To</label><div class="compactRow"><select id="editTranslateTo"></select><button class="iconBtn" id="doEditTranslate"><i class="fa-solid fa-language"></i></button><button class="iconBtn" id="editSpeakBtn" style="background:#dcfce7;color:#166534"><i class="fa-solid fa-volume-high"></i></button></div>
 <div style="display:flex;gap:6px;margin-top:12px"><button class="full" id="saveEditBtn" style="background:var(--primary);color:var(--bg)"><i class="fa-solid fa-check"></i> Save</button><button class="full" id="cancelEditBtn" style="background:var(--muted)"><i class="fa-solid fa-xmark"></i> Cancel</button></div></div></div>
 
-<div id="subModal"><div class="modalBox" style="max-width:380px"><div style="display:flex;justify-content:space-between"><h3><i class="fa-solid fa-list-ul"></i> Add Sub-Topic</h3><button class="iconBtn" id="closeSubBtn"><i class="fa-solid fa-xmark"></i></button></div><label>Sub Title</label><input id="subTitle" placeholder="e.g. Key Point 1"><label>Sub Note</label><textarea id="subText" rows="4" placeholder="Details..."></textarea><button class="full" id="saveSubBtn" style="background:var(--primary);color:var(--bg)"><i class="fa-solid fa-plus"></i> Add Sub-Topic</button></div></div>
+<div id="subModal"><div class="modalBox" style="max-width:420px"><div style="display:flex;justify-content:space-between"><h3><i class="fa-solid fa-list-ul"></i> Add Sub-Topic</h3><button class="iconBtn" id="closeSubBtn"><i class="fa-solid fa-xmark"></i></button></div>
+<label>Sub Title</label><input id="subTitle" placeholder="e.g. Key Point 1">
+<label>Sub Note - Type or Record</label><div id="subTranscript" contenteditable="true" placeholder="Type manually or tap record..."></div>
+<div style="display:flex;gap:6px;margin-bottom:10px"><button class="subRecBtn" id="subRecBtn"><i class="fa-solid fa-microphone"></i> Record Sub</button><span id="subStatus" style="font-size:11px;color:#6366f1;display:flex;align-items:center"></span></div>
+<button class="full" id="saveSubBtn" style="background:var(--primary);color:var(--bg)"><i class="fa-solid fa-plus"></i> Add Sub-Topic</button></div></div>
 
 <div id="translateModal"><div class="modalBox"><div style="display:flex;justify-content:space-between"><h3>Translate</h3><button class="iconBtn" id="closeTranslateBtn"><i class="fa-solid fa-xmark"></i></button></div><label>From</label><select id="fromLang"></select><label>To</label><select id="toLang"></select><label>Original</label><textarea id="origText" rows="4"></textarea><label>Translated</label><textarea id="transText" rows="4"></textarea><div style="display:flex;gap:6px"><button class="full" id="doTranslateBtn" style="background:var(--primary);color:var(--bg)">Translate</button><button class="full" id="speakTransBtn" style="background:var(--muted)"><i class="fa-solid fa-volume-high"></i> Speak</button></div><button class="full" id="saveTransBtn" style="background:#e0e7ff;color:#1e1b4b;margin-top:6px"><i class="fa-solid fa-floppy-disk"></i> Save</button></div></div>
 <div id="confirmModal"><div class="modalBox" style="max-width:380px;text-align:center"><div class="confirmIcon delete"><i class="fa-solid fa-trash"></i></div><h3>Delete Note?</h3><p id="confirmText" style="font-size:14px;opacity:.7;margin:0 0 16px"></p><div style="display:flex;gap:8px"><button class="full" id="confirmCancel" style="background:var(--muted)"><i class="fa-solid fa-xmark"></i> Cancel</button><button class="full" id="confirmDelete" style="background:#dc2626;color:#fff"><i class="fa-solid fa-trash"></i> Yes, Delete</button></div></div></div>
@@ -153,9 +160,33 @@ async function shareNote(note){
   if(navigator.share){
     try{ await navigator.share(shareData); }catch(e){}
   } else {
-    try{ await navigator.clipboard.writeText(`${shareData.title}\n${shareData.text}`); alert('Note copied! You can now paste and share anywhere.'); }catch(e){ alert(`${shareData.title}\n\n${note.text}`); }
+    try{ await navigator.clipboard.writeText(`${shareData.title}\n${shareData.text}`); alert('Note copied!'); }catch(e){ alert(`${shareData.title}\n\n${note.text}`); }
   }
 }
+
+// Sub-topic recording logic
+let subRec=false, subRecognition=null, subFinal='';
+const subBox=document.getElementById('subTranscript');
+const subRecBtn=document.getElementById('subRecBtn');
+const subStatus=document.getElementById('subStatus');
+subBox.addEventListener('focus',()=>{ if(!subBox.classList.contains('has-text')){ subBox.innerHTML=''; subBox.classList.add('has-text'); } });
+function createSubRecognition(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition; if(!SR){ alert('Use Chrome'); return null; }
+  const rec=new SR(); rec.continuous=true; rec.interimResults=true; rec.lang='en-US';
+  rec.onstart=()=>{ subStatus.textContent='Listening...'; subBox.classList.add('has-text'); if(!subFinal) subBox.textContent=''; };
+  rec.onresult=(e)=>{ let interim=''; let fp=''; for(let i=e.resultIndex;i<e.results.length;i++){ const t=e.results[i][0].transcript; if(e.results[i].isFinal) fp+=t+' '; else interim+=t; } if(e.results[e.results.length-1].isFinal) subFinal+=fp; const full=(subFinal+interim).trim(); if(full) subBox.textContent=full; };
+  rec.onend=()=>{ if(subRec){ try{ rec.start(); }catch(err){} } };
+  return rec;
+}
+subRecBtn.addEventListener('click',()=>{
+  if(!subRec){
+    subFinal=''; subBox.textContent='Listening...'; subBox.classList.add('has-text');
+    subRecognition=createSubRecognition(); if(!subRecognition) return;
+    try{ subRecognition.start(); }catch(e){} subRec=true; subRecBtn.innerHTML='<i class="fa-solid fa-stop"></i> Stop'; subRecBtn.classList.add('rec'); subStatus.textContent='● LIVE';
+  } else {
+    subRec=false; try{ if(subRecognition) subRecognition.stop(); }catch(e){} subRecBtn.innerHTML='<i class="fa-solid fa-microphone"></i> Record Sub'; subRecBtn.classList.remove('rec'); subStatus.textContent='Done';
+  }
+});
 
 const searchInput=document.getElementById('searchInput');
 const suggBox=document.getElementById('suggestions');
@@ -175,7 +206,6 @@ document.addEventListener('click',(e)=>{ if(!e.target.closest('.searchBox')) sug
 document.getElementById('sortSelect').addEventListener('change',(e)=>{ sortBy=e.target.value; showAll=false; render(); });
 document.getElementById('viewMoreBtn').addEventListener('click',()=>{ showAll=!showAll; render(); });
 
-// Event delegation for note actions
 document.getElementById('notesList').addEventListener('click',(e)=>{
   const btn=e.target.closest('[data-action]');
   if(!btn) return;
@@ -186,27 +216,25 @@ document.getElementById('notesList').addEventListener('click',(e)=>{
   else if(action==='edit'){ editingIndex=idx; document.getElementById('editTitle').value=notes[idx].title; document.getElementById('editText').value=notes[idx].text; document.getElementById('editLang').value=notes[idx].code||'en'; editModal.style.display='flex'; }
   else if(action==='pdf'){ downloadSinglePdf(notes[idx]); }
   else if(action==='share'){ shareNote(notes[idx]); }
-  else if(action==='sub'){ subParentIndex=idx; document.getElementById('subTitle').value=''; document.getElementById('subText').value=''; subModal.style.display='flex'; }
+  else if(action==='sub'){ subParentIndex=idx; document.getElementById('subTitle').value=''; subBox.innerHTML=''; subBox.classList.remove('has-text'); subFinal=''; subRec=false; subRecBtn.innerHTML='<i class="fa-solid fa-microphone"></i> Record Sub'; subRecBtn.classList.remove('rec'); subStatus.textContent=''; subModal.style.display='flex'; }
   else if(action==='delsub'){ const parent=parseInt(btn.dataset.parent); const subIdx=parseInt(btn.dataset.sub); notes[parent].subs.splice(subIdx,1); saveAll(); render(); }
 });
 
-// Sub modal
-document.getElementById('closeSubBtn').addEventListener('click',()=>subModal.style.display='none');
+document.getElementById('closeSubBtn').addEventListener('click',()=>{ if(subRec){ try{ subRecognition.stop(); }catch(e){} subRec=false; } subModal.style.display='none'; });
 document.getElementById('saveSubBtn').addEventListener('click',()=>{
   const t=document.getElementById('subTitle').value.trim();
-  const txt=document.getElementById('subText').value.trim();
-  if(!t||!txt) return alert('Fill both fields');
+  const txt=subBox.innerText.trim();
+  if(!t||!txt) return alert('Fill title and sub note (type or record)');
   if(!notes[subParentIndex].subs) notes[subParentIndex].subs=[];
   notes[subParentIndex].subs.push({title:t,text:txt,date:new Date().toLocaleString()});
-  saveAll(); render(); subModal.style.display='none';
+  saveAll(); render(); subModal.style.display='none'; if(subRec){ try{ subRecognition.stop(); }catch(e){} subRec=false; }
 });
-subModal.addEventListener('click',(e)=>{ if(e.target===subModal) subModal.style.display='none'; });
+subModal.addEventListener('click',(e)=>{ if(e.target===subModal){ if(subRec){ try{ subRecognition.stop(); }catch(e){} subRec=false; } subModal.style.display='none'; } });
 
 function render(){
   const filtered = getFilteredSortedNotes();
   document.getElementById('count').textContent=filtered.length;
   const viewMoreBtn=document.getElementById('viewMoreBtn');
-
   if(filtered.length===0){
     if(searchQuery){
       document.getElementById('notesList').innerHTML=`<div style="text-align:center;padding:24px;background:var(--box);border-radius:12px;border:1px dashed #ccc"><i class="fa-solid fa-circle-exclamation" style="font-size:36px;color:#f59e0b;display:block;margin-bottom:10px"></i><b>No match found</b><br><small style="opacity:.7">No note matches "<b>${searchQuery}</b>"</small><br><button id="clearSearchLink" style="margin-top:10px;background:#e0e7ff;color:#3730a3;padding:8px 14px;border-radius:8px;border:none;font-size:12px;cursor:pointer"><i class="fa-solid fa-xmark"></i> Clear search</button></div>`;
