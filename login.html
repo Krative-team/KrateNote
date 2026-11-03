@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Login - KrateNote</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<style>
+  :root{--bg:#F6F7FB;--card:#fff;--text:#111;--muted:#eee;--primary:#111}
+  *{box-sizing:border-box;font-family:-apple-system,sans-serif} body{margin:0;background:var(--bg);display:flex;min-height:100vh;align-items:center;justify-content:center;padding:16px}
+  .box{background:var(--card);width:100%;max-width:400px;border-radius:20px;padding:28px;box-shadow:0 10px 40px rgba(0,0,0,.08)}
+  .logo{text-align:center;margin-bottom:20px} .logo i{font-size:42px;background:#111;color:#fff;width:64px;height:64px;border-radius:16px;display:inline-flex;align-items:center;justify-content:center}
+  h2{margin:8px 0 4px;text-align:center} .sub{text-align:center;opacity:.6;font-size:14px;margin-bottom:20px}
+  input{width:100%;padding:14px;border-radius:12px;border:none;background:var(--muted);margin-bottom:12px;font-size:15px}
+  button{width:100%;padding:14px;border-radius:12px;border:none;background:var(--primary);color:#fff;font-weight:700;font-size:15px;cursor:pointer;display:flex;gap:8px;justify-content:center;align-items:center}
+  button:disabled{opacity:.6} .link{text-align:center;margin-top:16px;font-size:14px} .link a{color:#6366f1;text-decoration:none;font-weight:600}
+  .error{background:#fee2e2;color:#991b1b;padding:10px;border-radius:10px;font-size:13px;margin-bottom:12px;display:none} .error.on{display:block}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="logo"><i class="fa-solid fa-microphone-lines"></i></div>
+  <h2>Welcome back</h2>
+  <p class="sub">Login to KrateNote</p>
+  <div id="err" class="error"></div>
+  <input id="email" type="email" placeholder="Email address">
+  <input id="password" type="password" placeholder="Password">
+  <button id="loginBtn"><i class="fa-solid fa-right-to-bracket"></i> Login</button>
+  <div class="link">No account? <a href="register.html">Create one</a></div>
+</div>
+<script>
+const SERVER='https://kratenote-1.onrender.com';
+document.getElementById('loginBtn').addEventListener('click',async()=>{
+  const email=document.getElementById('email').value.trim();
+  const password=document.getElementById('password').value;
+  const err=document.getElementById('err');
+  if(!email||!password){err.textContent='Fill all fields';err.classList.add('on');return;}
+  document.getElementById('loginBtn').innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Logging in...';
+  try{
+    const res=await fetch(SERVER+'/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});
+    const data=await res.json();
+    if(data.error){err.textContent=data.error;err.classList.add('on');}
+    else{localStorage.setItem('k_token',data.token);localStorage.setItem('k_user',JSON.stringify({name:data.name,email:data.email}));location.href='index.html';}
+  }catch(e){err.textContent='Server error, try again';err.classList.add('on');}
+  document.getElementById('loginBtn').innerHTML='<i class="fa-solid fa-right-to-bracket"></i> Login';
+});
+</script>
+</body>
+</html>
