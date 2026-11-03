@@ -31,6 +31,10 @@
   .subjItem.highlight{outline:2px solid #f59e0b;background:#fffbeb;animation:shake .35s ease}
   #toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,80px);background:#111;color:#fff;padding:12px 16px;border-radius:12px;font-size:13px;font-weight:600;display:flex;gap:8px;align-items:center;z-index:999;opacity:0;transition:.3s;max-width:calc(100% - 32px);box-shadow:0 10px 30px rgba(0,0,0,.25);text-align:left}
   #toast.show{transform:translate(-50%,0);opacity:1} #toast.err{background:#dc2626} #toast.warn{background:#d97706}
+  /* ===== FIX: Add button same height as input ===== */
+  .addRow{display:flex;gap:8px;margin-top:12px;align-items:stretch}
+  .addRow #newSubject{flex:1;margin:0;height:48px;padding:0 12px;display:flex;align-items:center}
+  .addRow #addSubjectBtn{height:48px;padding:0 18px;white-space:nowrap;flex-shrink:0;margin:0}
 </style>
 </head>
 <body>
@@ -51,7 +55,7 @@
     <div style="display:flex;justify-content:space-between;align-items:center"><h3 style="margin:0" id="subjectTitle">Subjects</h3><span id="folderBadge" style="font-size:12px;background:#eef2ff;color:#3730a3;padding:4px 10px;border-radius:12px"></span></div>
     <p style="font-size:12px;opacity:.6">Pick a subject or add a new one</p>
     <div id="subjectList"></div>
-    <div style="display:flex;gap:6px;margin-top:12px"><input id="newSubject" placeholder="Add note subject"><button id="addSubjectBtn" class="primary" style="white-space:nowrap"><i class="fa-solid fa-plus"></i> Add</button></div>
+    <div class="addRow"><input id="newSubject" placeholder="Add note subject"><button id="addSubjectBtn" class="primary"><i class="fa-solid fa-plus"></i> Add</button></div>
     <div id="inputError"></div>
     <div class="back" id="backBtn"><i class="fa-solid fa-arrow-left"></i> Back to folders</div>
   </div>
@@ -142,19 +146,20 @@ function renderSubjects(){
 }
 document.getElementById('addSubjectBtn').addEventListener('click',()=>{
   const input=document.getElementById('newSubject');
-  const v=input.value.trim();
-  if(!v){
+  const raw=input.value.trim();
+  if(!raw){
     showInputError('Please type a subject name first', 'err');
     showToast('Please type a subject name first', 'err');
     return;
   }
+  // Normalize: "  mathematics  " -> "Mathematics", "computer science" -> "Computer Science"
+  const v = raw.toLowerCase().split(' ').filter(Boolean).map(w=> w.charAt(0).toUpperCase()+w.slice(1)).join(' ');
   if(!subjects[selectedFolder]) subjects[selectedFolder]=[];
-  // Case-insensitive check
+  // Case-insensitive check - Mathematics == mathematics == MATHEMATICS
   const existing = subjects[selectedFolder].find(s=> s.toLowerCase()===v.toLowerCase());
   if(existing){
     showInputError(`"${existing}" already exists in ${selectedFolder}`, 'warn');
     showToast(`"${existing}" already exists — tap it to open`, 'warn');
-    // Highlight the existing subject
     const items=document.querySelectorAll('.subjItem');
     items.forEach(el=>{
       if(el.dataset.subj.toLowerCase()===v.toLowerCase()){
