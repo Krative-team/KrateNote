@@ -39,7 +39,7 @@ document.getElementById('loginBtn').addEventListener('click',async()=>{
     const res=await fetch(SERVER+'/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});
     const data=await res.json();
     if(data.error){err.textContent=data.error;err.classList.add('on');}
-    else{localStorage.setItem('k_token',data.token);localStorage.setItem('k_user',JSON.stringify({name:data.name,email:data.email}));location.href='index.html';}
+    else{localStorage.setItem('k_token',data.token);localStorage.setItem('k_user',JSON.stringify({name:data.name,email:data.email}));location.href='select.html';}
   }catch(e){err.textContent='Server error, try again';err.classList.add('on');}
   document.getElementById('loginBtn').innerHTML='<i class="fa-solid fa-right-to-bracket"></i> Login';
 });
