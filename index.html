@@ -12,14 +12,10 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
-  // THEME SYNC: Apply before page paints - no white flash
   (function(){
     try{
       var t = localStorage.getItem('k_theme');
-      if(!t){
-        var s = JSON.parse(localStorage.getItem('k_settings')||'{}');
-        t = s.dark ? 'dark' : 'light';
-      }
+      if(!t){ var s = JSON.parse(localStorage.getItem('k_settings')||'{}'); t = s.dark ? 'dark' : 'light'; }
       document.documentElement.setAttribute('data-theme', t);
       if(t==='dark') document.documentElement.classList.add('dark');
     }catch(e){}
@@ -52,7 +48,7 @@
   .toolbar{display:flex;gap:10px;margin:12px 0 10px} .searchBox{position:relative;flex:1} .searchBox i{position:absolute;left:11px;top:50%;transform:translateY(-50%);opacity:.4;font-size:12px} .searchBox input{padding-left:30px;margin:0}
   .suggestions{position:absolute;top:100%;left:0;right:0;background:var(--card);border-radius:10px;box-shadow:0 10px 25px rgba(0,0,0,.18);z-index:30;display:none;max-height:200px;overflow:auto;border:1px solid var(--muted);margin-top:6px}
   .suggestions.on{display:block} .sugItem{padding:11px 13px;cursor:pointer;font-size:13px;display:flex;justify-content:space-between;align-items:center;gap:10px} .sugItem:hover{background:var(--box)}
-  #settingsModal,#editModal,#translateModal,#confirmModal,#logoutModal,#subModal,#titlesModal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:999;padding:12px;backdrop-filter:blur(6px)}
+  #settingsModal,#editModal,#translateModal,#confirmModal,#logoutModal,#subModal,#titlesModal,#micModal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:999;padding:12px;backdrop-filter:blur(6px)}
   .modalBox{background:var(--card);width:100%;max-width:560px;border-radius:16px;padding:20px;max-height:90vh;overflow:auto;animation:pop .25s ease}
   @keyframes pop{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
   .confirmIcon{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 14px}
@@ -72,6 +68,20 @@
   .contextBar{background:#111;color:#fff;border-radius:12px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:14px} .dark .contextBar{background:#fff;color:#111} html[data-theme="dark"] .contextBar{background:#fff;color:#111}
   .actionRow{display:flex;gap:10px} .actionRow button{flex:1}
   .titleItem{padding:12px 13px;cursor:pointer;font-size:14px;display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid var(--muted)} .titleItem:last-child{border-bottom:none} .titleItem:hover{background:var(--box)}
+  /* ===== MIC PERMISSION MODAL ===== */
+  .micIconWrap{width:84px;height:84px;margin:0 auto 14px;position:relative;display:flex;align-items:center;justify-content:center}
+  .micIconWrap::before{content:'';position:absolute;inset:0;border-radius:50%;background:#6366f1;opacity:.15;animation:pulseRing 1.8s ease-out infinite}
+  .micIconWrap.denied::before{background:#dc2626}
+  .micIcon{width:64px;height:64px;border-radius:50%;background:#6366f1;color:#fff;display:flex;align-items:center;justify-content:center;font-size:28px;position:relative;z-index:1}
+  .micIconWrap.denied .micIcon{background:#dc2626}
+  @keyframes pulseRing{0%{transform:scale(1);opacity:.25}100%{transform:scale(1.5);opacity:0}}
+  .micFeature{display:flex;gap:10px;align-items:flex-start;text-align:left;background:var(--box);border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:13px;line-height:1.4}
+  .micFeature i{color:#6366f1;margin-top:2px}
+  .micFeature b{display:block;font-size:13px}
+  .micFeature small{opacity:.6}
+  .micSteps{text-align:left;font-size:13px;line-height:1.6;background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:12px 14px;margin:12px 0;color:#92400e}
+  .micSteps b{color:#78350f}
+  .micSteps ol{margin:6px 0 0;padding-left:18px}
   @media(max-width:480px){ .emptyTxt{font-size:13px} }
 </style>
 </head>
@@ -131,6 +141,22 @@
 <div id="titlesModal"><div class="modalBox" style="max-width:420px"><div style="display:flex;justify-content:space-between;gap:10px"><h3><i class="fa-solid fa-list"></i> All Saved Notes</h3><button class="iconBtn" id="closeTitlesBtn"><i class="fa-solid fa-xmark"></i></button></div><div id="titlesList" style="margin-top:10px;max-height:60vh;overflow:auto"></div></div></div>
 <div id="confirmModal"><div class="modalBox" style="max-width:380px;text-align:center"><div class="confirmIcon delete"><i class="fa-solid fa-trash"></i></div><h3 id="confirmTitle">Delete Note?</h3><p id="confirmText" style="font-size:14px;opacity:.7;margin:0 0 18px"></p><div style="display:flex;gap:10px"><button class="full" id="confirmCancel" style="background:var(--muted)"><i class="fa-solid fa-xmark"></i> Cancel</button><button class="full" id="confirmDelete" style="background:#dc2626;color:#fff"><i class="fa-solid fa-trash"></i> Yes, Delete</button></div></div></div>
 <div id="logoutModal"><div class="modalBox" style="max-width:380px;text-align:center"><div class="confirmIcon logout"><i class="fa-solid fa-right-from-bracket"></i></div><h3>Logout from KrateNote?</h3><p style="font-size:14px;opacity:.7;margin:0 0 6px">You will need to login again.</p><div style="background:var(--box);border-radius:10px;padding:12px;margin:14px 0;display:flex;align-items:center;gap:12px;text-align:left"><div style="width:36px;height:36px;border-radius:50%;background:#6366f1;color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fa-solid fa-user"></i></div><div><b id="logoutName"></b><br><small id="logoutEmail" style="opacity:.6;font-size:11px"></small></div></div><div style="display:flex;gap:10px"><button class="full" id="logoutCancel" style="background:var(--muted)"><i class="fa-solid fa-xmark"></i> Stay</button><button class="full" id="logoutConfirm" style="background:#111;color:#fff"><i class="fa-solid fa-right-from-bracket"></i> Yes, Logout</button></div></div></div>
+
+<!-- MIC PERMISSION MODAL -->
+<div id="micModal"><div class="modalBox" style="max-width:400px;text-align:center">
+  <div id="micIconWrap" class="micIconWrap"><div class="micIcon"><i id="micModalIcon" class="fa-solid fa-microphone"></i></div></div>
+  <h3 id="micModalTitle" style="margin:0 0 6px">Allow Microphone Access?</h3>
+  <p id="micModalText" style="font-size:13px;opacity:.65;margin:0 0 16px;line-height:1.5">KrateNote needs your mic to turn your voice into notes in 30 languages.</p>
+  <div id="micFeatures">
+    <div class="micFeature"><i class="fa-solid fa-bolt"></i><div><b>Instant voice to text</b><small>Speak, we type am for you</small></div></div>
+    <div class="micFeature"><i class="fa-solid fa-language"></i><div><b>30 languages</b><small>English, Ibibio, Yoruba, Hausa, Pidgin &amp; more</small></div></div>
+    <div class="micFeature"><i class="fa-solid fa-lock"></i><div><b>Private</b><small>Your audio is only used to create your note</small></div></div>
+  </div>
+  <div id="micDeniedSteps" class="micSteps" style="display:none"><b><i class="fa-solid fa-triangle-exclamation"></i> Mic is blocked</b><ol><li>Tap the <b>🔒 lock / 🎤 mic icon</b> for address bar</li><li>Change Microphone to <b>Allow</b></li><li>Reload this page &amp; tap START again</li></ol></div>
+  <div style="display:flex;gap:10px;margin-top:16px"><button class="full" id="micCancelBtn" style="background:var(--muted)">Not Now</button><button class="full" id="micAllowBtn" style="background:#6366f1;color:#fff"><i class="fa-solid fa-microphone"></i> Allow Mic</button></div>
+  <small id="micHint" style="display:block;margin-top:12px;opacity:.5;font-size:11px">You can still type notes manually without mic</small>
+</div></div>
+
 <script>
 const token = localStorage.getItem('k_token');
 const user = JSON.parse(localStorage.getItem('k_user')||'null');
@@ -183,8 +209,88 @@ function applySettings(){document.body.classList.toggle('dark',settings.dark);do
 function speakClear(text,forcedLang=null){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);let langCode=forcedLang||settings.speechLang;if(langCode==='auto')langCode=detectLanguage(text).code;const langObj=LANGS.find(l=>l.code===langCode)||LANGS[1];u.lang=langObj.tts||'en-US';const voice=voices.find(v=>v.voiceURI===settings.voiceURI)||voices[0];if(voice)u.voice=voice;u.rate=parseFloat(settings.speed);u.pitch=parseFloat(settings.pitch);speechSynthesis.speak(u);}
 function showDetectedRealTime(text){const lang=detectLanguage(text);detectedBadge.textContent=lang.flag+' '+lang.name;detectedBadge.className='badge on';detectedBadge.style.background='#6366f1';detectedBadge.style.color='#fff';if(lang.code!=='en'&&lang.code!=='auto'){detectedBadge.style.background='#10b981';}}
 function createRecognition(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){alert('Use Chrome');return null;}const rec=new SR();rec.continuous=true;rec.interimResults=true;rec.lang='en-US';rec.onstart=()=>{liveBadge.classList.add('on');detectedBadge.textContent='Listening...';detectedBadge.className='badge on';detectedBadge.style.background='#6366f1';detectedBadge.style.color='#fff';statusTxt.textContent='Listening...';box.classList.add('has-text');if(!finalTranscriptLive)box.textContent='';};rec.onresult=(e)=>{let interim='';let finalPart='';for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript;if(e.results[i].isFinal)finalPart+=t+' ';else interim+=t;}if(e.results[e.results.length-1].isFinal)finalTranscriptLive+=finalPart;const full=(finalTranscriptLive+interim).trim();if(full){box.textContent=full;transcript=full;showDetectedRealTime(full);}};rec.onerror=(e)=>{console.log('SR',e.error);};rec.onend=()=>{liveBadge.classList.remove('on');if(isRec){try{rec.start();}catch(err){}}};return rec;}
-async function startMic(){try{if(!audioStream)audioStream=await navigator.mediaDevices.getUserMedia({audio:true});let mime='audio/mp4';if(MediaRecorder.isTypeSupported('audio/mp4'))mime='audio/mp4';else if(MediaRecorder.isTypeSupported('audio/webm;codecs=opus'))mime='audio/webm;codecs=opus';mediaRecorder=new MediaRecorder(audioStream,{mimeType:mime});audioChunks=[];mediaRecorder.ondataavailable=e=>{if(e.data.size>0)audioChunks.push(e.data);};mediaRecorder.onstop=async()=>{if(!transcript||transcript==='Listening...'){const blob=new Blob(audioChunks,{type:mime});const form=new FormData();form.append('file',blob,mime.includes('mp4')?'recording.m4a':'recording.webm');try{statusTxt.textContent='Enhancing...';const res=await fetch(settings.serverUrl+'/transcribe',{method:'POST',body:form});const data=await res.json();if(data.text){transcript=data.text;box.textContent=data.text;showDetectedRealTime(data.text);}}catch(e){}}statusTxt.textContent='';};return mediaRecorder;}catch(e){alert('Mic error: '+e.message);return null;}}
-recBtn.addEventListener('click',async()=>{if(!isRec){finalTranscriptLive='';transcript='';audioChunks=[];box.textContent='Listening...';box.classList.add('has-text');const rec=await startMic();if(!rec)return;recognition=createRecognition();if(!recognition)return;try{recognition.start();}catch(e){}rec.start(100);isRec=true;recBtn.innerHTML='<i class="fa-solid fa-stop"></i> STOP';recBtn.classList.add('rec');}else{isRec=false;try{if(recognition)recognition.stop();}catch(e){}try{if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();}catch(e){}recBtn.innerHTML='<i class="fa-solid fa-microphone"></i> START RECORDING';recBtn.classList.remove('rec');liveBadge.classList.remove('on');if(transcript&&transcript!=='Listening...')statusTxt.textContent='Done - tap SAVE';}});
+
+/* ===== MIC PERMISSION - ENHANCED UX ===== */
+const micModal=document.getElementById('micModal');
+let micPendingResolve=null;
+function showMicModal(mode){
+  const wrap=document.getElementById('micIconWrap');
+  const icon=document.getElementById('micModalIcon');
+  const title=document.getElementById('micModalTitle');
+  const text=document.getElementById('micModalText');
+  const feats=document.getElementById('micFeatures');
+  const steps=document.getElementById('micDeniedSteps');
+  const allowBtn=document.getElementById('micAllowBtn');
+  const cancelBtn=document.getElementById('micCancelBtn');
+  if(mode==='denied'){
+    wrap.classList.add('denied'); icon.className='fa-solid fa-microphone-slash';
+    title.textContent='Microphone is Blocked';
+    text.textContent='You blocked mic before, so KrateNote cannot hear you. Follow the steps below to unblock am.';
+    feats.style.display='none'; steps.style.display='block';
+    allowBtn.innerHTML='<i class="fa-solid fa-rotate-right"></i> Try Again';
+    cancelBtn.textContent='Type Instead';
+  } else {
+    wrap.classList.remove('denied'); icon.className='fa-solid fa-microphone';
+    title.textContent='Allow Microphone Access?';
+    text.textContent='KrateNote needs your mic to turn your voice into notes in 30 languages.';
+    feats.style.display='block'; steps.style.display='none';
+    allowBtn.innerHTML='<i class="fa-solid fa-microphone"></i> Allow Mic';
+    cancelBtn.textContent='Not Now';
+  }
+  micModal.style.display='flex';
+  return new Promise(res=>{ micPendingResolve=res; });
+}
+function closeMicModal(result){ micModal.style.display='none'; if(micPendingResolve){ micPendingResolve(result); micPendingResolve=null; } }
+document.getElementById('micAllowBtn').addEventListener('click',()=>closeMicModal(true));
+document.getElementById('micCancelBtn').addEventListener('click',()=>closeMicModal(false));
+micModal.addEventListener('click',e=>{ if(e.target===micModal) closeMicModal(false); });
+async function getMicPermissionState(){
+  try{
+    if(navigator.permissions && navigator.permissions.query){
+      const p=await navigator.permissions.query({name:'microphone'});
+      return p.state; // granted | prompt | denied
+    }
+  }catch(e){}
+  return 'prompt';
+}
+async function ensureMicAccess(){
+  if(audioStream) return true;
+  const state=await getMicPermissionState();
+  if(state==='granted') return true;
+  if(state==='denied'){ const retry=await showMicModal('denied'); if(!retry) return false; }
+  else {
+    // First time / prompt - show friendly explainer BEFORE browser popup, so user no go panic-deny
+    if(!localStorage.getItem('k_mic_asked')){
+      const ok=await showMicModal('ask');
+      if(!ok) return false;
+      localStorage.setItem('k_mic_asked','1');
+    }
+  }
+  try{
+    const s=await navigator.mediaDevices.getUserMedia({audio:true});
+    audioStream=s; return true;
+  }catch(err){
+    console.log('Mic denied:',err);
+    // Browser popup was denied -> show denied help
+    const retry=await showMicModal('denied');
+    if(retry){ try{ const s2=await navigator.mediaDevices.getUserMedia({audio:true}); audioStream=s2; return true; }catch(e2){ return false; } }
+    return false;
+  }
+}
+
+async function startMic(){
+  try{
+    const ok=await ensureMicAccess();
+    if(!ok) return null;
+    if(audioStream && !mediaRecorder){
+      // reuse already-granted stream
+    }
+    let mime='audio/mp4';if(MediaRecorder.isTypeSupported('audio/mp4'))mime='audio/mp4';else if(MediaRecorder.isTypeSupported('audio/webm;codecs=opus'))mime='audio/webm;codecs=opus';
+    // If we already have a stream from permission check, use am. If mediaRecorder exists and stream changed, recreate.
+    mediaRecorder=new MediaRecorder(audioStream,{mimeType:mime});audioChunks=[];mediaRecorder.ondataavailable=e=>{if(e.data.size>0)audioChunks.push(e.data);};mediaRecorder.onstop=async()=>{if(!transcript||transcript==='Listening...'){const blob=new Blob(audioChunks,{type:mime});const form=new FormData();form.append('file',blob,mime.includes('mp4')?'recording.m4a':'recording.webm');try{statusTxt.textContent='Enhancing...';const res=await fetch(settings.serverUrl+'/transcribe',{method:'POST',body:form});const data=await res.json();if(data.text){transcript=data.text;box.textContent=data.text;showDetectedRealTime(data.text);}}catch(e){}}statusTxt.textContent='';};return mediaRecorder;
+  }catch(e){ await showMicModal('denied'); return null; }
+}
+recBtn.addEventListener('click',async()=>{if(!isRec){finalTranscriptLive='';transcript='';audioChunks=[];box.textContent='Listening...';box.classList.add('has-text');const rec=await startMic();if(!rec){ setEmptyState(); return; }recognition=createRecognition();if(!recognition)return;try{recognition.start();}catch(e){}rec.start(100);isRec=true;recBtn.innerHTML='<i class="fa-solid fa-stop"></i> STOP';recBtn.classList.add('rec');}else{isRec=false;try{if(recognition)recognition.stop();}catch(e){}try{if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();}catch(e){}recBtn.innerHTML='<i class="fa-solid fa-microphone"></i> START RECORDING';recBtn.classList.remove('rec');liveBadge.classList.remove('on');if(transcript&&transcript!=='Listening...')statusTxt.textContent='Done - tap SAVE';}});
 async function translateText(text,to){try{statusTxt.textContent='Translating...';const res=await fetch(settings.serverUrl.replace(/\/$/,'')+'/translate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:text.substring(0,3000),to:to})});const data=await res.json();statusTxt.textContent='';if(data.translated)return data.translated;return text;}catch(e){statusTxt.textContent='';return text;}}
 function saveNote(){const txt=(box.innerText||'').trim()||transcript.trim();if(!txt||txt.includes('Tap mic')||txt==='Listening...'||txt.length<2)return alert('Type or record something first!');let title=document.getElementById('titleInput').value.trim();if(!title){ title=txt.split('\n')[0].split(' ').slice(0,6).join(' '); } const lang=detectLanguage(txt);notes.unshift({title,text:txt,date:new Date().toLocaleString(),lang:lang.name,code:lang.code,flag:lang.flag, ts: Date.now(), subs:[], folder:currentFolder, subject:currentSubject, pinned:false});saveAll();render();document.getElementById('titleInput').value='';setEmptyState();document.querySelectorAll('.tplBtn').forEach(b=>b.classList.remove('active'));document.querySelector('[data-tpl="blank"]').classList.add('active');}
 function openConfirmDelete(index,isClearAll=false){
