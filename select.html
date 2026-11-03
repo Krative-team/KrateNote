@@ -10,21 +10,39 @@
 <meta name="apple-mobile-web-app-title" content="KrateNote">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+<script>
+  // THEME SYNC: Follow Settings from index.html - no flash
+  (function(){
+    try{
+      var t = localStorage.getItem('k_theme');
+      if(!t){
+        var s = JSON.parse(localStorage.getItem('k_settings')||'{}');
+        t = s.dark ? 'dark' : 'light';
+      }
+      document.documentElement.setAttribute('data-theme', t);
+    }catch(e){}
+  })();
+</script>
 <style>
-  *{box-sizing:border-box;font-family:-apple-system,sans-serif} body{margin:0;background:#F6F7FB;color:#111;padding:16px}
+  :root{--bg:#F6F7FB;--card:#fff;--text:#111;--muted:#eee;--box:#f9f9f9;--primary:#111}
+  html[data-theme="dark"]{--bg:#121212;--card:#1e1e1e;--text:#fff;--muted:#2a2a2a;--box:#252525;--primary:#fff}
+  *{box-sizing:border-box;font-family:-apple-system,sans-serif} body{margin:0;background:var(--bg);color:var(--text);padding:16px}
   .wrap{max-width:600px;margin:auto}
   .header{text-align:center;padding:20px 0 10px} .header h1{margin:0;font-size:24px} .header p{opacity:.6;font-size:13px;margin:6px 0 0}
-  .card{background:#fff;border-radius:16px;padding:16px;margin-top:14px}
+  .card{background:var(--card);color:var(--text);border-radius:16px;padding:16px;margin-top:14px}
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .folderBtn{background:#f9f9f9;border:2px solid transparent;border-radius:14px;padding:18px 10px;cursor:pointer;text-align:center}
+  .folderBtn{background:var(--box);border:2px solid transparent;border-radius:14px;padding:18px 10px;cursor:pointer;text-align:center}
   .folderBtn.active{border-color:#111;background:#eef2ff}
+  html[data-theme="dark"] .folderBtn.active{border-color:#fff;background:#312e81}
   .folderBtn i{font-size:28px;display:block;margin-bottom:8px;color:#6366f1}
   .folderBtn b{font-size:14px} .folderBtn small{display:block;opacity:.5;font-size:11px;margin-top:3px}
-  input{width:100%;padding:12px;border-radius:10px;border:none;background:#eee;margin-bottom:10px;font-size:15px}
+  input{width:100%;padding:12px;border-radius:10px;border:none;background:var(--muted);color:var(--text);margin-bottom:10px;font-size:15px}
+  input::placeholder{color:#888}
   button{padding:12px;border-radius:10px;border:none;font-weight:600;cursor:pointer;display:inline-flex;gap:6px;align-items:center;justify-content:center}
-  .full{width:100%} .primary{background:#111;color:#fff} .muted{background:#eee}
-  .subjItem{display:flex;justify-content:space-between;align-items:center;background:#f9f9f9;padding:12px;border-radius:10px;margin-bottom:8px;cursor:pointer}
-  .subjItem:hover{background:#eef2ff} .subjItem b{font-size:14px} .subjItem small{opacity:.5;font-size:11px}
+  .full{width:100%} .primary{background:var(--primary);color:var(--bg)} .muted{background:var(--muted);color:var(--text)}
+  .subjItem{display:flex;justify-content:space-between;align-items:center;background:var(--box);padding:12px;border-radius:10px;margin-bottom:8px;cursor:pointer}
+  .subjItem:hover{background:#eef2ff} html[data-theme="dark"] .subjItem:hover{background:#312e81}
+  .subjItem b{font-size:14px} .subjItem small{opacity:.5;font-size:11px}
   .delSubj{background:#fee2e2;color:#991b1b;padding:6px 9px;font-size:11px}
   .back{font-size:13px;color:#6366f1;cursor:pointer;display:none;margin-top:10px}
   #newSubject{transition:.2s} #newSubject.error{outline:2px solid #ef4444;background:#fef2f2}
@@ -43,17 +61,17 @@
   .modalOverlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(2px);display:none;align-items:flex-end;justify-content:center;z-index:1000;padding:16px}
   .modalOverlay.show{display:flex;animation:fadeIn .2s ease}
   @keyframes fadeIn{from{opacity:0}to{opacity:1}}
-  .modalBox{background:#fff;width:100%;max-width:400px;border-radius:20px;padding:24px 20px 20px;text-align:center;animation:slideUp .25s ease;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+  .modalBox{background:var(--card);color:var(--text);width:100%;max-width:400px;border-radius:20px;padding:24px 20px 20px;text-align:center;animation:slideUp .25s ease;box-shadow:0 20px 50px rgba(0,0,0,.25)}
   @keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
   .modalIcon{width:56px;height:56px;background:#fee2e2;color:#dc2626;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 14px}
   .modalBox h3{margin:0 0 6px;font-size:18px}
   .modalBox p{margin:0;font-size:13px;opacity:.6;line-height:1.5}
-  .modalBox p b{opacity:1;color:#111}
+  .modalBox p b{opacity:1;color:var(--text)}
   .modalWarn{background:#fffbeb;border:1px solid #fde68a;color:#92400e;padding:10px 12px;border-radius:10px;font-size:12px;margin:14px 0 16px;display:flex;gap:8px;text-align:left;line-height:1.4}
   .modalWarn i{margin-top:1px;flex-shrink:0}
   .modalBtns{display:flex;gap:10px}
   .modalBtns button{flex:1;height:48px;font-size:14px}
-  .btnCancel{background:#eee;color:#111}
+  .btnCancel{background:var(--muted);color:var(--text)}
   .btnDelete{background:#dc2626;color:#fff}
   .btnDelete:active{background:#b91c1c}
 </style>
@@ -77,9 +95,7 @@
     <div class="back" id="backBtn"><i class="fa-solid fa-arrow-left"></i> Back to folders</div>
   </div>
 </div>
-
 <div id="toast"></div>
-
 <!-- DELETE CONFIRM MODAL -->
 <div id="deleteModal" class="modalOverlay">
   <div class="modalBox">
@@ -93,7 +109,6 @@
     </div>
   </div>
 </div>
-
 <script>
 const user = JSON.parse(localStorage.getItem('k_user')||'null');
 if(!localStorage.getItem('k_token') || !user){ location.href='login.html'; }
