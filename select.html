@@ -214,7 +214,7 @@ document.getElementById('addSubjectBtn').addEventListener('click',()=>{
     showToast('Please type a subject name first', 'err');
     return;
   }
-  const v = raw;
+  let v = raw;
   if(!subjects[selectedFolder]) subjects[selectedFolder]=[];
   const existing = subjects[selectedFolder].find(s=> s.toLowerCase()===v.toLowerCase());
   if(existing){
@@ -231,6 +231,20 @@ document.getElementById('addSubjectBtn').addEventListener('click',()=>{
     input.select();
     return;
   }
+  // FIX: Restore hidden notes - if old notes exist with same name (any case), reuse their exact casing
+  // Example: old notes = "Mathematics", you type "mathematics" -> use "Mathematics" so notes go show back
+  try{
+    const allNotes = [];
+    for(let k in localStorage){
+      if(k.startsWith('k_notes')){
+        try{ JSON.parse(localStorage.getItem(k)||'[]').forEach(n=>allNotes.push(n)); }catch(e){}
+      }
+    }
+    const old = allNotes.find(n=> (n.folder||'General').toLowerCase()===selectedFolder.toLowerCase() && (n.subject||'General').toLowerCase()===v.toLowerCase());
+    if(old && old.subject){
+      v = old.subject;
+    }
+  }catch(e){}
   subjects[selectedFolder].push(v); saveSubjects(); input.value=''; clearInputError(); renderSubjects();
   showToast(`"${v}" added to ${selectedFolder} ✓`, '');
 });
