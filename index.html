@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>KrateNote V8.7 - Auth Ready</title>
+<title>KrateNote V8.8 - Enhanced UI</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
@@ -10,6 +10,9 @@
   .dark{--bg:#121212;--card:#1e1e1e;--text:#fff;--muted:#2a2a2a;--box:#252525;--primary:#fff}
   *{box-sizing:border-box;font-family:-apple-system,sans-serif} body{margin:0;background:var(--bg);color:var(--text);padding:12px}
   .header{display:flex;justify-content:space-between;align-items:center;background:var(--card);padding:14px 18px;border-radius:14px;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+  .brand{display:flex;flex-direction:column;line-height:1.2}
+  .brand b{font-size:16px} .brand small{font-size:11px;opacity:.6;margin-top:3px;display:flex;align-items:center;gap:4px}
+  .userTag{font-size:11px;background:#e0e7ff;color:#3730a3;padding:3px 8px;border-radius:12px;display:inline-flex;gap:4px;align-items:center;margin-top:4px;width:fit-content}
   .main{max-width:1100px;margin:auto;display:flex;flex-direction:column;gap:12px} @media(min-width:900px){.main{flex-direction:row}}
   .card{background:var(--card);border-radius:14px;padding:14px;flex:1}
   #transcriptBox{min-height:220px;background:var(--box);border-radius:10px;padding:12px;line-height:26px;font-size:17px;white-space:pre-wrap;border:2px solid transparent;outline:none;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#888}
@@ -20,15 +23,15 @@
   button{padding:12px 14px;border-radius:10px;border:none;font-weight:600;font-size:14px;cursor:pointer;display:inline-flex;gap:6px;justify-content:center;align-items:center}
   .full{width:100%;margin-top:8px} #recBtn{background:var(--primary);color:var(--bg);font-size:16px;padding:16px} #recBtn.rec{background:#e11d48;color:#fff}
   .iconBtn{width:auto;padding:6px 10px;border-radius:6px;background:var(--muted);color:var(--text);font-size:12px}
-  .note{background:var(--box);padding:12px;border-radius:12px;margin-bottom:10px;border:1px solid transparent}
+  .note{background:var(--box);padding:12px;border-radius:12px;margin-bottom:10px}
   .noteActions{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
-  .actBtn{padding:7px 11px;border-radius:8px;background:var(--muted);color:var(--text);font-size:12px;cursor:pointer;border:none;display:inline-flex;gap:5px;align-items:center;transition:.15s}
-  .actBtn:hover{transform:translateY(-1px);filter:brightness(.95)}
+  .actBtn{padding:7px 11px;border-radius:8px;font-size:12px;border:none;display:inline-flex;gap:5px;align-items:center;cursor:pointer}
   .actBtn.edit{background:#e0e7ff;color:#3730a3} .actBtn.speak{background:#dcfce7;color:#166534} .actBtn.trans{background:#fef3c7;color:#92400e} .actBtn.del{background:#fee2e2;color:#991b1b}
-  #settingsModal,#editModal,#translateModal,#confirmModal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:999;padding:12px;backdrop-filter:blur(4px)}
-  .modalBox{background:var(--card);width:100%;max-width:560px;border-radius:16px;padding:18px;max-height:90vh;overflow:auto;animation:pop .2s ease}
-  @keyframes pop{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
-  .confirmIcon{width:56px;height:56px;border-radius:50%;background:#fee2e2;color:#dc2626;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 12px}
+  #settingsModal,#editModal,#translateModal,#confirmModal,#logoutModal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:999;padding:12px;backdrop-filter:blur(6px)}
+  .modalBox{background:var(--card);width:100%;max-width:560px;border-radius:16px;padding:18px;max-height:90vh;overflow:auto;animation:pop .25s ease}
+  @keyframes pop{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
+  .confirmIcon{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 12px}
+  .confirmIcon.delete{background:#fee2e2;color:#dc2626} .confirmIcon.logout{background:#fef3c7;color:#d97706} .confirmIcon.warn{background:#fee2e2;color:#dc2626}
   .row{display:flex;justify-content:space-between;align-items:center;margin:12px 0}
   .switch{width:46px;height:28px;background:#ccc;border-radius:20px;position:relative;cursor:pointer} .switch.on{background:var(--primary)} .dot{width:24px;height:24px;background:#fff;border-radius:50%;position:absolute;top:2px;left:2px;transition:.2s} .switch.on .dot{left:20px}
   label{font-size:13px;font-weight:600;margin:8px 0 4px;display:block;opacity:.8}
@@ -36,8 +39,14 @@
 </head>
 <body>
 <div class="header">
-  <div id="headerLeft"><b><i class="fa-solid fa-microphone-lines"></i> KrateNote</b> <small id="statusTxt" style="color:#6366f1;margin-left:8px"></small> <span id="userInfo" style="margin-left:10px;font-size:12px;background:#e0e7ff;color:#3730a3;padding:3px 8px;border-radius:12px;display:none"></span></div>
-  <div style="display:flex;gap:6px"><button class="iconBtn" id="openSetBtn"><i class="fa-solid fa-gear"></i> Settings</button><button class="iconBtn" id="logoutBtn" style="background:#fee2e2;color:#991b1b"><i class="fa-solid fa-right-from-bracket"></i></button></div>
+  <div class="brand">
+    <div><b><i class="fa-solid fa-microphone-lines"></i> KrateNote</b> <small id="statusTxt" style="color:#6366f1;margin-left:8px;display:inline"></small></div>
+    <span id="userInfo" class="userTag" style="display:none"><i class="fa-solid fa-user"></i> <span id="userNameText"></span></span>
+  </div>
+  <div style="display:flex;gap:6px;align-items:center">
+    <button class="iconBtn" id="openSetBtn"><i class="fa-solid fa-gear"></i> Settings</button>
+    <button class="iconBtn" id="logoutBtn" style="background:#fee2e2;color:#991b1b"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+  </div>
 </div>
 
 <div class="main">
@@ -76,8 +85,9 @@
 
 <div id="translateModal"><div class="modalBox"><div style="display:flex;justify-content:space-between"><h3><i class="fa-solid fa-language"></i> Translate</h3><button class="iconBtn" id="closeTranslateBtn"><i class="fa-solid fa-xmark"></i></button></div><label>From</label><select id="fromLang"></select><label>To</label><select id="toLang"></select><label>Original</label><textarea id="origText" rows="4"></textarea><label>Translated</label><textarea id="transText" rows="4"></textarea><div style="display:flex;gap:6px"><button class="full" id="doTranslateBtn" style="background:var(--primary);color:var(--bg)"><i class="fa-solid fa-language"></i> Translate</button><button class="full" id="speakTransBtn" style="background:var(--muted)"><i class="fa-solid fa-volume-high"></i> Speak</button></div><button class="full" id="saveTransBtn" style="background:#e0e7ff;color:#1e1b4b;margin-top:6px"><i class="fa-solid fa-floppy-disk"></i> Save</button></div></div>
 
+<!-- DELETE CONFIRM -->
 <div id="confirmModal"><div class="modalBox" style="max-width:380px;text-align:center">
-  <div class="confirmIcon"><i class="fa-solid fa-trash"></i></div>
+  <div class="confirmIcon delete"><i class="fa-solid fa-trash"></i></div>
   <h3 style="margin:0 0 6px">Delete Note?</h3>
   <p id="confirmText" style="font-size:14px;opacity:.7;margin:0 0 16px;line-height:1.5"></p>
   <div style="display:flex;gap:8px">
@@ -86,20 +96,39 @@
   </div>
 </div></div>
 
+<!-- NEW ENHANCED LOGOUT CONFIRM -->
+<div id="logoutModal"><div class="modalBox" style="max-width:380px;text-align:center">
+  <div class="confirmIcon logout"><i class="fa-solid fa-right-from-bracket"></i></div>
+  <h3 style="margin:0 0 6px">Logout from KrateNote?</h3>
+  <p style="font-size:14px;opacity:.7;margin:0 0 6px;line-height:1.5">You will need to login again to access your notes.</p>
+  <div style="background:var(--box);border-radius:10px;padding:10px;margin:12px 0;display:flex;align-items:center;gap:10px;text-align:left">
+    <div style="width:36px;height:36px;border-radius:50%;background:#6366f1;color:#fff;display:flex;align-items:center;justify-content:center"><i class="fa-solid fa-user"></i></div>
+    <div><b id="logoutName" style="font-size:13px"></b><br><small id="logoutEmail" style="opacity:.6;font-size:11px"></small></div>
+  </div>
+  <div style="display:flex;gap:8px">
+    <button class="full" id="logoutCancel" style="background:var(--muted)"><i class="fa-solid fa-xmark"></i> Stay</button>
+    <button class="full" id="logoutConfirm" style="background:#111;color:#fff"><i class="fa-solid fa-right-from-bracket"></i> Yes, Logout</button>
+  </div>
+</div></div>
+
 <script>
-// ===== AUTH GUARD V8.7 =====
+// ===== AUTH GUARD V8.8 =====
 const token = localStorage.getItem('k_token');
 const user = JSON.parse(localStorage.getItem('k_user')||'null');
 if(!token || !user){
   window.location.href='login.html';
 } else {
-  const ui = document.getElementById('userInfo');
-  ui.style.display='inline-block';
-  ui.innerHTML=`<i class="fa-solid fa-user"></i> ${user.name}`;
+  document.getElementById('userInfo').style.display='inline-flex';
+  document.getElementById('userNameText').textContent=user.name;
+  document.getElementById('logoutName').textContent=user.name;
+  document.getElementById('logoutEmail').textContent=user.email;
 }
-document.getElementById('logoutBtn').addEventListener('click',()=>{
-  if(confirm('Logout?')){ localStorage.removeItem('k_token'); localStorage.removeItem('k_user'); location.href='login.html'; }
-});
+// Logout modal logic
+const logoutModal=document.getElementById('logoutModal');
+document.getElementById('logoutBtn').addEventListener('click',()=>{ logoutModal.style.display='flex'; });
+document.getElementById('logoutCancel').addEventListener('click',()=>{ logoutModal.style.display='none'; });
+document.getElementById('logoutConfirm').addEventListener('click',()=>{ localStorage.removeItem('k_token'); localStorage.removeItem('k_user'); location.href='login.html'; });
+logoutModal.addEventListener('click',(e)=>{ if(e.target===logoutModal) logoutModal.style.display='none'; });
 // ===== END AUTH =====
 
 const LANGS=[
@@ -119,11 +148,7 @@ let voices=[],recognition=null,finalTranscriptLive='';
 function setEmptyState(){box.classList.remove('has-text');box.innerHTML='<i class="fa-solid fa-waveform-lines emptyIcon"></i><div class="emptyTxt">Tap mic to start</div>';transcript='';finalTranscriptLive='';liveBadge.classList.remove('on');detectedBadge.textContent='🌐 Ready';detectedBadge.className='badge on';detectedBadge.style.background='#eee';detectedBadge.style.color='#666';statusTxt.textContent='';recBtn.innerHTML='<i class="fa-solid fa-microphone"></i> START RECORDING';recBtn.classList.remove('rec');isRec=false;}
 function loadVoices(){voices=speechSynthesis.getVoices();const sel=document.getElementById('voiceSelect');if(voices.length){sel.innerHTML=voices.map(v=>`<option value="${v.voiceURI}">${v.name} (${v.lang})</option>`).join('');if(settings.voiceURI)sel.value=settings.voiceURI;}}
 speechSynthesis.onvoiceschanged=loadVoices;setTimeout(loadVoices,800);
-function saveAll(){
-  const userEmail = user?.email || 'guest';
-  localStorage.setItem('k_notes_'+userEmail,JSON.stringify(notes));
-  localStorage.setItem('k_settings',JSON.stringify(settings));
-}
+function saveAll(){const userEmail = user?.email || 'guest';localStorage.setItem('k_notes_'+userEmail,JSON.stringify(notes));localStorage.setItem('k_settings',JSON.stringify(settings));}
 function applySettings(){document.body.classList.toggle('dark',settings.dark);document.getElementById('darkSwitch').classList.toggle('on',settings.dark);document.getElementById('autoSwitch').classList.toggle('on',settings.autoDetect);document.getElementById('fontSelect').value=settings.font;document.getElementById('speechLang').value=settings.speechLang;document.getElementById('translateTo').value=settings.translateTo;document.getElementById('speedRange').value=settings.speed;document.getElementById('pitchRange').value=settings.pitch;document.getElementById('speedVal').textContent=settings.speed;document.getElementById('pitchVal').textContent=settings.pitch;box.style.fontSize=settings.font;}
 function speakClear(text,forcedLang=null){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);let langCode=forcedLang||settings.speechLang;if(langCode==='auto')langCode=detectLanguage(text).code;const langObj=LANGS.find(l=>l.code===langCode)||LANGS[1];u.lang=langObj.tts||'en-US';const voice=voices.find(v=>v.voiceURI===settings.voiceURI)||voices[0];if(voice)u.voice=voice;u.rate=parseFloat(settings.speed);u.pitch=parseFloat(settings.pitch);speechSynthesis.speak(u);}
 function showDetectedRealTime(text){const lang=detectLanguage(text);detectedBadge.textContent=lang.flag+' '+lang.name;detectedBadge.className='badge on';detectedBadge.style.background='#6366f1';detectedBadge.style.color='#fff';if(lang.code!=='en'&&lang.code!=='auto'){detectedBadge.style.background='#10b981';}}
