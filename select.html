@@ -21,6 +21,16 @@
   .subjItem:hover{background:#eef2ff} .subjItem b{font-size:14px} .subjItem small{opacity:.5;font-size:11px}
   .delSubj{background:#fee2e2;color:#991b1b;padding:6px 9px;font-size:11px}
   .back{font-size:13px;color:#6366f1;cursor:pointer;display:none;margin-top:10px}
+  /* ===== NEW UI/UX FOR DIALOGUES ===== */
+  #newSubject{transition:.2s} #newSubject.error{outline:2px solid #ef4444;background:#fef2f2}
+  #newSubject.warn{outline:2px solid #f59e0b;background:#fffbeb}
+  #newSubject.shake{animation:shake .35s ease}
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}50%{transform:translateX(6px)}75%{transform:translateX(-4px)}}
+  #inputError{display:none;font-size:12px;margin:-6px 0 10px;padding:8px 10px;border-radius:8px;font-weight:600;align-items:center;gap:6px}
+  #inputError.show{display:flex} #inputError.err{background:#fef2f2;color:#dc2626} #inputError.warn{background:#fffbeb;color:#b45309}
+  .subjItem.highlight{outline:2px solid #f59e0b;background:#fffbeb;animation:shake .35s ease}
+  #toast{position:fixed;left:50%;bottom:22px;transform:translate(-50%,80px);background:#111;color:#fff;padding:12px 16px;border-radius:12px;font-size:13px;font-weight:600;display:flex;gap:8px;align-items:center;z-index:999;opacity:0;transition:.3s;max-width:calc(100% - 32px);box-shadow:0 10px 30px rgba(0,0,0,.25);text-align:left}
+  #toast.show{transform:translate(-50%,0);opacity:1} #toast.err{background:#dc2626} #toast.warn{background:#d97706}
 </style>
 </head>
 <body>
@@ -42,9 +52,12 @@
     <p style="font-size:12px;opacity:.6">Pick a subject or add a new one</p>
     <div id="subjectList"></div>
     <div style="display:flex;gap:6px;margin-top:12px"><input id="newSubject" placeholder="Add new subject e.g. Mathematics, Marketing..."><button id="addSubjectBtn" class="primary" style="white-space:nowrap"><i class="fa-solid fa-plus"></i> Add</button></div>
+    <div id="inputError"></div>
     <div class="back" id="backBtn"><i class="fa-solid fa-arrow-left"></i> Back to folders</div>
   </div>
 </div>
+
+<div id="toast"></div>
 
 <script>
 const user = JSON.parse(localStorage.getItem('k_user')||'null');
@@ -58,10 +71,37 @@ const FOLDERS=[
   {name:'Business', icon:'fa-chart-line', desc:'Ideas, plans'},
   {name:'General', icon:'fa-folder', desc:'Anything else'},
 ];
-let subjects = JSON.parse(localStorage.getItem('k_subjects')||'{}'); // { Folder: [subject1, subject2] }
+let subjects = JSON.parse(localStorage.getItem('k_subjects')||'{}');
 let selectedFolder = localStorage.getItem('k_current_folder') || '';
+let toastTimer=null;
 
 function saveSubjects(){ localStorage.setItem('k_subjects', JSON.stringify(subjects)); }
+
+// ===== NEW: Toast + Inline Error =====
+function showToast(msg, type){
+  const t=document.getElementById('toast');
+  t.className='show '+(type||'');
+  t.innerHTML = type==='err' ? '<i class="fa-solid fa-circle-exclamation"></i> '+msg : type==='warn' ? '<i class="fa-solid fa-triangle-exclamation"></i> '+msg : '<i class="fa-solid fa-circle-check"></i> '+msg;
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>{ t.className=''; }, 2600);
+}
+function showInputError(msg, type){
+  const el=document.getElementById('inputError');
+  const input=document.getElementById('newSubject');
+  el.className='show '+(type==='err'?'err':'warn');
+  el.innerHTML = (type==='err' ? '<i class="fa-solid fa-circle-exclamation"></i> ' : '<i class="fa-solid fa-triangle-exclamation"></i> ') + msg;
+  input.classList.remove('error','warn','shake');
+  void input.offsetWidth;
+  input.classList.add(type==='err'?'error':'warn','shake');
+  input.focus();
+}
+function clearInputError(){
+  const el=document.getElementById('inputError');
+  const input=document.getElementById('newSubject');
+  el.className=''; el.innerHTML='';
+  input.classList.remove('error','warn','shake');
+}
+
 function renderFolders(){
   document.getElementById('folderGrid').innerHTML = FOLDERS.map(f=>`
     <div class="folderBtn" data-folder="${f.name}">
@@ -75,6 +115,7 @@ function renderFolders(){
     document.getElementById('backBtn').style.display='block';
     document.getElementById('subjectTitle').textContent = selectedFolder + ' Subjects';
     document.getElementById('folderBadge').textContent = selectedFolder;
+    clearInputError();
     renderSubjects();
   }));
 }
@@ -100,11 +141,35 @@ function renderSubjects(){
   }
 }
 document.getElementById('addSubjectBtn').addEventListener('click',()=>{
-  const v=document.getElementById('newSubject').value.trim(); if(!v) return alert('Type a subject name');
+  const input=document.getElementById('newSubject');
+  const v=input.value.trim();
+  if(!v){
+    showInputError('Please type a subject name first', 'err');
+    showToast('Please type a subject name first', 'err');
+    return;
+  }
   if(!subjects[selectedFolder]) subjects[selectedFolder]=[];
-  if(subjects[selectedFolder].includes(v)) return alert('Subject already exists');
-  subjects[selectedFolder].push(v); saveSubjects(); document.getElementById('newSubject').value=''; renderSubjects();
+  // Case-insensitive check
+  const existing = subjects[selectedFolder].find(s=> s.toLowerCase()===v.toLowerCase());
+  if(existing){
+    showInputError(`"${existing}" already exists in ${selectedFolder}`, 'warn');
+    showToast(`"${existing}" already exists — tap it to open`, 'warn');
+    // Highlight the existing subject
+    const items=document.querySelectorAll('.subjItem');
+    items.forEach(el=>{
+      if(el.dataset.subj.toLowerCase()===v.toLowerCase()){
+        el.classList.add('highlight');
+        el.scrollIntoView({behavior:'smooth', block:'center'});
+        setTimeout(()=>el.classList.remove('highlight'), 1800);
+      }
+    });
+    input.select();
+    return;
+  }
+  subjects[selectedFolder].push(v); saveSubjects(); input.value=''; clearInputError(); renderSubjects();
+  showToast(`"${v}" added to ${selectedFolder} ✓`, '');
 });
+document.getElementById('newSubject').addEventListener('input',()=>{ clearInputError(); });
 document.getElementById('newSubject').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('addSubjectBtn').click(); });
 document.getElementById('backBtn').addEventListener('click',()=>{
   document.getElementById('subjectStep').style.display='none';
