@@ -11,9 +11,24 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+  // THEME SYNC: Apply before page paints - no white flash
+  (function(){
+    try{
+      var t = localStorage.getItem('k_theme');
+      if(!t){
+        var s = JSON.parse(localStorage.getItem('k_settings')||'{}');
+        t = s.dark ? 'dark' : 'light';
+      }
+      document.documentElement.setAttribute('data-theme', t);
+      if(t==='dark') document.documentElement.classList.add('dark');
+    }catch(e){}
+  })();
+</script>
 <style>
   :root{--bg:#F6F7FB;--card:#fff;--text:#111;--muted:#eee;--box:#f9f9f9;--primary:#111}
   .dark{--bg:#121212;--card:#1e1e1e;--text:#fff;--muted:#2a2a2a;--box:#252525;--primary:#fff}
+  html[data-theme="dark"]{--bg:#121212;--card:#1e1e1e;--text:#fff;--muted:#2a2a2a;--box:#252525;--primary:#fff}
   *{box-sizing:border-box;font-family:-apple-system,sans-serif} body{margin:0;background:var(--bg);color:var(--text);padding:14px}
   .header{display:flex;justify-content:space-between;align-items:center;background:var(--card);padding:16px 20px;border-radius:14px;margin-bottom:14px;flex-wrap:wrap;gap:10px}
   .brand{display:flex;flex-direction:column;line-height:1.2} .userTag{font-size:11px;background:#e0e7ff;color:#3730a3;padding:4px 10px;border-radius:12px;display:inline-flex;gap:5px;align-items:center;margin-top:5px;width:fit-content}
@@ -51,10 +66,10 @@
   .subRecBtn{padding:10px 14px;font-size:12px;background:var(--primary);color:var(--bg);border-radius:8px}
   .subRecBtn.rec{background:#e11d48;color:#fff}
   .tplRow{display:flex;gap:8px;overflow:auto;padding-bottom:6px;scrollbar-width:none} .tplRow::-webkit-scrollbar{display:none}
-  .tplBtn{white-space:nowrap;padding:9px 14px;border-radius:20px;background:var(--muted);font-size:12px;border:none;cursor:pointer;flex:0 0 auto} .tplBtn.active{background:#111;color:#fff} .dark .tplBtn.active{background:#fff;color:#111}
+  .tplBtn{white-space:nowrap;padding:9px 14px;border-radius:20px;background:var(--muted);font-size:12px;border:none;cursor:pointer;flex:0 0 auto} .tplBtn.active{background:#111;color:#fff} .dark .tplBtn.active{background:#fff;color:#111} html[data-theme="dark"] .tplBtn.active{background:#fff;color:#111}
   .folderTag{font-size:11px;padding:5px 10px;border-radius:12px;font-weight:700;display:inline-flex;gap:6px;align-items:center}
   .langTag{font-size:11px;padding:5px 10px;border-radius:12px;background:#eee;display:inline-flex;gap:5px;align-items:center}
-  .contextBar{background:#111;color:#fff;border-radius:12px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:14px} .dark .contextBar{background:#fff;color:#111}
+  .contextBar{background:#111;color:#fff;border-radius:12px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:14px} .dark .contextBar{background:#fff;color:#111} html[data-theme="dark"] .contextBar{background:#fff;color:#111}
   .actionRow{display:flex;gap:10px} .actionRow button{flex:1}
   .titleItem{padding:12px 13px;cursor:pointer;font-size:14px;display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid var(--muted)} .titleItem:last-child{border-bottom:none} .titleItem:hover{background:var(--box)}
   @media(max-width:480px){ .emptyTxt{font-size:13px} }
@@ -65,13 +80,11 @@
   <div class="brand"><div><b><i class="fa-solid fa-microphone-lines"></i> KrateNote</b> <small id="statusTxt" style="color:#6366f1;margin-left:8px;display:inline"></small></div><span id="userInfo" class="userTag" style="display:none"><i class="fa-solid fa-user"></i> <span id="userNameText"></span></span></div>
   <div style="display:flex;gap:8px;align-items:center"><button class="iconBtn" id="openSetBtn"><i class="fa-solid fa-gear"></i> Settings</button><button class="iconBtn" id="logoutBtn" style="background:#fee2e2;color:#991b1b"><i class="fa-solid fa-right-from-bracket"></i> Logout</button></div>
 </div>
-
 <div class="main" style="max-width:1100px;margin:auto">
 <div style="width:100%">
 <div class="contextBar"><div><b><i class="fa-solid fa-folder"></i> <span id="ctxFolder">General</span></b> <span style="opacity:.5;margin:0 6px">/</span> <b><i class="fa-solid fa-book"></i> <span id="ctxSubject">General</span></b><br><small style="opacity:.6;font-size:11px">You are recording in this folder &amp; subject</small></div><button id="changeCtxBtn" style="background:#fff;color:#111;padding:9px 14px;font-size:12px;white-space:nowrap"><i class="fa-solid fa-arrow-right-arrow-left"></i> Change</button></div>
 </div>
 </div>
-
 <div class="main">
   <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:10px"><b style="font-size:15px"><i class="fa-solid fa-sparkles"></i> Create New</b><span style="font-size:11px;opacity:.6">Pick a template to start faster</span></div>
@@ -104,28 +117,20 @@
     <button id="viewMoreBtn" class="full" style="display:none;background:var(--muted);margin-top:12px"></button>
   </div>
 </div>
-
 <div id="settingsModal"><div class="modalBox"><div style="display:flex;justify-content:space-between;gap:10px"><h3>Settings</h3><button class="iconBtn" id="closeSetBtn"><i class="fa-solid fa-xmark"></i></button></div><input id="serverUrl" type="hidden" value="https://kratenote-1.onrender.com"><label>Voice</label><select id="voiceSelect"></select><label>Speech Language</label><select id="speechLang"></select><label>Translate To</label><select id="translateTo"></select><label>Speed: <span id="speedVal">0.9</span></label><input type="range" id="speedRange" min="0.5" max="1.5" step="0.1" value="0.9"><label>Pitch: <span id="pitchVal">1.0</span></label><input type="range" id="pitchRange" min="0.5" max="1.5" step="0.1" value="1.0"><label>Font Size</label><select id="fontSelect"><option value="15px">Small</option><option value="17px" selected>Medium</option><option value="20px">Large</option><option value="24px">XL</option></select><div class="row"><span>Dark Mode</span><div id="darkSwitch" class="switch"><div class="dot"></div></div></div><div class="row"><span>Auto Detect</span><div class="switch on" id="autoSwitch"><div class="dot"></div></div></div><button class="full" style="background:#fee2e2;color:#b91c1c;margin-top:12px" id="clearBtn"><i class="fa-solid fa-trash"></i> Clear All Notes</button></div></div>
-
 <div id="editModal"><div class="modalBox"><div style="display:flex;justify-content:space-between;gap:10px"><h3>Edit Note</h3><button class="iconBtn" id="closeEditBtn"><i class="fa-solid fa-xmark"></i></button></div>
 <label>Title</label><input id="editTitle"><label>Language</label><select id="editLang"></select><label>Text</label><textarea id="editText" rows="8"></textarea>
 <label>Translate To</label><div class="compactRow"><select id="editTranslateTo"></select><button class="iconBtn" id="doEditTranslate"><i class="fa-solid fa-language"></i></button><button class="iconBtn" id="editSpeakBtn" style="background:#dcfce7;color:#166534"><i class="fa-solid fa-volume-high"></i></button></div>
 <div style="display:flex;gap:10px;margin-top:14px"><button class="full" id="saveEditBtn" style="background:var(--primary);color:var(--bg)"><i class="fa-solid fa-check"></i> Save</button><button class="full" id="cancelEditBtn" style="background:var(--muted)"><i class="fa-solid fa-xmark"></i> Cancel</button></div></div></div>
-
 <div id="subModal"><div class="modalBox" style="max-width:420px"><div style="display:flex;justify-content:space-between;gap:10px"><h3><i class="fa-solid fa-list-ul"></i> Add Sub-Topic</h3><button class="iconBtn" id="closeSubBtn"><i class="fa-solid fa-xmark"></i></button></div>
 <label>Sub Title</label><input id="subTitle" placeholder="e.g. Introduction, Methodology">
 <label>Note</label><div id="subTranscript" contenteditable="true" placeholder="Type like: 1. Point one 2. Point two Or record..."></div>
 <div style="display:flex;gap:10px;margin-bottom:12px"><button class="subRecBtn" id="subRecBtn"><i class="fa-solid fa-microphone"></i> Record Sub</button><span id="subStatus" style="font-size:11px;color:#6366f1;display:flex;align-items:center"></span></div>
 <button class="full" id="saveSubBtn" style="background:var(--primary);color:var(--bg)"><i class="fa-solid fa-plus"></i> Add Sub-Topic</button></div></div>
-
 <div id="translateModal"><div class="modalBox"><div style="display:flex;justify-content:space-between;gap:10px"><h3>Translate</h3><button class="iconBtn" id="closeTranslateBtn"><i class="fa-solid fa-xmark"></i></button></div><label>From</label><select id="fromLang"></select><label>To</label><select id="toLang"></select><label>Original</label><textarea id="origText" rows="4"></textarea><label>Translated</label><textarea id="transText" rows="4"></textarea><div style="display:flex;gap:10px"><button class="full" id="doTranslateBtn" style="background:var(--primary);color:var(--bg)">Translate</button><button class="full" id="speakTransBtn" style="background:var(--muted)"><i class="fa-solid fa-volume-high"></i> Speak</button></div><button class="full" id="saveTransBtn" style="background:#e0e7ff;color:#1e1b4b;margin-top:8px"><i class="fa-solid fa-floppy-disk"></i> Save</button></div></div>
-
 <div id="titlesModal"><div class="modalBox" style="max-width:420px"><div style="display:flex;justify-content:space-between;gap:10px"><h3><i class="fa-solid fa-list"></i> All Saved Notes</h3><button class="iconBtn" id="closeTitlesBtn"><i class="fa-solid fa-xmark"></i></button></div><div id="titlesList" style="margin-top:10px;max-height:60vh;overflow:auto"></div></div></div>
-
 <div id="confirmModal"><div class="modalBox" style="max-width:380px;text-align:center"><div class="confirmIcon delete"><i class="fa-solid fa-trash"></i></div><h3 id="confirmTitle">Delete Note?</h3><p id="confirmText" style="font-size:14px;opacity:.7;margin:0 0 18px"></p><div style="display:flex;gap:10px"><button class="full" id="confirmCancel" style="background:var(--muted)"><i class="fa-solid fa-xmark"></i> Cancel</button><button class="full" id="confirmDelete" style="background:#dc2626;color:#fff"><i class="fa-solid fa-trash"></i> Yes, Delete</button></div></div></div>
-
 <div id="logoutModal"><div class="modalBox" style="max-width:380px;text-align:center"><div class="confirmIcon logout"><i class="fa-solid fa-right-from-bracket"></i></div><h3>Logout from KrateNote?</h3><p style="font-size:14px;opacity:.7;margin:0 0 6px">You will need to login again.</p><div style="background:var(--box);border-radius:10px;padding:12px;margin:14px 0;display:flex;align-items:center;gap:12px;text-align:left"><div style="width:36px;height:36px;border-radius:50%;background:#6366f1;color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fa-solid fa-user"></i></div><div><b id="logoutName"></b><br><small id="logoutEmail" style="opacity:.6;font-size:11px"></small></div></div><div style="display:flex;gap:10px"><button class="full" id="logoutCancel" style="background:var(--muted)"><i class="fa-solid fa-xmark"></i> Stay</button><button class="full" id="logoutConfirm" style="background:#111;color:#fff"><i class="fa-solid fa-right-from-bracket"></i> Yes, Logout</button></div></div></div>
-
 <script>
 const token = localStorage.getItem('k_token');
 const user = JSON.parse(localStorage.getItem('k_user')||'null');
@@ -147,7 +152,6 @@ document.getElementById('logoutBtn').addEventListener('click',()=>{ logoutModal.
 document.getElementById('logoutCancel').addEventListener('click',()=>{ logoutModal.style.display='none'; });
 document.getElementById('logoutConfirm').addEventListener('click',()=>{ localStorage.removeItem('k_token'); localStorage.removeItem('k_user'); location.href='login.html'; });
 logoutModal.addEventListener('click',(e)=>{ if(e.target===logoutModal) logoutModal.style.display='none'; });
-
 const LANGS=[{code:'auto',name:'Auto',flag:'🌐',tts:'en-US'},{code:'en',name:'English',flag:'🇬🇧',tts:'en-US'},{code:'ibb',name:'Ibibio',flag:'🇳🇬',tts:'en-NG'},{code:'efi',name:'Efik',flag:'🇳🇬',tts:'en-NG'},{code:'ha',name:'Hausa',flag:'🇳🇬',tts:'ha-NG'},{code:'yo',name:'Yoruba',flag:'🇳🇬',tts:'yo-NG'},{code:'ig',name:'Igbo',flag:'🇳🇬',tts:'ig-NG'},{code:'pcm',name:'Pidgin',flag:'🇳🇬',tts:'en-NG'},{code:'fr',name:'French',flag:'🇫🇷',tts:'fr-FR'},{code:'es',name:'Spanish',flag:'🇪🇸',tts:'es-ES'},{code:'de',name:'German',flag:'🇩🇪',tts:'de-DE'},{code:'pt',name:'Portuguese',flag:'🇵🇹',tts:'pt-PT'},{code:'it',name:'Italian',flag:'🇮🇹',tts:'it-IT'},{code:'nl',name:'Dutch',flag:'🇳🇱',tts:'nl-NL'},{code:'ar',name:'Arabic',flag:'🇸🇦',tts:'ar-SA'},{code:'zh',name:'Chinese',flag:'🇨🇳',tts:'zh-CN'},{code:'ja',name:'Japanese',flag:'🇯🇵',tts:'ja-JP'},{code:'ko',name:'Korean',flag:'🇰🇷',tts:'ko-KR'},{code:'ru',name:'Russian',flag:'🇷🇺',tts:'ru-RU'},{code:'hi',name:'Hindi',flag:'🇮🇳',tts:'hi-IN'},{code:'sw',name:'Swahili',flag:'🇰🇪',tts:'sw-KE'},{code:'zu',name:'Zulu',flag:'🇿🇦',tts:'zu-ZA'},{code:'am',name:'Amharic',flag:'🇪🇹',tts:'am-ET'},{code:'tr',name:'Turkish',flag:'🇹🇷',tts:'tr-TR'},{code:'el',name:'Greek',flag:'🇬🇷',tts:'el-GR'},{code:'he',name:'Hebrew',flag:'🇮🇱',tts:'he-IL'},{code:'sv',name:'Swedish',flag:'🇸🇪',tts:'sv-SE'},{code:'no',name:'Norwegian',flag:'🇳🇴',tts:'nb-NO'},{code:'pl',name:'Polish',flag:'🇵🇱',tts:'pl-PL'},{code:'id',name:'Indonesian',flag:'🇮🇩',tts:'id-ID'},{code:'th',name:'Thai',flag:'🇹🇭',tts:'th-TH'}];
 const FOLDERS={School:{icon:'fa-graduation-cap',bg:'#e0e7ff',c:'#3730a3'},Work:{icon:'fa-briefcase',bg:'#dbeafe',c:'#1e40af'},Church:{icon:'fa-church',bg:'#fef3c7',c:'#92400e'},Personal:{icon:'fa-user',bg:'#fce7f3',c:'#9d174d'},Business:{icon:'fa-chart-line',bg:'#dcfce7',c:'#166534'},General:{icon:'fa-folder',bg:'#eee',c:'#333'}};
 const TEMPLATES={
@@ -164,7 +168,10 @@ function detectLanguage(text){const t=(text||'').toLowerCase();if(!t.trim())retu
 let isRec=false,mediaRecorder=null,audioChunks=[],transcript='',notes=[],audioStream=null,editingIndex=-1,pendingDeleteIndex=-1,pendingClearAll=false,subParentIndex=-1,pendingSubParent=-1,pendingSubIndex=-1;
 let settings={dark:false,font:'17px',voiceURI:'',serverUrl:'https://kratenote-1.onrender.com',speed:0.9,pitch:1,speechLang:'auto',translateTo:'en',autoDetect:true};
 let showAll=false, searchQuery='', sortBy='newest';
-try{const userEmail = user?.email || 'guest'; notes=JSON.parse(localStorage.getItem('k_notes_'+userEmail)||localStorage.getItem('k_notes')||'[]'); const s=JSON.parse(localStorage.getItem('k_settings')||'{}');settings={...settings,...s}; notes.forEach(n=>{ if(!n.folder) n.folder='General'; if(!n.subject) n.subject='General'; if(n.pinned===undefined) n.pinned=false; if(!n.subs) n.subs=[]; if(!n.flag){ const lf=LANGS.find(l=>l.code===n.code); n.flag=lf?lf.flag:'🇬🇧'; } });}catch(e){}
+try{const userEmail = user?.email || 'guest'; notes=JSON.parse(localStorage.getItem('k_notes_'+userEmail)||localStorage.getItem('k_notes')||'[]'); const s=JSON.parse(localStorage.getItem('k_settings')||'{}');settings={...settings,...s}; 
+// SYNC: k_theme is master - if e dey, e go override settings.dark
+var _t = localStorage.getItem('k_theme'); if(_t) settings.dark = (_t==='dark');
+notes.forEach(n=>{ if(!n.folder) n.folder='General'; if(!n.subject) n.subject='General'; if(n.pinned===undefined) n.pinned=false; if(!n.subs) n.subs=[]; if(!n.flag){ const lf=LANGS.find(l=>l.code===n.code); n.flag=lf?lf.flag:'🇬🇧'; } });}catch(e){}
 const recBtn=document.getElementById('recBtn'),box=document.getElementById('transcriptBox'),modal=document.getElementById('settingsModal'),editModal=document.getElementById('editModal'),transModal=document.getElementById('translateModal'),confirmModal=document.getElementById('confirmModal'),liveBadge=document.getElementById('liveBadge'),detectedBadge=document.getElementById('detectedBadge'),statusTxt=document.getElementById('statusTxt'),subModal=document.getElementById('subModal');
 let voices=[],recognition=null,finalTranscriptLive='';
 function setEmptyState(){box.classList.remove('has-text');box.innerHTML='<i class="fa-solid fa-waveform-lines emptyIcon"></i><div class="emptyTxt">Tap mic to record OR type note manually</div>';transcript='';finalTranscriptLive='';liveBadge.classList.remove('on');detectedBadge.textContent='🌐 Ready - Type or Record';detectedBadge.className='badge on';detectedBadge.style.background='#eee';detectedBadge.style.color='#666';statusTxt.textContent='';recBtn.innerHTML='<i class="fa-solid fa-microphone"></i> START RECORDING';recBtn.classList.remove('rec');isRec=false;}
@@ -172,8 +179,8 @@ box.addEventListener('focus',()=>{ if(!box.classList.contains('has-text')){ box.
 box.addEventListener('input',()=>{ transcript=box.innerText; if(transcript.trim()){ showDetectedRealTime(transcript); } });
 function loadVoices(){voices=speechSynthesis.getVoices();const sel=document.getElementById('voiceSelect');if(voices.length){sel.innerHTML=voices.map(v=>`<option value="${v.voiceURI}">${v.name} (${v.lang})</option>`).join('');if(settings.voiceURI)sel.value=settings.voiceURI;}}
 speechSynthesis.onvoiceschanged=loadVoices;setTimeout(loadVoices,800);
-function saveAll(){const userEmail = user?.email || 'guest';localStorage.setItem('k_notes_'+userEmail,JSON.stringify(notes));localStorage.setItem('k_settings',JSON.stringify(settings));}
-function applySettings(){document.body.classList.toggle('dark',settings.dark);document.getElementById('darkSwitch').classList.toggle('on',settings.dark);document.getElementById('autoSwitch').classList.toggle('on',settings.autoDetect);document.getElementById('fontSelect').value=settings.font;document.getElementById('speechLang').value=settings.speechLang;document.getElementById('translateTo').value=settings.translateTo;document.getElementById('speedRange').value=settings.speed;document.getElementById('pitchRange').value=settings.pitch;document.getElementById('speedVal').textContent=settings.speed;document.getElementById('pitchVal').textContent=settings.pitch;box.style.fontSize=settings.font;}
+function saveAll(){const userEmail = user?.email || 'guest';localStorage.setItem('k_notes_'+userEmail,JSON.stringify(notes));localStorage.setItem('k_settings',JSON.stringify(settings));localStorage.setItem('k_theme', settings.dark ? 'dark' : 'light');}
+function applySettings(){document.body.classList.toggle('dark',settings.dark);document.documentElement.setAttribute('data-theme', settings.dark ? 'dark' : 'light');document.documentElement.classList.toggle('dark',settings.dark);document.getElementById('darkSwitch').classList.toggle('on',settings.dark);document.getElementById('autoSwitch').classList.toggle('on',settings.autoDetect);document.getElementById('fontSelect').value=settings.font;document.getElementById('speechLang').value=settings.speechLang;document.getElementById('translateTo').value=settings.translateTo;document.getElementById('speedRange').value=settings.speed;document.getElementById('pitchRange').value=settings.pitch;document.getElementById('speedVal').textContent=settings.speed;document.getElementById('pitchVal').textContent=settings.pitch;box.style.fontSize=settings.font;}
 function speakClear(text,forcedLang=null){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);let langCode=forcedLang||settings.speechLang;if(langCode==='auto')langCode=detectLanguage(text).code;const langObj=LANGS.find(l=>l.code===langCode)||LANGS[1];u.lang=langObj.tts||'en-US';const voice=voices.find(v=>v.voiceURI===settings.voiceURI)||voices[0];if(voice)u.voice=voice;u.rate=parseFloat(settings.speed);u.pitch=parseFloat(settings.pitch);speechSynthesis.speak(u);}
 function showDetectedRealTime(text){const lang=detectLanguage(text);detectedBadge.textContent=lang.flag+' '+lang.name;detectedBadge.className='badge on';detectedBadge.style.background='#6366f1';detectedBadge.style.color='#fff';if(lang.code!=='en'&&lang.code!=='auto'){detectedBadge.style.background='#10b981';}}
 function createRecognition(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){alert('Use Chrome');return null;}const rec=new SR();rec.continuous=true;rec.interimResults=true;rec.lang='en-US';rec.onstart=()=>{liveBadge.classList.add('on');detectedBadge.textContent='Listening...';detectedBadge.className='badge on';detectedBadge.style.background='#6366f1';detectedBadge.style.color='#fff';statusTxt.textContent='Listening...';box.classList.add('has-text');if(!finalTranscriptLive)box.textContent='';};rec.onresult=(e)=>{let interim='';let finalPart='';for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript;if(e.results[i].isFinal)finalPart+=t+' ';else interim+=t;}if(e.results[e.results.length-1].isFinal)finalTranscriptLive+=finalPart;const full=(finalTranscriptLive+interim).trim();if(full){box.textContent=full;transcript=full;showDetectedRealTime(full);}};rec.onerror=(e)=>{console.log('SR',e.error);};rec.onend=()=>{liveBadge.classList.remove('on');if(isRec){try{rec.start();}catch(err){}}};return rec;}
@@ -226,7 +233,6 @@ document.getElementById('confirmDelete').addEventListener('click',()=>{
   confirmModal.style.display='none';resetConfirmModal();
 });
 confirmModal.addEventListener('click',(e)=>{if(e.target===confirmModal){confirmModal.style.display='none';resetConfirmModal();}});
-
 function getFilteredSortedNotes(){
   let filtered = notes.filter(n=> {
     const q=searchQuery.toLowerCase();
@@ -261,7 +267,6 @@ async function shareNote(note){
     try{ await navigator.clipboard.writeText(`${shareData.title}\n${shareData.text}`); alert('Note copied!'); }catch(e){ alert(`${shareData.title}\n\n${fullText}`); }
   }
 }
-
 let subRec=false, subRecognition=null, subFinal='';
 const subBox=document.getElementById('subTranscript');
 const subRecBtn=document.getElementById('subRecBtn');
@@ -284,7 +289,6 @@ subRecBtn.addEventListener('click',()=>{
     subRec=false; try{ if(subRecognition) subRecognition.stop(); }catch(e){} subRecBtn.innerHTML='<i class="fa-solid fa-microphone"></i> Record Sub'; subRecBtn.classList.remove('rec'); subStatus.textContent='Done';
   }
 });
-
 document.querySelectorAll('.tplBtn').forEach(btn=>btn.addEventListener('click',()=>{
   document.querySelectorAll('.tplBtn').forEach(b=>b.classList.remove('active')); btn.classList.add('active');
   const t=TEMPLATES[btn.dataset.tpl];
@@ -292,7 +296,6 @@ document.querySelectorAll('.tplBtn').forEach(btn=>btn.addEventListener('click',(
   if(t.text){ box.classList.add('has-text'); box.textContent=t.text; transcript=t.text; } else { setEmptyState(); }
   box.focus();
 }));
-
 const searchInput=document.getElementById('searchInput');
 const suggBox=document.getElementById('suggestions');
 searchInput.addEventListener('input',(e)=>{
@@ -310,8 +313,6 @@ searchInput.addEventListener('input',(e)=>{
 document.addEventListener('click',(e)=>{ if(!e.target.closest('.searchBox')) suggBox.classList.remove('on'); });
 document.getElementById('sortSelect').addEventListener('change',(e)=>{ sortBy=e.target.value; showAll=false; render(); });
 document.getElementById('viewMoreBtn').addEventListener('click',()=>{ showAll=!showAll; render(); });
-
-// ===== LIST BUTTON - Show all titles =====
 const titlesModal=document.getElementById('titlesModal');
 document.getElementById('listBtn').addEventListener('click',()=>{
   const listEl=document.getElementById('titlesList');
@@ -332,7 +333,6 @@ document.getElementById('listBtn').addEventListener('click',()=>{
 });
 document.getElementById('closeTitlesBtn').addEventListener('click',()=>{ titlesModal.style.display='none'; });
 titlesModal.addEventListener('click',(e)=>{ if(e.target===titlesModal) titlesModal.style.display='none'; });
-
 document.getElementById('notesList').addEventListener('click',(e)=>{
   const btn=e.target.closest('[data-action]');
   if(!btn) return;
@@ -347,7 +347,6 @@ document.getElementById('notesList').addEventListener('click',(e)=>{
   else if(action==='sub'){ subParentIndex=idx; document.getElementById('subTitle').value=''; subBox.innerHTML=''; subBox.classList.remove('has-text'); subFinal=''; subRec=false; subRecBtn.innerHTML='<i class="fa-solid fa-microphone"></i> Record Sub'; subRecBtn.classList.remove('rec'); subStatus.textContent=''; subModal.style.display='flex'; }
   else if(action==='delsub'){ const parent=parseInt(btn.dataset.parent); const subIdx=parseInt(btn.dataset.sub); openConfirmSubDelete(parent, subIdx); }
 });
-
 document.getElementById('closeSubBtn').addEventListener('click',()=>{ if(subRec){ try{ subRecognition.stop(); }catch(e){} subRec=false; } subModal.style.display='none'; });
 document.getElementById('saveSubBtn').addEventListener('click',()=>{
   const t=document.getElementById('subTitle').value.trim();
@@ -358,7 +357,6 @@ document.getElementById('saveSubBtn').addEventListener('click',()=>{
   saveAll(); render(); subModal.style.display='none'; if(subRec){ try{ subRecognition.stop(); }catch(e){} subRec=false; }
 });
 subModal.addEventListener('click',(e)=>{ if(e.target===subModal){ if(subRec){ try{ subRecognition.stop(); }catch(e){} subRec=false; } subModal.style.display='none'; } });
-
 function render(){
   const filtered = getFilteredSortedNotes();
   document.getElementById('count').textContent=filtered.length;
@@ -420,7 +418,7 @@ document.getElementById('translateTo').addEventListener('change',e=>{ settings.t
 document.getElementById('fontSelect').addEventListener('change',e=>{ settings.font=e.target.value; box.style.fontSize=settings.font; saveAll(); });
 document.getElementById('speedRange').addEventListener('input',e=>{ settings.speed=e.target.value; document.getElementById('speedVal').textContent=e.target.value; saveAll(); });
 document.getElementById('pitchRange').addEventListener('input',e=>{ settings.pitch=e.target.value; document.getElementById('pitchVal').textContent=e.target.value; saveAll(); });
-document.getElementById('darkSwitch').addEventListener('click',()=>{ settings.dark=!settings.dark; document.body.classList.toggle('dark',settings.dark); document.getElementById('darkSwitch').classList.toggle('on',settings.dark); saveAll(); });
+document.getElementById('darkSwitch').addEventListener('click',()=>{ settings.dark=!settings.dark; document.body.classList.toggle('dark',settings.dark); document.documentElement.setAttribute('data-theme', settings.dark ? 'dark' : 'light'); document.documentElement.classList.toggle('dark',settings.dark); document.getElementById('darkSwitch').classList.toggle('on',settings.dark); saveAll(); });
 document.getElementById('autoSwitch').addEventListener('click',()=>{ settings.autoDetect=!settings.autoDetect; document.getElementById('autoSwitch').classList.toggle('on',settings.autoDetect); saveAll(); });
 document.getElementById('clearBtn').addEventListener('click',()=>{ if(notes.length===0) return alert('No notes'); openConfirmDelete(-1,true); });
 document.getElementById('saveBtn').addEventListener('click',saveNote);
