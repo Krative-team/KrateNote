@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>KrateNote V10 - Suggestions + PDF</title>
+<title>KrateNote V10.1 - Fixed Actions</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
@@ -14,7 +14,7 @@
   .main{max-width:1100px;margin:auto;display:flex;flex-direction:column;gap:12px} @media(min-width:900px){.main{flex-direction:row}}
   .card{background:var(--card);border-radius:14px;padding:14px;flex:1}
   #transcriptBox{min-height:220px;background:var(--box);border-radius:10px;padding:12px;line-height:26px;font-size:17px;white-space:pre-wrap;border:2px solid transparent;outline:none;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#888}
-  #transcriptBox.has-text{display:block;color:var(--text)} .emptyIcon{font-size:48px;margin-bottom:12px;opacity:.3} .emptyTxt{font-size:15px}
+  #transcriptBox.has-text{display:block;color:var(--text)} #transcriptBox:focus{border-color:#6366f1} .emptyIcon{font-size:48px;margin-bottom:12px;opacity:.3} .emptyTxt{font-size:15px}
   .badge{font-size:12px;padding:5px 10px;border-radius:20px;display:none;margin-right:6px;font-weight:700} .badge.on{display:inline-block} #liveBadge{background:#10b981;color:#fff} #detectedBadge{background:#6366f1;color:#fff}
   input,select,textarea{width:100%;padding:12px;border-radius:8px;border:none;background:var(--muted);color:var(--text);margin-bottom:10px;font-size:15px}
   button{padding:12px 14px;border-radius:10px;border:none;font-weight:600;font-size:14px;cursor:pointer;display:inline-flex;gap:6px;justify-content:center;align-items:center}
@@ -26,7 +26,7 @@
   .actBtn.edit{background:#e0e7ff;color:#3730a3} .actBtn.speak{background:#dcfce7;color:#166534} .actBtn.trans{background:#fef3c7;color:#92400e} .actBtn.del{background:#fee2e2;color:#991b1b} .actBtn.pdf{background:#ede9fe;color:#5b21b6}
   .toolbar{display:flex;gap:6px;margin:10px 0 8px} .searchBox{position:relative;flex:1} .searchBox i{position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:.4;font-size:12px} .searchBox input{padding-left:28px;margin:0}
   .suggestions{position:absolute;top:100%;left:0;right:0;background:var(--card);border-radius:10px;box-shadow:0 10px 25px rgba(0,0,0,.18);z-index:30;display:none;max-height:200px;overflow:auto;border:1px solid var(--muted);margin-top:4px}
-  .suggestions.on{display:block} .sugItem{padding:10px 12px;cursor:pointer;font-size:13px;display:flex;justify-content:space-between;align-items:center} .sugItem:hover{background:var(--box)} .sugItem small{opacity:.5}
+  .suggestions.on{display:block} .sugItem{padding:10px 12px;cursor:pointer;font-size:13px;display:flex;justify-content:space-between;align-items:center} .sugItem:hover{background:var(--box)}
   #settingsModal,#editModal,#translateModal,#confirmModal,#logoutModal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:999;padding:12px;backdrop-filter:blur(6px)}
   .modalBox{background:var(--card);width:100%;max-width:560px;border-radius:16px;padding:18px;max-height:90vh;overflow:auto;animation:pop .25s ease}
   @keyframes pop{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
@@ -45,9 +45,9 @@
 
 <div class="main">
   <div class="card">
-    <input id="titleInput" placeholder="Lecture Title">
-    <div style="margin-bottom:8px"><span id="liveBadge" class="badge">● LIVE</span><span id="detectedBadge" class="badge on" style="background:#eee;color:#666">🌐 Ready</span></div>
-    <div id="transcriptBox" contenteditable="true"></div>
+    <input id="titleInput" placeholder="Lecture Title (or type note manually below)">
+    <div style="margin-bottom:8px"><span id="liveBadge" class="badge">● LIVE</span><span id="detectedBadge" class="badge on" style="background:#eee;color:#666">🌐 Ready - Type or Record</span></div>
+    <div id="transcriptBox" contenteditable="true" data-placeholder="Tap mic to record OR click here to type manually..."></div>
     <button class="full" id="recBtn"><i class="fa-solid fa-microphone"></i> START RECORDING</button>
     <div style="display:flex;gap:6px">
       <button class="full" id="saveBtn" style="background:#e0e7ff;color:#1e1b4b"><i class="fa-solid fa-floppy-disk"></i> SAVE</button>
@@ -58,11 +58,11 @@
   <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center"><b>Notes (<span id="count">0</span>)</b><div style="display:flex;gap:4px"><button class="iconBtn" id="exportPdfBtn"><i class="fa-solid fa-file-pdf"></i> PDF</button><button class="iconBtn" id="exportTxtBtn"><i class="fa-solid fa-file-lines"></i> TXT</button></div></div>
     <div class="toolbar">
-      <div class="searchBox"><i class="fa-solid fa-magnifying-glass"></i><input id="searchInput" placeholder="Search by title..." autocomplete="off"><div id="suggestions" class="suggestions"></div></div>
+      <div class="searchBox"><i class="fa-solid fa-magnifying-glass"></i><input id="searchInput" placeholder="Search by title or date..." autocomplete="off"><div id="suggestions" class="suggestions"></div></div>
       <select id="sortSelect" style="width:auto;min-width:110px;margin:0;padding:10px 8px;font-size:12px"><option value="" disabled selected>Sort by</option><option value="newest">Newest</option><option value="oldest">Oldest</option><option value="az">A-Z</option><option value="za">Z-A</option></select>
     </div>
     <div id="notesList" style="margin-top:10px"></div>
-    <button id="viewMoreBtn" class="full" style="display:none;background:var(--muted);margin-top:10px"><i class="fa-solid fa-chevron-down"></i> View More (<span id="moreCount">0</span> hidden)</button>
+    <button id="viewMoreBtn" class="full" style="display:none;background:var(--muted);margin-top:10px"></button>
   </div>
 </div>
 
@@ -96,7 +96,10 @@ let showAll=false, searchQuery='', sortBy='newest';
 try{const userEmail = user?.email || 'guest'; notes=JSON.parse(localStorage.getItem('k_notes_'+userEmail)||localStorage.getItem('k_notes')||'[]'); const s=JSON.parse(localStorage.getItem('k_settings')||'{}');settings={...settings,...s};}catch(e){}
 const recBtn=document.getElementById('recBtn'),box=document.getElementById('transcriptBox'),modal=document.getElementById('settingsModal'),editModal=document.getElementById('editModal'),transModal=document.getElementById('translateModal'),confirmModal=document.getElementById('confirmModal'),liveBadge=document.getElementById('liveBadge'),detectedBadge=document.getElementById('detectedBadge'),statusTxt=document.getElementById('statusTxt');
 let voices=[],recognition=null,finalTranscriptLive='';
-function setEmptyState(){box.classList.remove('has-text');box.innerHTML='<i class="fa-solid fa-waveform-lines emptyIcon"></i><div class="emptyTxt">Tap mic to start</div>';transcript='';finalTranscriptLive='';liveBadge.classList.remove('on');detectedBadge.textContent='🌐 Ready';detectedBadge.className='badge on';detectedBadge.style.background='#eee';detectedBadge.style.color='#666';statusTxt.textContent='';recBtn.innerHTML='<i class="fa-solid fa-microphone"></i> START RECORDING';recBtn.classList.remove('rec');isRec=false;}
+function setEmptyState(){box.classList.remove('has-text');box.innerHTML='<i class="fa-solid fa-waveform-lines emptyIcon"></i><div class="emptyTxt">Tap mic to record OR click to type manually</div>';transcript='';finalTranscriptLive='';liveBadge.classList.remove('on');detectedBadge.textContent='🌐 Ready - Type or Record';detectedBadge.className='badge on';detectedBadge.style.background='#eee';detectedBadge.style.color='#666';statusTxt.textContent='';recBtn.innerHTML='<i class="fa-solid fa-microphone"></i> START RECORDING';recBtn.classList.remove('rec');isRec=false;}
+box.addEventListener('focus',()=>{ if(!box.classList.contains('has-text')){ box.innerHTML=''; box.classList.add('has-text'); } });
+box.addEventListener('input',()=>{ transcript=box.innerText; if(transcript.trim()){ showDetectedRealTime(transcript); } });
+
 function loadVoices(){voices=speechSynthesis.getVoices();const sel=document.getElementById('voiceSelect');if(voices.length){sel.innerHTML=voices.map(v=>`<option value="${v.voiceURI}">${v.name} (${v.lang})</option>`).join('');if(settings.voiceURI)sel.value=settings.voiceURI;}}
 speechSynthesis.onvoiceschanged=loadVoices;setTimeout(loadVoices,800);
 function saveAll(){const userEmail = user?.email || 'guest';localStorage.setItem('k_notes_'+userEmail,JSON.stringify(notes));localStorage.setItem('k_settings',JSON.stringify(settings));}
@@ -107,14 +110,17 @@ function createRecognition(){const SR=window.SpeechRecognition||window.webkitSpe
 async function startMic(){try{if(!audioStream)audioStream=await navigator.mediaDevices.getUserMedia({audio:true});let mime='audio/mp4';if(MediaRecorder.isTypeSupported('audio/mp4'))mime='audio/mp4';else if(MediaRecorder.isTypeSupported('audio/webm;codecs=opus'))mime='audio/webm;codecs=opus';mediaRecorder=new MediaRecorder(audioStream,{mimeType:mime});audioChunks=[];mediaRecorder.ondataavailable=e=>{if(e.data.size>0)audioChunks.push(e.data);};mediaRecorder.onstop=async()=>{if(!transcript||transcript==='Listening...'){const blob=new Blob(audioChunks,{type:mime});const form=new FormData();form.append('file',blob,mime.includes('mp4')?'recording.m4a':'recording.webm');try{statusTxt.textContent='Enhancing...';const res=await fetch(settings.serverUrl+'/transcribe',{method:'POST',body:form});const data=await res.json();if(data.text){transcript=data.text;box.textContent=data.text;showDetectedRealTime(data.text);}}catch(e){}}statusTxt.textContent='';};return mediaRecorder;}catch(e){alert('Mic error: '+e.message);return null;}}
 recBtn.addEventListener('click',async()=>{if(!isRec){finalTranscriptLive='';transcript='';audioChunks=[];box.textContent='Listening...';box.classList.add('has-text');const rec=await startMic();if(!rec)return;recognition=createRecognition();if(!recognition)return;try{recognition.start();}catch(e){}rec.start(100);isRec=true;recBtn.innerHTML='<i class="fa-solid fa-stop"></i> STOP';recBtn.classList.add('rec');}else{isRec=false;try{if(recognition)recognition.stop();}catch(e){}try{if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();}catch(e){}recBtn.innerHTML='<i class="fa-solid fa-microphone"></i> START RECORDING';recBtn.classList.remove('rec');liveBadge.classList.remove('on');if(transcript&&transcript!=='Listening...')statusTxt.textContent='Done - tap SAVE';}});
 async function translateText(text,to){try{statusTxt.textContent='Translating...';const res=await fetch(settings.serverUrl.replace(/\/$/,'')+'/translate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:text.substring(0,3000),to:to})});const data=await res.json();statusTxt.textContent='';if(data.translated)return data.translated;return text;}catch(e){statusTxt.textContent='';return text;}}
-function saveNote(){const txt=(box.innerText||'').trim()||transcript.trim();if(!txt||txt.includes('Tap mic')||txt==='Listening...'||txt.length<2)return alert('Speak first!');const title=document.getElementById('titleInput').value||txt.split(' ').slice(0,5).join(' ');const lang=detectLanguage(txt);notes.unshift({title,text:txt,date:new Date().toLocaleString(),lang:lang.name,code:lang.code,flag:lang.flag, ts: Date.now()});saveAll();render();document.getElementById('titleInput').value='';setEmptyState();try{if(recognition)recognition.stop();}catch(e){}try{if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();}catch(e){}}
+function saveNote(){const txt=(box.innerText||'').trim()||transcript.trim();if(!txt||txt.includes('Tap mic')||txt==='Listening...'||txt.length<2)return alert('Type or record something first!');const title=document.getElementById('titleInput').value||txt.split(' ').slice(0,5).join(' ');const lang=detectLanguage(txt);notes.unshift({title,text:txt,date:new Date().toLocaleString(),lang:lang.name,code:lang.code,flag:lang.flag, ts: Date.now()});saveAll();render();document.getElementById('titleInput').value='';setEmptyState();try{if(recognition)recognition.stop();}catch(e){}try{if(mediaRecorder&&mediaRecorder.state==='recording')mediaRecorder.stop();}catch(e){}}
 function openConfirmDelete(index,isClearAll=false){pendingDeleteIndex=index;pendingClearAll=isClearAll;if(isClearAll){document.querySelector('#confirmModal .confirmIcon').innerHTML='<i class="fa-solid fa-triangle-exclamation"></i>';document.getElementById('confirmText').innerHTML=`<b>Delete all ${notes.length} notes?</b><br>This will permanently remove all your saved notes.`;document.getElementById('confirmDelete').innerHTML='<i class="fa-solid fa-trash"></i> Yes, Delete All';}else{const note=notes[index];document.querySelector('#confirmModal .confirmIcon').innerHTML='<i class="fa-solid fa-trash"></i>';document.getElementById('confirmText').innerHTML=`Delete <b>"${note.title.substring(0,30)}"</b>?`;document.getElementById('confirmDelete').innerHTML='<i class="fa-solid fa-trash"></i> Yes, Delete';}confirmModal.style.display='flex';}
 document.getElementById('confirmCancel').addEventListener('click',()=>{confirmModal.style.display='none';pendingDeleteIndex=-1;pendingClearAll=false;});
 document.getElementById('confirmDelete').addEventListener('click',()=>{if(pendingClearAll){notes=[];saveAll();render();modal.style.display='none';}else if(pendingDeleteIndex>=0){notes.splice(pendingDeleteIndex,1);saveAll();render();}confirmModal.style.display='none';pendingDeleteIndex=-1;pendingClearAll=false;});
 confirmModal.addEventListener('click',(e)=>{if(e.target===confirmModal)confirmModal.style.display='none';});
 
 function getFilteredSortedNotes(){
-  let filtered = notes.filter(n=> n.title.toLowerCase().includes(searchQuery));
+  let filtered = notes.filter(n=> {
+    const q=searchQuery.toLowerCase();
+    return n.title.toLowerCase().includes(q) || n.date.toLowerCase().includes(q) || n.text.toLowerCase().includes(q);
+  });
   filtered.forEach((n,i)=>{ if(!n.ts) n.ts=Date.now()-i*1000; });
   if(sortBy==='newest') filtered.sort((a,b)=>b.ts-a.ts);
   else if(sortBy==='oldest') filtered.sort((a,b)=>a.ts-b.ts);
@@ -123,7 +129,6 @@ function getFilteredSortedNotes(){
   else filtered.sort((a,b)=>b.ts-a.ts);
   return filtered;
 }
-
 function downloadSinglePdf(note){
   const {jsPDF}=window.jspdf; const doc=new jsPDF();
   doc.setFontSize(16); doc.setFont(undefined,'bold'); doc.text(note.title,10,15);
@@ -132,32 +137,36 @@ function downloadSinglePdf(note){
   lines.forEach(line=>{ if(y>270){ doc.addPage(); y=15; } doc.text(line,10,y); y+=6; });
   doc.save(`${note.title.replace(/[^a-z0-9]/gi,'_')}.pdf`);
 }
-
-// SEARCH WITH LIVE SUGGESTIONS
 const searchInput=document.getElementById('searchInput');
 const suggBox=document.getElementById('suggestions');
 searchInput.addEventListener('input',(e)=>{
   searchQuery=e.target.value.toLowerCase(); showAll=false;
   if(searchQuery.length>=1){
-    const matches = notes.filter(n=> n.title.toLowerCase().includes(searchQuery)).slice(0,5);
+    const matches = notes.filter(n=> n.title.toLowerCase().includes(searchQuery) || n.date.toLowerCase().includes(searchQuery)).slice(0,5);
     if(matches.length>0){
-      suggBox.innerHTML=matches.map(n=>`<div class="sugItem" data-title="${n.title.replace(/"/g,'&quot;')}"><span><i class="fa-solid fa-magnifying-glass"></i> ${n.flag||''} ${n.title}</span><small>${n.lang||''}</small></div>`).join('');
+      suggBox.innerHTML=matches.map(n=>`<div class="sugItem" data-title="${n.title.replace(/"/g,'&quot;')}"><span><i class="fa-solid fa-magnifying-glass"></i> ${n.flag||''} ${n.title}</span><small>${n.date.split(',')[0]}</small></div>`).join('');
       suggBox.classList.add('on');
-      suggBox.querySelectorAll('.sugItem').forEach(el=>el.addEventListener('click',()=>{
-        searchInput.value=el.dataset.title; searchQuery=el.dataset.title.toLowerCase(); suggBox.classList.remove('on'); render();
-      }));
-    } else {
-      suggBox.classList.remove('on');
-    }
-  } else {
-    suggBox.classList.remove('on');
-  }
+      suggBox.querySelectorAll('.sugItem').forEach(el=>el.addEventListener('click',()=>{ searchInput.value=el.dataset.title; searchQuery=el.dataset.title.toLowerCase(); suggBox.classList.remove('on'); render(); }));
+    } else { suggBox.classList.remove('on'); }
+  } else { suggBox.classList.remove('on'); }
   render();
 });
 document.addEventListener('click',(e)=>{ if(!e.target.closest('.searchBox')) suggBox.classList.remove('on'); });
-
 document.getElementById('sortSelect').addEventListener('change',(e)=>{ sortBy=e.target.value; showAll=false; render(); });
 document.getElementById('viewMoreBtn').addEventListener('click',()=>{ showAll=!showAll; render(); });
+
+// FIXED: Use event delegation so buttons always work
+document.getElementById('notesList').addEventListener('click',(e)=>{
+  const btn=e.target.closest('[data-action]');
+  if(!btn) return;
+  const idx=parseInt(btn.dataset.index);
+  const action=btn.dataset.action;
+  if(action==='del'){ openConfirmDelete(idx,false); }
+  else if(action==='speak'){ const nn=notes[idx]; speakClear(nn.text,nn.code); }
+  else if(action==='trans'){ const nn=notes[idx]; document.getElementById('origText').value=nn.text; document.getElementById('toLang').value=settings.translateTo; transModal.style.display='flex'; }
+  else if(action==='edit'){ editingIndex=idx; document.getElementById('editTitle').value=notes[idx].title; document.getElementById('editText').value=notes[idx].text; document.getElementById('editLang').value=notes[idx].code||'en'; editModal.style.display='flex'; }
+  else if(action==='pdf'){ downloadSinglePdf(notes[idx]); }
+});
 
 function render(){
   const filtered = getFilteredSortedNotes();
@@ -167,10 +176,10 @@ function render(){
 
   if(filtered.length===0){
     if(searchQuery){
-      document.getElementById('notesList').innerHTML=`<div style="text-align:center;padding:24px;background:var(--box);border-radius:12px;border:1px dashed #ccc"><i class="fa-solid fa-circle-exclamation" style="font-size:36px;color:#f59e0b;display:block;margin-bottom:10px"></i><b>No match found</b><br><small style="opacity:.7">No note matches "<b>${searchQuery}</b>"</small><br><button id="clearSearchLink" style="margin-top:10px;background:#e0e7ff;color:#3730a3;padding:8px 14px;border-radius:8px;border:none;font-size:12px;cursor:pointer"><i class="fa-solid fa-xmark"></i> Clear search</button></div>`;
+      document.getElementById('notesList').innerHTML=`<div style="text-align:center;padding:24px;background:var(--box);border-radius:12px;border:1px dashed #ccc"><i class="fa-solid fa-circle-exclamation" style="font-size:36px;color:#f59e0b;display:block;margin-bottom:10px"></i><b>No match found</b><br><small style="opacity:.7">No note matches "<b>${searchQuery}</b>" by title or date</small><br><button id="clearSearchLink" style="margin-top:10px;background:#e0e7ff;color:#3730a3;padding:8px 14px;border-radius:8px;border:none;font-size:12px;cursor:pointer"><i class="fa-solid fa-xmark"></i> Clear search</button></div>`;
       const link=document.getElementById('clearSearchLink'); if(link) link.addEventListener('click',()=>{ searchInput.value=''; searchQuery=''; suggBox.classList.remove('on'); render(); });
     } else {
-      document.getElementById('notesList').innerHTML='<div style="text-align:center;padding:20px;opacity:.4"><i class="fa-solid fa-inbox" style="font-size:32px;display:block;margin-bottom:8px"></i>No notes yet</div>';
+      document.getElementById('notesList').innerHTML='<div style="text-align:center;padding:20px;opacity:.4"><i class="fa-solid fa-inbox" style="font-size:32px;display:block;margin-bottom:8px"></i>No notes yet<br><small>Type or record first note</small></div>';
     }
     viewMoreBtn.style.display='none';
   } else {
@@ -182,26 +191,21 @@ function render(){
         <small style="opacity:.6">${n.lang||''}</small>
         <div style="margin-top:6px;white-space:pre-wrap">${n.text}</div>
         <div class="noteActions">
-          <button class="actBtn edit" data-edit="${realIndex}"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
-          <button class="actBtn speak" data-speak="${realIndex}"><i class="fa-solid fa-volume-high"></i> Speak</button>
-          <button class="actBtn trans" data-trans="${realIndex}"><i class="fa-solid fa-language"></i> Translate</button>
-          <button class="actBtn pdf" data-pdf="${realIndex}"><i class="fa-solid fa-file-pdf"></i> PDF</button>
-          <button class="actBtn del" data-del="${realIndex}"><i class="fa-solid fa-trash"></i> Delete</button>
+          <button class="actBtn edit" data-action="edit" data-index="${realIndex}"><i class="fa-solid fa-pen-to-square"></i> Edit</button>
+          <button class="actBtn speak" data-action="speak" data-index="${realIndex}"><i class="fa-solid fa-volume-high"></i> Speak</button>
+          <button class="actBtn trans" data-action="trans" data-index="${realIndex}"><i class="fa-solid fa-language"></i> Translate</button>
+          <button class="actBtn pdf" data-action="pdf" data-index="${realIndex}"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+          <button class="actBtn del" data-action="del" data-index="${realIndex}"><i class="fa-solid fa-trash"></i> Delete</button>
         </div>
       </div>`;
     }).join('');
     if(filtered.length>2){
-      viewMoreBtn.style.display='flex'; moreCountSpan.textContent=filtered.length-2;
-      viewMoreBtn.innerHTML = showAll ? `<i class="fa-solid fa-chevron-up"></i> Show Less` : `<i class="fa-solid fa-chevron-down"></i> View More (${filtered.length-2} hidden)`;
+      viewMoreBtn.style.display='flex';
+      viewMoreBtn.innerHTML = showAll ? `<i class="fa-solid fa-chevron-up"></i> View Less` : `<i class="fa-solid fa-chevron-down"></i> View More (${filtered.length-2} hidden)`;
     } else {
       viewMoreBtn.style.display='none';
     }
   }
-  document.querySelectorAll('[data-del]').forEach(el=>el.addEventListener('click',()=>{ openConfirmDelete(parseInt(el.dataset.del),false); }));
-  document.querySelectorAll('[data-speak]').forEach(el=>el.addEventListener('click',()=>{ const nn=notes[parseInt(el.dataset.speak)]; speakClear(nn.text,nn.code); }));
-  document.querySelectorAll('[data-trans]').forEach(el=>el.addEventListener('click',()=>{ const nn=notes[parseInt(el.dataset.trans)]; document.getElementById('origText').value=nn.text; document.getElementById('toLang').value=settings.translateTo; transModal.style.display='flex'; }));
-  document.querySelectorAll('[data-edit]').forEach(el=>el.addEventListener('click',()=>{ const idx=parseInt(el.dataset.edit); editingIndex=idx; document.getElementById('editTitle').value=notes[idx].title; document.getElementById('editText').value=notes[idx].text; document.getElementById('editLang').value=notes[idx].code||'en'; editModal.style.display='flex'; }));
-  document.querySelectorAll('[data-pdf]').forEach(el=>el.addEventListener('click',()=>{ const nn=notes[parseInt(el.dataset.pdf)]; downloadSinglePdf(nn); }));
 }
 document.getElementById('openSetBtn').addEventListener('click',()=>modal.style.display='flex');
 document.getElementById('closeSetBtn').addEventListener('click',()=>modal.style.display='none');
