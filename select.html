@@ -43,7 +43,9 @@
   .subjItem{display:flex;justify-content:space-between;align-items:center;background:var(--box);padding:12px;border-radius:10px;margin-bottom:8px;cursor:pointer}
   .subjItem:hover{background:#eef2ff} html[data-theme="dark"] .subjItem:hover{background:#312e81}
   .subjItem b{font-size:14px} .subjItem small{opacity:.5;font-size:11px}
+  .subjActions{display:flex;gap:6px;flex-shrink:0}
   .delSubj{background:#fee2e2;color:#991b1b;padding:6px 9px;font-size:11px}
+  .renameSubj{background:#e0e7ff;color:#3730a3;padding:6px 9px;font-size:11px}
   .back{font-size:13px;color:#6366f1;cursor:pointer;display:none;margin-top:10px}
   #newSubject{transition:.2s} #newSubject.error{outline:2px solid #ef4444;background:#fef2f2}
   #newSubject.warn{outline:2px solid #f59e0b;background:#fffbeb}
@@ -64,6 +66,7 @@
   .modalBox{background:var(--card);color:var(--text);width:100%;max-width:400px;border-radius:20px;padding:24px 20px 20px;text-align:center;animation:slideUp .25s ease;box-shadow:0 20px 50px rgba(0,0,0,.25)}
   @keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
   .modalIcon{width:56px;height:56px;background:#fee2e2;color:#dc2626;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 14px}
+  .modalIcon.rename{background:#e0e7ff;color:#3730a3}
   .modalBox h3{margin:0 0 6px;font-size:18px}
   .modalBox p{margin:0;font-size:13px;opacity:.6;line-height:1.5}
   .modalBox p b{opacity:1;color:var(--text)}
@@ -74,6 +77,12 @@
   .btnCancel{background:var(--muted);color:var(--text)}
   .btnDelete{background:#dc2626;color:#fff}
   .btnDelete:active{background:#b91c1c}
+  .btnRename{background:#6366f1;color:#fff}
+  .btnRename:active{background:#4f46e5}
+  .renameInput{text-align:left;margin:14px 0 4px}
+  .renameInput input{margin:0;text-align:left;font-weight:600}
+  #renameError{display:none;font-size:12px;padding:8px 10px;border-radius:8px;font-weight:600;text-align:left;margin-top:8px;background:#fef2f2;color:#dc2626}
+  #renameError.show{display:block}
 </style>
 </head>
 <body>
@@ -109,6 +118,20 @@
     </div>
   </div>
 </div>
+<!-- RENAME MODAL -->
+<div id="renameModal" class="modalOverlay">
+  <div class="modalBox">
+    <div class="modalIcon rename"><i class="fa-solid fa-pen"></i></div>
+    <h3>Rename subject</h3>
+    <p>Rename <b id="renameOldName"></b> in <b id="renameFolder"></b>?<br>All notes inside will move to the new name.</p>
+    <div class="renameInput"><input id="renameInput" placeholder="New subject name" maxlength="50"></div>
+    <div id="renameError"></div>
+    <div class="modalBtns" style="margin-top:16px">
+      <button id="cancelRenameBtn" class="btnCancel">Cancel</button>
+      <button id="confirmRenameBtn" class="btnRename"><i class="fa-solid fa-check"></i> Save</button>
+    </div>
+  </div>
+</div>
 <script>
 const user = JSON.parse(localStorage.getItem('k_user')||'null');
 if(!localStorage.getItem('k_token') || !user){ location.href='login.html'; }
@@ -124,6 +147,7 @@ let subjects = JSON.parse(localStorage.getItem('k_subjects')||'{}');
 let selectedFolder = localStorage.getItem('k_current_folder') || '';
 let toastTimer=null;
 let pendingDeleteIndex = null;
+let pendingRenameIndex = null;
 function saveSubjects(){ localStorage.setItem('k_subjects', JSON.stringify(subjects)); }
 function showToast(msg, type){
   const t=document.getElementById('toast');
@@ -170,6 +194,63 @@ document.getElementById('confirmDeleteBtn').addEventListener('click', ()=>{
   saveSubjects(); renderSubjects(); closeDeleteModal();
   showToast(`"${deletedName}" deleted`, 'err');
 });
+// ===== RENAME =====
+function openRenameModal(idx){
+  pendingRenameIndex = idx;
+  const oldName = subjects[selectedFolder][idx];
+  document.getElementById('renameOldName').textContent = '"' + oldName + '"';
+  document.getElementById('renameFolder').textContent = selectedFolder;
+  const inp = document.getElementById('renameInput');
+  inp.value = oldName;
+  document.getElementById('renameError').className='';
+  document.getElementById('renameError').textContent='';
+  document.getElementById('renameModal').classList.add('show');
+  setTimeout(()=>{ inp.focus(); inp.select(); }, 100);
+}
+function closeRenameModal(){
+  document.getElementById('renameModal').classList.remove('show');
+  pendingRenameIndex = null;
+}
+function doRename(){
+  if(pendingRenameIndex===null) return;
+  const oldName = subjects[selectedFolder][pendingRenameIndex];
+  const newName = document.getElementById('renameInput').value.trim();
+  const errEl = document.getElementById('renameError');
+  if(!newName){ errEl.textContent='Please type a new name'; errEl.classList.add('show'); return; }
+  if(newName===oldName){ errEl.textContent='This is already the name'; errEl.classList.add('show'); return; }
+  const dup = subjects[selectedFolder].find((s,i)=> i!==pendingRenameIndex && s.toLowerCase()===newName.toLowerCase());
+  if(dup){ errEl.textContent=`"${dup}" already exists in ${selectedFolder}`; errEl.classList.add('show'); return; }
+  subjects[selectedFolder][pendingRenameIndex] = newName;
+  saveSubjects();
+  try{
+    for(let k in localStorage){
+      if(k.startsWith('k_notes')){
+        try{
+          let arr = JSON.parse(localStorage.getItem(k)||'[]');
+          let changed=false;
+          arr.forEach(n=>{
+            if((n.folder||'General').toLowerCase()===selectedFolder.toLowerCase() && (n.subject||'General').toLowerCase()===oldName.toLowerCase()){
+              n.subject = newName; changed=true;
+            }
+          });
+          if(changed) localStorage.setItem(k, JSON.stringify(arr));
+        }catch(e){}
+      }
+    }
+    if(localStorage.getItem('k_current_folder')===selectedFolder && (localStorage.getItem('k_current_subject')||'').toLowerCase()===oldName.toLowerCase()){
+      localStorage.setItem('k_current_subject', newName);
+    }
+  }catch(e){}
+  renderSubjects(); closeRenameModal();
+  showToast(`Renamed to "${newName}" ✓`, '');
+}
+document.getElementById('cancelRenameBtn').addEventListener('click', closeRenameModal);
+document.getElementById('renameModal').addEventListener('click', e=>{
+  if(e.target.id==='renameModal') closeRenameModal();
+});
+document.getElementById('confirmRenameBtn').addEventListener('click', doRename);
+document.getElementById('renameInput').addEventListener('keydown', e=>{ if(e.key==='Enter') doRename(); });
+document.getElementById('renameInput').addEventListener('input', ()=>{ document.getElementById('renameError').className=''; });
 function renderFolders(){
   document.getElementById('folderGrid').innerHTML = FOLDERS.map(f=>`
     <div class="folderBtn" data-folder="${f.name}">
@@ -193,9 +274,9 @@ function renderSubjects(){
   if(list.length===0){
     box.innerHTML='<div style="text-align:center;padding:16px;opacity:.5;font-size:13px"><i class="fa-solid fa-book-open" style="font-size:24px;display:block;margin-bottom:6px"></i>No subjects yet.<br>Add your first subject below.</div>';
   } else {
-    box.innerHTML=list.map((s,i)=>`<div class="subjItem" data-subj="${s.replace(/"/g,'&quot;')}"><div><b><i class="fa-solid fa-book"></i> ${s}</b><br><small>Tap to open notes</small></div><button class="delSubj" data-del="${i}"><i class="fa-solid fa-trash"></i></button></div>`).join('');
+    box.innerHTML=list.map((s,i)=>`<div class="subjItem" data-subj="${s.replace(/"/g,'&quot;')}"><div><b><i class="fa-solid fa-book"></i> ${s}</b><br><small>Tap to open notes</small></div><div class="subjActions"><button class="renameSubj" data-rename="${i}" title="Rename"><i class="fa-solid fa-pen"></i></button><button class="delSubj" data-del="${i}" title="Delete"><i class="fa-solid fa-trash"></i></button></div></div>`).join('');
     box.querySelectorAll('.subjItem').forEach(el=>el.addEventListener('click',(e)=>{
-      if(e.target.closest('.delSubj')) return;
+      if(e.target.closest('.delSubj') || e.target.closest('.renameSubj')) return;
       localStorage.setItem('k_current_folder', selectedFolder);
       localStorage.setItem('k_current_subject', el.dataset.subj);
       location.href='index.html';
@@ -203,6 +284,10 @@ function renderSubjects(){
     box.querySelectorAll('.delSubj').forEach(btn=>btn.addEventListener('click',()=>{
       const idx=parseInt(btn.dataset.del);
       openDeleteModal(idx);
+    }));
+    box.querySelectorAll('.renameSubj').forEach(btn=>btn.addEventListener('click',()=>{
+      const idx=parseInt(btn.dataset.rename);
+      openRenameModal(idx);
     }));
   }
 }
@@ -232,7 +317,6 @@ document.getElementById('addSubjectBtn').addEventListener('click',()=>{
     return;
   }
   // FIX: Restore hidden notes - if old notes exist with same name (any case), reuse their exact casing
-  // Example: old notes = "Mathematics", you type "mathematics" -> use "Mathematics" so notes go show back
   try{
     const allNotes = [];
     for(let k in localStorage){
