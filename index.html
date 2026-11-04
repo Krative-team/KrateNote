@@ -79,21 +79,27 @@
   .primerFeature i{color:#6366f1;margin-top:2px}
   .primerFeature b{display:block}
   .primerFeature small{opacity:.6}
-  /* ===== FULL SCREEN NOTE VIEWER ===== */
+  /* ===== FULL SCREEN - TRANSPARENT FIXED NAVBAR ONLY, NO BOTTOM BUTTONS ===== */
   #noteViewer{position:fixed;inset:0;background:var(--bg);z-index:2000;display:none;flex-direction:column;animation:viewerIn .22s ease}
   @keyframes viewerIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
   #noteViewer.show{display:flex}
-  .viewerTop{position:sticky;top:0;background:var(--card);padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;z-index:2}
-  .viewerTop b{font-size:15px;display:flex;gap:8px;align-items:center}
+  .viewerTop{position:fixed;top:0;left:0;right:0;z-index:10;background:rgba(255,255,255,.72);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid rgba(0,0,0,.06)}
+  .dark .viewerTop, html[data-theme="dark"] .viewerTop{background:rgba(18,18,18,.72);border-bottom-color:rgba(255,255,255,.08)}
+  .viewerNavLeft{min-width:0;flex:1}
+  .viewerNavTitle{font-size:15px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:.2s}
+  .viewerNavMeta{font-size:11px;opacity:.6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  .viewerNavMeta span{display:inline-flex;gap:4px;align-items:center}
   .viewerClose{width:38px;height:38px;border-radius:50%;background:var(--muted);color:var(--text);padding:0;font-size:16px;flex-shrink:0}
-  .viewerBody{flex:1;overflow:auto;padding:18px 16px 30px;max-width:760px;width:100%;margin:0 auto}
+  .viewerBody{flex:1;overflow:auto;padding:76px 16px 34px;max-width:760px;width:100%;margin:0 auto}
   .viewerTitle{font-size:22px;line-height:1.3;margin:4px 0 8px}
   .viewerMeta{font-size:12px;opacity:.6;margin-bottom:12px}
   .viewerTags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
   .viewerText{white-space:pre-wrap;line-height:26px;font-size:16px;background:var(--card);border-radius:14px;padding:18px}
+  .viewerH{font-weight:800;font-size:17px;margin:18px 0 8px;line-height:1.4}
+  .viewerH:first-child{margin-top:0}
   .viewerSubs{margin-top:16px}
-  .viewerActions{position:sticky;bottom:0;background:var(--card);padding:12px 16px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
-  .viewerActions button{flex:1;min-width:110px}
+  .viewerSubs .subNote{scroll-margin-top:80px}
+  .viewerH{scroll-margin-top:80px}
   @media(max-width:480px){ .emptyTxt{font-size:13px} .viewerTitle{font-size:20px} }
 </style>
 </head>
@@ -164,22 +170,21 @@
   <small style="display:block;margin-top:12px;opacity:.5;font-size:11px">You can still type notes manually without voice. You fit enable voice later anytime.</small>
 </div></div>
 
-<!-- FULL SCREEN NOTE VIEWER -->
+<!-- FULL SCREEN NOTE VIEWER - TRANSPARENT NAVBAR ONLY, NO BOTTOM BUTTONS -->
 <div id="noteViewer">
-  <div class="viewerTop"><b><i class="fa-solid fa-file-lines"></i> Full Note</b><button class="viewerClose" id="viewerCloseBtn"><i class="fa-solid fa-xmark"></i></button></div>
-  <div class="viewerBody">
+  <div class="viewerTop">
+    <div class="viewerNavLeft">
+      <div class="viewerNavTitle" id="viewerNavTitle"></div>
+      <div class="viewerNavMeta" id="viewerNavMeta"></div>
+    </div>
+    <button class="viewerClose" id="viewerCloseBtn"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div class="viewerBody" id="viewerBody">
     <h2 class="viewerTitle" id="viewerTitle"></h2>
     <div class="viewerMeta" id="viewerMeta"></div>
     <div class="viewerTags" id="viewerTags"></div>
     <div class="viewerText" id="viewerText"></div>
     <div class="viewerSubs" id="viewerSubs"></div>
-  </div>
-  <div class="viewerActions">
-    <button id="viewerEditBtn" style="background:#e0e7ff;color:#3730a3"><i class="fa-solid fa-pen"></i> Edit</button>
-    <button id="viewerSpeakBtn" style="background:#dcfce7;color:#166534"><i class="fa-solid fa-volume-high"></i> Speak</button>
-    <button id="viewerPdfBtn" style="background:#ede9fe;color:#5b21b6"><i class="fa-solid fa-file-pdf"></i> PDF</button>
-    <button id="viewerShareBtn" style="background:#d1fae5;color:#065f46"><i class="fa-solid fa-share-nodes"></i> Share</button>
-    <button id="viewerCloseBottomBtn" style="background:var(--muted)"><i class="fa-solid fa-xmark"></i> Close</button>
   </div>
 </div>
 
@@ -217,7 +222,7 @@ const TEMPLATES={
 };
 function fillLangSelects(){const opts=LANGS.map(l=>`<option value="${l.code}">${l.flag} ${l.name}</option>`).join('');const optsNoAuto=LANGS.filter(l=>l.code!=='auto').map(l=>`<option value="${l.code}">${l.flag} ${l.name}</option>`).join('');document.getElementById('speechLang').innerHTML=opts;document.getElementById('translateTo').innerHTML=optsNoAuto;document.getElementById('fromLang').innerHTML=opts;document.getElementById('toLang').innerHTML=optsNoAuto;document.getElementById('editLang').innerHTML=optsNoAuto;document.getElementById('editTranslateTo').innerHTML=optsNoAuto;}
 function detectLanguage(text){const t=(text||'').toLowerCase();if(!t.trim())return LANGS[0];if(/(mmesiere|mma|nsido|idem|ufok|nwed|sosongo|eti|yak|mfin)/.test(t))return LANGS.find(l=>l.code==='ibb');if(/(emem|mokomor|efi|sosongho)/.test(t))return LANGS.find(l=>l.code==='efi');if(/(sannu|ina kwana|hausa)/.test(t))return LANGS.find(l=>l.code==='ha');if(/(bawo|kaaro|yoruba)/.test(t))return LANGS.find(l=>l.code==='yo');if(/(kedu|ndewo|igbo)/.test(t))return LANGS.find(l=>l.code==='ig');if(/(how una dey|wetin|na so|abi|shebi)/.test(t))return LANGS.find(l=>l.code==='pcm');if(/(bonjour|merci)/.test(t))return LANGS.find(l=>l.code==='fr');if(/(hola|gracias)/.test(t))return LANGS.find(l=>l.code==='es');return LANGS.find(l=>l.code==='en');}
-let isRec=false,transcript='',notes=[],editingIndex=-1,pendingDeleteIndex=-1,pendingClearAll=false,subParentIndex=-1,pendingSubParent=-1,pendingSubIndex=-1,viewerIndex=-1;
+let isRec=false,transcript='',notes=[],editingIndex=-1,pendingDeleteIndex=-1,pendingClearAll=false,subParentIndex=-1,pendingSubParent=-1,pendingSubIndex=-1,viewerIndex=-1,viewerMainTitle='';
 let settings={dark:false,font:'17px',voiceURI:'',serverUrl:'https://kratenote-1.onrender.com',speed:0.9,pitch:1,speechLang:'auto',translateTo:'en',autoDetect:true};
 let showAll=false, searchQuery='', sortBy='newest';
 try{const userEmail = user?.email || 'guest'; notes=JSON.parse(localStorage.getItem('k_notes_'+userEmail)||localStorage.getItem('k_notes')||'[]'); const s=JSON.parse(localStorage.getItem('k_settings')||'{}');settings={...settings,...s}; 
@@ -350,33 +355,61 @@ async function shareNote(note){
     try{ await navigator.clipboard.writeText(`${shareData.title}\n${shareData.text}`); alert('Note copied!'); }catch(e){ alert(`${shareData.title}\n\n${fullText}`); }
   }
 }
-/* ===== FULL SCREEN VIEWER ===== */
+function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function isHeadingLine(line){
+  const t=line.trim();
+  if(!t) return false;
+  if(/^#{1,3}\s+/.test(t)) return true;
+  if(/^[0-9]+\.\s+[A-Z]/.test(t) && t.length<=70) return true;
+  if(t.endsWith(':') && t.length>=3 && t.length<=70 && !t.includes('. ')) return true;
+  if(/^[A-Z][A-Z0-9 \-]{3,60}$/.test(t)) return true;
+  return false;
+}
+function renderViewerText(text){
+  const lines=String(text||'').split('\n');
+  let html='';
+  lines.forEach(line=>{
+    const clean=line.replace(/^#{1,3}\s+/,'');
+    if(isHeadingLine(line)){
+      html+=`<div class="viewerH" data-heading="${escapeHtml(clean)}">${escapeHtml(clean)}</div>`;
+    } else {
+      html+=escapeHtml(line)+'\n';
+    }
+  });
+  return html;
+}
+/* ===== FULL SCREEN VIEWER - TRANSPARENT NAVBAR, TITLE FOLLOWS SCROLL ===== */
 function openNoteViewer(idx){
   const n=notes[idx]; if(!n) return;
   viewerIndex=idx;
+  viewerMainTitle=(n.pinned?'📌 ':'')+(n.flag||'🇬🇧')+' '+n.title;
   const f=FOLDERS[n.folder||'General']||FOLDERS.General;
-  document.getElementById('viewerTitle').textContent=(n.pinned?'📌 ':'')+(n.flag||'🇬🇧')+' '+n.title;
+  document.getElementById('viewerNavTitle').textContent=viewerMainTitle;
+  document.getElementById('viewerNavMeta').innerHTML=`<span><i class="fa-solid fa-calendar"></i> ${escapeHtml(n.date)}</span><span><i class="fa-solid fa-book"></i> ${escapeHtml(n.subject||'General')}</span><span>${escapeHtml(n.flag||'🇬🇧')} ${escapeHtml(n.lang||'')}</span>`;
+  document.getElementById('viewerTitle').textContent=viewerMainTitle;
   document.getElementById('viewerMeta').textContent=n.date;
   document.getElementById('viewerTags').innerHTML=`<span class="folderTag" style="background:${f.bg};color:${f.c}"><i class="fa-solid ${f.icon}"></i> ${n.folder||'General'}</span><span class="folderTag" style="background:#eef2ff;color:#3730a3"><i class="fa-solid fa-book"></i> ${n.subject||'General'}</span><span class="langTag">${n.flag||'🇬🇧'} ${n.lang||''}</span>`;
-  document.getElementById('viewerText').textContent=n.text;
-  document.getElementById('viewerSubs').innerHTML=(n.subs||[]).length? `<h3 style="font-size:15px;margin:0 0 10px">Sub-topics</h3>` + (n.subs||[]).map(s=>`<div class="subNote"><div class="subNote-header"><span>${s.title}</span><small>${s.date.split(',')[0]}</small></div><div class="subNote-content">${s.text}</div></div>`).join('') : '';
+  document.getElementById('viewerText').innerHTML=renderViewerText(n.text);
+  document.getElementById('viewerSubs').innerHTML=(n.subs||[]).length? `<h3 style="font-size:15px;margin:0 0 10px">Sub-topics</h3>` + (n.subs||[]).map(s=>`<div class="subNote" data-heading="${escapeHtml(s.title)}"><div class="subNote-header"><span>${escapeHtml(s.title)}</span><small>${escapeHtml(s.date.split(',')[0])}</small></div><div class="subNote-content">${escapeHtml(s.text)}</div></div>`).join('') : '';
   document.getElementById('noteViewer').classList.add('show');
   document.body.style.overflow='hidden';
-  document.querySelector('#noteViewer .viewerBody').scrollTop=0;
+  const body=document.getElementById('viewerBody'); body.scrollTop=0;
 }
-function closeNoteViewer(){ document.getElementById('noteViewer').classList.remove('show'); document.body.style.overflow=''; viewerIndex=-1; }
+function closeNoteViewer(){ document.getElementById('noteViewer').classList.remove('show'); document.body.style.overflow=''; viewerIndex=-1; viewerMainTitle=''; }
 document.getElementById('viewerCloseBtn').addEventListener('click',closeNoteViewer);
-document.getElementById('viewerCloseBottomBtn').addEventListener('click',closeNoteViewer);
-document.getElementById('viewerEditBtn').addEventListener('click',()=>{
-  if(viewerIndex<0) return; editingIndex=viewerIndex;
-  document.getElementById('editTitle').value=notes[viewerIndex].title;
-  document.getElementById('editText').value=notes[viewerIndex].text;
-  document.getElementById('editLang').value=notes[viewerIndex].code||'en';
-  editModal.style.display='flex';
+document.getElementById('viewerBody').addEventListener('scroll',()=>{
+  if(viewerIndex<0) return;
+  const body=document.getElementById('viewerBody');
+  const nav=document.getElementById('viewerNavTitle');
+  let current=viewerMainTitle;
+  const heads=body.querySelectorAll('.viewerH, .subNote[data-heading]');
+  heads.forEach(h=>{
+    const rect=h.getBoundingClientRect();
+    const bodyRect=body.getBoundingClientRect();
+    if(rect.top - bodyRect.top <= 90){ current=h.getAttribute('data-heading') || current; }
+  });
+  nav.textContent=current;
 });
-document.getElementById('viewerSpeakBtn').addEventListener('click',()=>{ if(viewerIndex>=0) speakClear(notes[viewerIndex].text, notes[viewerIndex].code); });
-document.getElementById('viewerPdfBtn').addEventListener('click',()=>{ if(viewerIndex>=0) downloadSinglePdf(notes[viewerIndex]); });
-document.getElementById('viewerShareBtn').addEventListener('click',()=>{ if(viewerIndex>=0) shareNote(notes[viewerIndex]); });
 let subRec=false, subRecognition=null, subFinal='';
 const subBox=document.getElementById('subTranscript');
 const subRecBtn=document.getElementById('subRecBtn');
@@ -483,8 +516,8 @@ function applyClamp(){
 function render(){
   const filtered = getFilteredSortedNotes();
   document.getElementById('count').textContent=filtered.length;
-  const pinnedN=notes.filter(n=>n.pinned).length;
-  document.getElementById('pinnedCount').textContent = pinnedN? `${pinnedN} pinned` : '';
+  const pinnedInSubject = notes.filter(n=> n.pinned && (n.folder||'General').toLowerCase()===currentFolder.toLowerCase() && (n.subject||'General').toLowerCase()===currentSubject.toLowerCase()).length;
+  document.getElementById('pinnedCount').textContent = pinnedInSubject ? `${pinnedInSubject} pinned` : '';
   const viewMoreBtn=document.getElementById('viewMoreBtn');
   if(filtered.length===0){
     if(searchQuery){
