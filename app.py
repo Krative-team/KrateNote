@@ -21,7 +21,6 @@ if GROQ_KEY:
     except Exception as e:
         print(f"Groq init error: {e}")
 
-# ===== NEON POSTGRES - REPLACES users.json =====
 db = None
 if DATABASE_URL:
     try:
@@ -38,7 +37,27 @@ if DATABASE_URL:
                     created TEXT NOT NULL
                 )
             """)
-        print("Neon connected - users table ready")
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS notes (
+                    email TEXT NOT NULL,
+                    note_id TEXT NOT NULL,
+                    title TEXT,
+                    text TEXT,
+                    date TEXT,
+                    lang TEXT,
+                    code TEXT,
+                    flag TEXT,
+                    folder TEXT,
+                    subject TEXT,
+                    pinned BOOLEAN DEFAULT FALSE,
+                    subs JSONB DEFAULT '[]'::jsonb,
+                    highlights JSONB DEFAULT '[]'::jsonb,
+                    ts BIGINT DEFAULT 0,
+                    updated_at TEXT,
+                    PRIMARY KEY (email, note_id)
+                )
+            """)
+        print("Neon connected - users + notes tables ready")
     except Exception as e:
         print(f"Neon failed: {e}")
         db = None
@@ -76,6 +95,77 @@ def delete_user(email):
     except Exception as e:
         print(f"DB delete error: {e}")
         return False
+
+def delete_user_notes(email):
+    if not db:
+        return
+    try:
+        with db.cursor() as cur:
+            cur.execute("DELETE FROM notes WHERE email = %s", (email,))
+    except Exception as e:
+        print(f"DB delete notes error: {e}")
+
+def load_notes_for(email):
+    if not db:
+        return []
+    try:
+        with db.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute("SELECT note_id, title, text, date, lang, code, flag, folder, subject, pinned, subs, highlights, ts FROM notes WHERE email=%s ORDER BY ts DESC", (email,))
+            rows = cur.fetchall()
+            out=[]
+            for r in rows:
+                subs = r['subs']
+                if isinstance(subs, str):
+                    try: subs=json.loads(subs)
+                    except: subs=[]
+                hl = r['highlights']
+                if isinstance(hl, str):
+                    try: hl=json.loads(hl)
+                    except: hl=[]
+                out.append({
+                    "id": r['note_id'], "title": r['title'] or "", "text": r['text'] or "",
+                    "date": r['date'] or "", "lang": r['lang'] or "", "code": r['code'] or "",
+                    "flag": r['flag'] or "🇬🇧", "folder": r['folder'] or "General",
+                    "subject": r['subject'] or "General", "pinned": bool(r['pinned']),
+                    "subs": subs or [], "highlights": hl or [], "ts": r['ts'] or 0
+                })
+            return out
+    except Exception as e:
+        print(f"DB load notes error: {e}")
+        return []
+
+def save_notes_for(email, notes_list):
+    if not db:
+        return False
+    try:
+        with db.cursor() as cur:
+            cur.execute("DELETE FROM notes WHERE email=%s", (email,))
+            for n in notes_list:
+                cur.execute(
+                    """INSERT INTO notes (email, note_id, title, text, date, lang, code, flag, folder, subject, pinned, subs, highlights, ts, updated_at)
+                       VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
+                    (email, str(n.get("id") or n.get("note_id") or hashlib.sha256(f"{email}{n.get('title','')}{n.get('ts',0)}".encode()).hexdigest()[:16]),
+                     n.get("title",""), n.get("text",""), n.get("date",""), n.get("lang",""), n.get("code",""),
+                     n.get("flag","🇬🇧"), n.get("folder","General"), n.get("subject","General"),
+                     bool(n.get("pinned", False)), json.dumps(n.get("subs",[]) or []), json.dumps(n.get("highlights",[]) or []),
+                     int(n.get("ts",0) or 0), datetime.now().isoformat())
+                )
+        return True
+    except Exception as e:
+        print(f"DB save notes error: {e}")
+        return False
+
+def get_email_from_token():
+    auth = request.headers.get("Authorization", "")
+    if not auth.startswith("Bearer "):
+        return None, "No token"
+    token = auth.replace("Bearer ", "")
+    try:
+        import jwt
+        decoded = jwt.decode(token, SECRET, algorithms=["HS256"])
+        return decoded.get("email","").lower().strip(), None
+    except Exception as e:
+        return None, str(e)
 
 def hash_pw(pw):
     return hashlib.sha256(pw.encode()).hexdigest()
@@ -142,55 +232,49 @@ def login():
 def me():
     if request.method == "OPTIONS":
         return "", 200
-    auth = request.headers.get("Authorization","")
-    if not auth.startswith("Bearer "):
-        return jsonify({"error": "No token"}), 401
-    token = auth.replace("Bearer ","")
-    try:
-        import jwt
-        decoded = jwt.decode(token, SECRET, algorithms=["HS256"])
-        return jsonify({"email": decoded["email"], "name": decoded.get("name","User")})
-    except Exception as e:
-        return jsonify({"error": "Invalid token", "details": str(e)}), 401
+    email, err = get_email_from_token()
+    if not email:
+        return jsonify({"error": "Invalid token", "details": err}), 401
+    users = load_users()
+    if email not in users:
+        return jsonify({"error": "Account deleted"}), 401
+    return jsonify({"email": email, "name": users[email]["name"]})
 
-# ===== DELETE ACCOUNT - TRUE DELETE FROM NEON =====
+# ===== NOTES SYNC =====
+@app.route("/notes", methods=["GET", "POST", "OPTIONS"])
+def notes_sync():
+    if request.method == "OPTIONS":
+        return "", 200
+    email, err = get_email_from_token()
+    if not email:
+        return jsonify({"error": "Invalid token", "details": err}), 401
+    if request.method == "GET":
+        return jsonify({"notes": load_notes_for(email), "email": email})
+    # POST - replace all notes for this user with list from phone
+    data = request.get_json(silent=True) or {}
+    incoming = data.get("notes", [])
+    if not isinstance(incoming, list):
+        return jsonify({"error": "notes must be a list"}), 400
+    ok = save_notes_for(email, incoming)
+    if not ok:
+        return jsonify({"error": "Could not save notes"}), 500
+    return jsonify({"message": "Notes synced", "count": len(incoming)})
+
 @app.route("/delete-account", methods=["DELETE", "OPTIONS"])
 def delete_account():
     if request.method == "OPTIONS":
         return "", 200
-    # 1. Must have token
-    auth = request.headers.get("Authorization", "")
-    if not auth.startswith("Bearer "):
-        return jsonify({"error": "No token"}), 401
-    token = auth.replace("Bearer ", "")
-
-    # 2. Verify token - person fit only delete their own account
-    try:
-        import jwt
-        decoded = jwt.decode(token, SECRET, algorithms=["HS256"])
-        token_email = decoded.get("email", "").lower().strip()
-    except Exception as e:
-        return jsonify({"error": "Invalid or expired token", "details": str(e)}), 401
-
+    email, err = get_email_from_token()
+    if not email:
+        return jsonify({"error": "Invalid or expired token", "details": err}), 401
     data = request.get_json(silent=True) or {}
-    req_email = data.get("email", "").lower().strip() or token_email
-
-    # 3. No allow person delete another person account
-    if req_email != token_email:
+    req_email = data.get("email", "").lower().strip() or email
+    if req_email != email:
         return jsonify({"error": "You can only delete your own account"}), 403
-
     if not db:
         return jsonify({"error": "Database not connected"}), 500
-
-    # 4. Delete from Neon
+    delete_user_notes(req_email)
     deleted = delete_user(req_email)
-    if not deleted:
-        # Check if user still dey - if no, e don already delete
-        users = load_users()
-        if req_email not in users:
-            return jsonify({"message": "Account already deleted", "email": req_email, "deleted": True})
-        return jsonify({"error": "Could not delete account"}), 500
-
     print(f"User deleted account: {req_email}")
     return jsonify({"message": "Account deleted successfully", "email": req_email, "deleted": True})
 
