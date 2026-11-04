@@ -66,6 +66,17 @@ def save_user(email, name, pw_hash):
         return True
     return False
 
+def delete_user(email):
+    if not db:
+        return False
+    try:
+        with db.cursor() as cur:
+            cur.execute("DELETE FROM users WHERE email = %s", (email,))
+            return cur.rowcount > 0
+    except Exception as e:
+        print(f"DB delete error: {e}")
+        return False
+
 def hash_pw(pw):
     return hashlib.sha256(pw.encode()).hexdigest()
 
@@ -141,6 +152,47 @@ def me():
         return jsonify({"email": decoded["email"], "name": decoded.get("name","User")})
     except Exception as e:
         return jsonify({"error": "Invalid token", "details": str(e)}), 401
+
+# ===== DELETE ACCOUNT - TRUE DELETE FROM NEON =====
+@app.route("/delete-account", methods=["DELETE", "OPTIONS"])
+def delete_account():
+    if request.method == "OPTIONS":
+        return "", 200
+    # 1. Must have token
+    auth = request.headers.get("Authorization", "")
+    if not auth.startswith("Bearer "):
+        return jsonify({"error": "No token"}), 401
+    token = auth.replace("Bearer ", "")
+
+    # 2. Verify token - person fit only delete their own account
+    try:
+        import jwt
+        decoded = jwt.decode(token, SECRET, algorithms=["HS256"])
+        token_email = decoded.get("email", "").lower().strip()
+    except Exception as e:
+        return jsonify({"error": "Invalid or expired token", "details": str(e)}), 401
+
+    data = request.get_json(silent=True) or {}
+    req_email = data.get("email", "").lower().strip() or token_email
+
+    # 3. No allow person delete another person account
+    if req_email != token_email:
+        return jsonify({"error": "You can only delete your own account"}), 403
+
+    if not db:
+        return jsonify({"error": "Database not connected"}), 500
+
+    # 4. Delete from Neon
+    deleted = delete_user(req_email)
+    if not deleted:
+        # Check if user still dey - if no, e don already delete
+        users = load_users()
+        if req_email not in users:
+            return jsonify({"message": "Account already deleted", "email": req_email, "deleted": True})
+        return jsonify({"error": "Could not delete account"}), 500
+
+    print(f"User deleted account: {req_email}")
+    return jsonify({"message": "Account deleted successfully", "email": req_email, "deleted": True})
 
 @app.route("/transcribe", methods=["POST", "OPTIONS"])
 def transcribe():
