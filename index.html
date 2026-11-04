@@ -68,21 +68,33 @@
   .contextBar{background:#111;color:#fff;border-radius:12px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:14px} .dark .contextBar{background:#fff;color:#111} html[data-theme="dark"] .contextBar{background:#fff;color:#111}
   .actionRow{display:flex;gap:10px} .actionRow button{flex:1}
   .titleItem{padding:12px 13px;cursor:pointer;font-size:14px;display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid var(--muted)} .titleItem:last-child{border-bottom:none} .titleItem:hover{background:var(--box)}
-  /* ===== 10 LINES - REAL MEASUREMENT ===== */
   .noteTextWrap{position:relative}
-  .noteText{margin-top:10px;white-space:pre-wrap;line-height:22px;font-size:15px;overflow:hidden;max-height:220px;transition:max-height .3s ease}
-  .noteText.expanded{max-height:none}
-  .noteText.clamped::after{content:'';position:absolute;left:0;right:0;bottom:22px;height:44px;background:linear-gradient(transparent, var(--box));pointer-events:none}
+  .noteText{margin-top:10px;white-space:pre-wrap;line-height:22px;font-size:15px;overflow:hidden;max-height:220px}
+  .noteText.clamped::after{content:'';position:absolute;left:0;right:0;bottom:0;height:44px;background:linear-gradient(transparent, var(--box));pointer-events:none}
   .viewAllBtn{background:none;border:none;color:#6366f1;font-size:12px;font-weight:700;padding:8px 0 0;cursor:pointer;display:none;gap:5px;align-items:center}
   .viewAllBtn.show{display:inline-flex}
-  /* ===== VOICE PRIMER - REDESIGNED DIALOGUE ===== */
   .primerIcon{width:72px;height:72px;border-radius:50%;background:#eef2ff;color:#6366f1;display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 14px;position:relative}
   .primerIcon::after{content:'';position:absolute;inset:-8px;border-radius:50%;border:2px solid #e0e7ff}
   .primerFeature{display:flex;gap:10px;text-align:left;background:var(--box);border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:13px;align-items:flex-start}
   .primerFeature i{color:#6366f1;margin-top:2px}
   .primerFeature b{display:block}
   .primerFeature small{opacity:.6}
-  @media(max-width:480px){ .emptyTxt{font-size:13px} }
+  /* ===== FULL SCREEN NOTE VIEWER ===== */
+  #noteViewer{position:fixed;inset:0;background:var(--bg);z-index:2000;display:none;flex-direction:column;animation:viewerIn .22s ease}
+  @keyframes viewerIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+  #noteViewer.show{display:flex}
+  .viewerTop{position:sticky;top:0;background:var(--card);padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;z-index:2}
+  .viewerTop b{font-size:15px;display:flex;gap:8px;align-items:center}
+  .viewerClose{width:38px;height:38px;border-radius:50%;background:var(--muted);color:var(--text);padding:0;font-size:16px;flex-shrink:0}
+  .viewerBody{flex:1;overflow:auto;padding:18px 16px 30px;max-width:760px;width:100%;margin:0 auto}
+  .viewerTitle{font-size:22px;line-height:1.3;margin:4px 0 8px}
+  .viewerMeta{font-size:12px;opacity:.6;margin-bottom:12px}
+  .viewerTags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+  .viewerText{white-space:pre-wrap;line-height:26px;font-size:16px;background:var(--card);border-radius:14px;padding:18px}
+  .viewerSubs{margin-top:16px}
+  .viewerActions{position:sticky;bottom:0;background:var(--card);padding:12px 16px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+  .viewerActions button{flex:1;min-width:110px}
+  @media(max-width:480px){ .emptyTxt{font-size:13px} .viewerTitle{font-size:20px} }
 </style>
 </head>
 <body>
@@ -141,18 +153,35 @@
 <div id="titlesModal"><div class="modalBox" style="max-width:420px"><div style="display:flex;justify-content:space-between;gap:10px"><h3><i class="fa-solid fa-list"></i> All Saved Notes</h3><button class="iconBtn" id="closeTitlesBtn"><i class="fa-solid fa-xmark"></i></button></div><div id="titlesList" style="margin-top:10px;max-height:60vh;overflow:auto"></div></div></div>
 <div id="confirmModal"><div class="modalBox" style="max-width:380px;text-align:center"><div class="confirmIcon delete"><i class="fa-solid fa-trash"></i></div><h3 id="confirmTitle">Delete Note?</h3><p id="confirmText" style="font-size:14px;opacity:.7;margin:0 0 18px"></p><div style="display:flex;gap:10px"><button class="full" id="confirmCancel" style="background:var(--muted)"><i class="fa-solid fa-xmark"></i> Cancel</button><button class="full" id="confirmDelete" style="background:#dc2626;color:#fff"><i class="fa-solid fa-trash"></i> Yes, Delete</button></div></div></div>
 <div id="logoutModal"><div class="modalBox" style="max-width:380px;text-align:center"><div class="confirmIcon logout"><i class="fa-solid fa-right-from-bracket"></i></div><h3>Logout from KrateNote?</h3><p style="font-size:14px;opacity:.7;margin:0 0 6px">You will need to login again.</p><div style="background:var(--box);border-radius:10px;padding:12px;margin:14px 0;display:flex;align-items:center;gap:12px;text-align:left"><div style="width:36px;height:36px;border-radius:50%;background:#6366f1;color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fa-solid fa-user"></i></div><div><b id="logoutName"></b><br><small id="logoutEmail" style="opacity:.6;font-size:11px"></small></div></div><div style="display:flex;gap:10px"><button class="full" id="logoutCancel" style="background:var(--muted)"><i class="fa-solid fa-xmark"></i> Stay</button><button class="full" id="logoutConfirm" style="background:#111;color:#fff"><i class="fa-solid fa-right-from-bracket"></i> Yes, Logout</button></div></div></div>
-
-<!-- REDESIGNED VOICE PERMISSION - PRIMER (shows BEFORE browser dialogue) -->
 <div id="voicePrimerModal"><div class="modalBox" style="max-width:400px;text-align:center">
   <div class="primerIcon"><i class="fa-solid fa-microphone"></i></div>
   <h3 style="margin:0 0 6px">Enable Voice Notes?</h3>
-  <p style="font-size:13px;opacity:.65;margin:0 0 16px;line-height:1.5">Speak and KrateNote go type am for you. Your browser go ask once to confirm — tap <b>Allow</b> there.</p>
+  <p style="font-size:13px;opacity:.65;margin:0 0 16px;line-height:1.5">Speak and KrateNote go type am for you. Your browser go ask once to confirm, tap <b>Allow</b> there.</p>
   <div class="primerFeature"><i class="fa-solid fa-bolt"></i><div><b>Instant voice to text</b><br><small>Speak, we type am for you</small></div></div>
   <div class="primerFeature"><i class="fa-solid fa-language"></i><div><b>30 languages</b><br><small>English, Ibibio, Yoruba, Hausa, Pidgin &amp; more</small></div></div>
   <div class="primerFeature"><i class="fa-solid fa-lock"></i><div><b>Private</b><br><small>Audio only used to create your note</small></div></div>
   <div style="display:flex;gap:10px;margin-top:16px"><button class="full" id="primerCancelBtn" style="background:var(--muted)">Type Instead</button><button class="full" id="primerAllowBtn" style="background:#6366f1;color:#fff"><i class="fa-solid fa-microphone"></i> Enable Voice</button></div>
   <small style="display:block;margin-top:12px;opacity:.5;font-size:11px">You can still type notes manually without voice. You fit enable voice later anytime.</small>
 </div></div>
+
+<!-- FULL SCREEN NOTE VIEWER -->
+<div id="noteViewer">
+  <div class="viewerTop"><b><i class="fa-solid fa-file-lines"></i> Full Note</b><button class="viewerClose" id="viewerCloseBtn"><i class="fa-solid fa-xmark"></i></button></div>
+  <div class="viewerBody">
+    <h2 class="viewerTitle" id="viewerTitle"></h2>
+    <div class="viewerMeta" id="viewerMeta"></div>
+    <div class="viewerTags" id="viewerTags"></div>
+    <div class="viewerText" id="viewerText"></div>
+    <div class="viewerSubs" id="viewerSubs"></div>
+  </div>
+  <div class="viewerActions">
+    <button id="viewerEditBtn" style="background:#e0e7ff;color:#3730a3"><i class="fa-solid fa-pen"></i> Edit</button>
+    <button id="viewerSpeakBtn" style="background:#dcfce7;color:#166534"><i class="fa-solid fa-volume-high"></i> Speak</button>
+    <button id="viewerPdfBtn" style="background:#ede9fe;color:#5b21b6"><i class="fa-solid fa-file-pdf"></i> PDF</button>
+    <button id="viewerShareBtn" style="background:#d1fae5;color:#065f46"><i class="fa-solid fa-share-nodes"></i> Share</button>
+    <button id="viewerCloseBottomBtn" style="background:var(--muted)"><i class="fa-solid fa-xmark"></i> Close</button>
+  </div>
+</div>
 
 <script>
 const token = localStorage.getItem('k_token');
@@ -188,10 +217,9 @@ const TEMPLATES={
 };
 function fillLangSelects(){const opts=LANGS.map(l=>`<option value="${l.code}">${l.flag} ${l.name}</option>`).join('');const optsNoAuto=LANGS.filter(l=>l.code!=='auto').map(l=>`<option value="${l.code}">${l.flag} ${l.name}</option>`).join('');document.getElementById('speechLang').innerHTML=opts;document.getElementById('translateTo').innerHTML=optsNoAuto;document.getElementById('fromLang').innerHTML=opts;document.getElementById('toLang').innerHTML=optsNoAuto;document.getElementById('editLang').innerHTML=optsNoAuto;document.getElementById('editTranslateTo').innerHTML=optsNoAuto;}
 function detectLanguage(text){const t=(text||'').toLowerCase();if(!t.trim())return LANGS[0];if(/(mmesiere|mma|nsido|idem|ufok|nwed|sosongo|eti|yak|mfin)/.test(t))return LANGS.find(l=>l.code==='ibb');if(/(emem|mokomor|efi|sosongho)/.test(t))return LANGS.find(l=>l.code==='efi');if(/(sannu|ina kwana|hausa)/.test(t))return LANGS.find(l=>l.code==='ha');if(/(bawo|kaaro|yoruba)/.test(t))return LANGS.find(l=>l.code==='yo');if(/(kedu|ndewo|igbo)/.test(t))return LANGS.find(l=>l.code==='ig');if(/(how una dey|wetin|na so|abi|shebi)/.test(t))return LANGS.find(l=>l.code==='pcm');if(/(bonjour|merci)/.test(t))return LANGS.find(l=>l.code==='fr');if(/(hola|gracias)/.test(t))return LANGS.find(l=>l.code==='es');return LANGS.find(l=>l.code==='en');}
-let isRec=false,transcript='',notes=[],editingIndex=-1,pendingDeleteIndex=-1,pendingClearAll=false,subParentIndex=-1,pendingSubParent=-1,pendingSubIndex=-1;
+let isRec=false,transcript='',notes=[],editingIndex=-1,pendingDeleteIndex=-1,pendingClearAll=false,subParentIndex=-1,pendingSubParent=-1,pendingSubIndex=-1,viewerIndex=-1;
 let settings={dark:false,font:'17px',voiceURI:'',serverUrl:'https://kratenote-1.onrender.com',speed:0.9,pitch:1,speechLang:'auto',translateTo:'en',autoDetect:true};
 let showAll=false, searchQuery='', sortBy='newest';
-let expandedNotes = new Set();
 try{const userEmail = user?.email || 'guest'; notes=JSON.parse(localStorage.getItem('k_notes_'+userEmail)||localStorage.getItem('k_notes')||'[]'); const s=JSON.parse(localStorage.getItem('k_settings')||'{}');settings={...settings,...s}; 
 var _t = localStorage.getItem('k_theme'); if(_t) settings.dark = (_t==='dark');
 notes.forEach(n=>{ if(!n.folder) n.folder='General'; if(!n.subject) n.subject='General'; if(n.pinned===undefined) n.pinned=false; if(!n.subs) n.subs=[]; if(!n.flag){ const lf=LANGS.find(l=>l.code===n.code); n.flag=lf?lf.flag:'🇬🇧'; } });}catch(e){}
@@ -207,7 +235,6 @@ function applySettings(){document.body.classList.toggle('dark',settings.dark);do
 function speakClear(text,forcedLang=null){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);let langCode=forcedLang||settings.speechLang;if(langCode==='auto')langCode=detectLanguage(text).code;const langObj=LANGS.find(l=>l.code===langCode)||LANGS[1];u.lang=langObj.tts||'en-US';const voice=voices.find(v=>v.voiceURI===settings.voiceURI)||voices[0];if(voice)u.voice=voice;u.rate=parseFloat(settings.speed);u.pitch=parseFloat(settings.pitch);speechSynthesis.speak(u);}
 function showDetectedRealTime(text){const lang=detectLanguage(text);detectedBadge.textContent=lang.flag+' '+lang.name;detectedBadge.className='badge on';detectedBadge.style.background='#6366f1';detectedBadge.style.color='#fff';if(lang.code!=='en'&&lang.code!=='auto'){detectedBadge.style.background='#10b981';}}
 function createRecognition(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){alert('Use Chrome for voice');return null;}const rec=new SR();rec.continuous=true;rec.interimResults=true;rec.lang='en-US';rec.onstart=()=>{liveBadge.classList.add('on');detectedBadge.textContent='Listening...';detectedBadge.className='badge on';detectedBadge.style.background='#6366f1';detectedBadge.style.color='#fff';statusTxt.textContent='Listening...';box.classList.add('has-text');if(!finalTranscriptLive)box.textContent='';};rec.onresult=(e)=>{let interim='';let finalPart='';for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript;if(e.results[i].isFinal)finalPart+=t+' ';else interim+=t;}if(e.results[e.results.length-1].isFinal)finalTranscriptLive+=finalPart;const full=(finalTranscriptLive+interim).trim();if(full){box.textContent=full;transcript=full;showDetectedRealTime(full);}};rec.onerror=(e)=>{console.log('SR',e.error);if(e.error==='not-allowed'||e.error==='service-not-allowed'){localStorage.setItem('k_voice_choice','denied');}};rec.onend=()=>{liveBadge.classList.remove('on');if(isRec){try{rec.start();}catch(err){}}};return rec;}
-/* ===== REDESIGNED VOICE PERMISSION: Primer BEFORE browser dialogue ===== */
 const primerModal=document.getElementById('voicePrimerModal');
 let primerResolve=null;
 function showPrimer(){ primerModal.style.display='flex'; return new Promise(res=>{ primerResolve=res; }); }
@@ -218,7 +245,6 @@ primerModal.addEventListener('click',e=>{ if(e.target===primerModal) closePrimer
 async function startRecordingWithPrimer(){
   const choice = localStorage.getItem('k_voice_choice');
   if(choice==='denied' || choice==='type-only'){
-    // User don choose Type Instead before, or browser don deny - show primer again, no auto browser popup
     const ok = await showPrimer();
     if(!ok){ localStorage.setItem('k_voice_choice','type-only'); box.focus(); return; }
     localStorage.setItem('k_voice_choice','allowed');
@@ -278,11 +304,14 @@ document.getElementById('confirmCancel').addEventListener('click',()=>{confirmMo
 document.getElementById('confirmDelete').addEventListener('click',()=>{
   if(pendingSubParent>=0 && pendingSubIndex>=0){
     notes[pendingSubParent].subs.splice(pendingSubIndex,1);
-    saveAll(); render();
+    saveAll(); render(); if(viewerIndex>=0) openNoteViewer(viewerIndex);
   } else if(pendingClearAll){
     notes=[];saveAll();render();modal.style.display='none';
   } else if(pendingDeleteIndex>=0){
+    const wasViewer = viewerIndex===pendingDeleteIndex;
     notes.splice(pendingDeleteIndex,1);saveAll();render();
+    if(wasViewer) closeNoteViewer();
+    if(viewerIndex>pendingDeleteIndex) viewerIndex--;
   }
   confirmModal.style.display='none';resetConfirmModal();
 });
@@ -321,6 +350,33 @@ async function shareNote(note){
     try{ await navigator.clipboard.writeText(`${shareData.title}\n${shareData.text}`); alert('Note copied!'); }catch(e){ alert(`${shareData.title}\n\n${fullText}`); }
   }
 }
+/* ===== FULL SCREEN VIEWER ===== */
+function openNoteViewer(idx){
+  const n=notes[idx]; if(!n) return;
+  viewerIndex=idx;
+  const f=FOLDERS[n.folder||'General']||FOLDERS.General;
+  document.getElementById('viewerTitle').textContent=(n.pinned?'📌 ':'')+(n.flag||'🇬🇧')+' '+n.title;
+  document.getElementById('viewerMeta').textContent=n.date;
+  document.getElementById('viewerTags').innerHTML=`<span class="folderTag" style="background:${f.bg};color:${f.c}"><i class="fa-solid ${f.icon}"></i> ${n.folder||'General'}</span><span class="folderTag" style="background:#eef2ff;color:#3730a3"><i class="fa-solid fa-book"></i> ${n.subject||'General'}</span><span class="langTag">${n.flag||'🇬🇧'} ${n.lang||''}</span>`;
+  document.getElementById('viewerText').textContent=n.text;
+  document.getElementById('viewerSubs').innerHTML=(n.subs||[]).length? `<h3 style="font-size:15px;margin:0 0 10px">Sub-topics</h3>` + (n.subs||[]).map(s=>`<div class="subNote"><div class="subNote-header"><span>${s.title}</span><small>${s.date.split(',')[0]}</small></div><div class="subNote-content">${s.text}</div></div>`).join('') : '';
+  document.getElementById('noteViewer').classList.add('show');
+  document.body.style.overflow='hidden';
+  document.querySelector('#noteViewer .viewerBody').scrollTop=0;
+}
+function closeNoteViewer(){ document.getElementById('noteViewer').classList.remove('show'); document.body.style.overflow=''; viewerIndex=-1; }
+document.getElementById('viewerCloseBtn').addEventListener('click',closeNoteViewer);
+document.getElementById('viewerCloseBottomBtn').addEventListener('click',closeNoteViewer);
+document.getElementById('viewerEditBtn').addEventListener('click',()=>{
+  if(viewerIndex<0) return; editingIndex=viewerIndex;
+  document.getElementById('editTitle').value=notes[viewerIndex].title;
+  document.getElementById('editText').value=notes[viewerIndex].text;
+  document.getElementById('editLang').value=notes[viewerIndex].code||'en';
+  editModal.style.display='flex';
+});
+document.getElementById('viewerSpeakBtn').addEventListener('click',()=>{ if(viewerIndex>=0) speakClear(notes[viewerIndex].text, notes[viewerIndex].code); });
+document.getElementById('viewerPdfBtn').addEventListener('click',()=>{ if(viewerIndex>=0) downloadSinglePdf(notes[viewerIndex]); });
+document.getElementById('viewerShareBtn').addEventListener('click',()=>{ if(viewerIndex>=0) shareNote(notes[viewerIndex]); });
 let subRec=false, subRecognition=null, subFinal='';
 const subBox=document.getElementById('subTranscript');
 const subRecBtn=document.getElementById('subRecBtn');
@@ -392,15 +448,7 @@ document.getElementById('notesList').addEventListener('click',(e)=>{
   if(!btn) return;
   const idx=parseInt(btn.dataset.index);
   const action=btn.dataset.action;
-  if(action==='expand'){
-    const txtEl=document.getElementById('noteText-'+idx);
-    const wrap=document.getElementById('noteWrap-'+idx);
-    if(!txtEl) return;
-    const isExpanded=txtEl.classList.contains('expanded');
-    if(isExpanded){ txtEl.classList.remove('expanded'); wrap.classList.add('clamped'); expandedNotes.delete(idx); btn.innerHTML='<i class="fa-solid fa-chevron-down"></i> View all'; }
-    else{ txtEl.classList.add('expanded'); wrap.classList.remove('clamped'); expandedNotes.add(idx); btn.innerHTML='<i class="fa-solid fa-chevron-up"></i> Show less'; }
-    return;
-  }
+  if(action==='viewfull'){ openNoteViewer(idx); return; }
   if(action==='del'){ openConfirmDelete(idx,false); }
   else if(action==='pin'){ notes[idx].pinned=!notes[idx].pinned; saveAll(); render(); }
   else if(action==='speak'){ const nn=notes[idx]; speakClear(nn.text,nn.code); }
@@ -417,28 +465,19 @@ document.getElementById('saveSubBtn').addEventListener('click',()=>{
   if(!t||!txt) return alert('Fill title and sub note (type or record)');
   if(!notes[subParentIndex].subs) notes[subParentIndex].subs=[];
   notes[subParentIndex].subs.push({title:t,text:txt,date:new Date().toLocaleString()});
-  saveAll(); render(); subModal.style.display='none'; if(subRec){ try{ subRecognition.stop(); }catch(e){} subRec=false; }
+  saveAll(); render(); if(viewerIndex>=0) openNoteViewer(viewerIndex); subModal.style.display='none'; if(subRec){ try{ subRecognition.stop(); }catch(e){} subRec=false; }
 });
 subModal.addEventListener('click',(e)=>{ if(e.target===subModal){ if(subRec){ try{ subRecognition.stop(); }catch(e){} subRec=false; } subModal.style.display='none'; } });
 function applyClamp(){
   document.querySelectorAll('.noteText').forEach(el=>{
     const idx=parseInt(el.dataset.idx);
-    const btn=document.querySelector(`[data-action="expand"][data-index="${idx}"]`);
+    const btn=document.querySelector(`[data-action="viewfull"][data-index="${idx}"]`);
     if(!btn) return;
-    // Temporarily expand to measure true height, then clamp back
-    const wasExpanded = el.classList.contains('expanded');
-    if(wasExpanded) return;
     el.style.maxHeight='none';
     const fullHeight = el.scrollHeight;
     el.style.maxHeight='';
-    if(fullHeight > 222){
-      el.parentElement.classList.add('clamped');
-      btn.classList.add('show');
-    } else {
-      el.parentElement.classList.remove('clamped');
-      btn.classList.remove('show');
-      el.style.maxHeight='none';
-    }
+    if(fullHeight > 222){ el.parentElement.classList.add('clamped'); btn.classList.add('show'); }
+    else{ el.parentElement.classList.remove('clamped'); btn.classList.remove('show'); el.style.maxHeight='none'; }
   });
 }
 function render(){
@@ -464,12 +503,11 @@ function render(){
       const subjTag=`<span class="folderTag" style="background:#eef2ff;color:#3730a3"><i class="fa-solid fa-book"></i> ${n.subject||'General'}</span>`;
       const langTag=`<span class="langTag">${n.flag||'🇬🇧'} ${n.lang||''}</span>`;
       const subsHtml = (n.subs||[]).map((s,si)=>`<div class="subNote"><div class="subNote-header"><span>${s.title}</span><small>${s.date.split(',')[0]}</small></div><div class="subNote-content">${s.text}</div><button class="iconBtn" data-action="delsub" data-parent="${realIndex}" data-sub="${si}" style="margin-top:10px;background:#fee2e2;color:#991b1b;font-size:10px"><i class="fa-solid fa-trash"></i> Remove</button></div>`).join('');
-      const isExp = expandedNotes.has(realIndex);
       return `<div class="note ${n.pinned?'pinned':''}">
         <div style="display:flex;justify-content:space-between;gap:12px"><b>${n.pinned?'<i class="fa-solid fa-thumbtack"></i> ':''}${n.flag||'🇬🇧'} ${n.title}</b><small style="white-space:nowrap">${n.date}</small></div>
         <div style="display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap">${folderTag}${subjTag}${langTag}</div>
-        <div id="noteWrap-${realIndex}" class="noteTextWrap"><div id="noteText-${realIndex}" data-idx="${realIndex}" class="noteText ${isExp?'expanded':''}">${n.text}</div></div>
-        <button class="viewAllBtn" data-action="expand" data-index="${realIndex}"><i class="fa-solid fa-chevron-down"></i> View all</button>
+        <div id="noteWrap-${realIndex}" class="noteTextWrap"><div id="noteText-${realIndex}" data-idx="${realIndex}" class="noteText">${n.text}</div></div>
+        <button class="viewAllBtn" data-action="viewfull" data-index="${realIndex}"><i class="fa-solid fa-expand"></i> View all - Full screen</button>
         ${subsHtml}
         <div class="noteActions">
           <button class="actBtn pin" data-action="pin" data-index="${realIndex}"><i class="fa-solid fa-thumbtack"></i> ${n.pinned?'Unpin':'Pin'}</button>
@@ -496,7 +534,7 @@ document.getElementById('closeSetBtn').addEventListener('click',()=>modal.style.
 document.getElementById('closeEditBtn').addEventListener('click',()=>editModal.style.display='none');
 document.getElementById('cancelEditBtn').addEventListener('click',()=>editModal.style.display='none');
 document.getElementById('closeTranslateBtn').addEventListener('click',()=>transModal.style.display='none');
-document.getElementById('saveEditBtn').addEventListener('click',()=>{ if(editingIndex>=0){ notes[editingIndex].title=document.getElementById('editTitle').value; notes[editingIndex].text=document.getElementById('editText').value; const lang=LANGS.find(l=>l.code===document.getElementById('editLang').value); notes[editingIndex].code=lang.code; notes[editingIndex].lang=lang.name; notes[editingIndex].flag=lang.flag; notes[editingIndex].date=new Date().toLocaleString()+' (edited)'; notes[editingIndex].ts=Date.now(); saveAll(); render(); editModal.style.display='none'; }});
+document.getElementById('saveEditBtn').addEventListener('click',()=>{ if(editingIndex>=0){ notes[editingIndex].title=document.getElementById('editTitle').value; notes[editingIndex].text=document.getElementById('editText').value; const lang=LANGS.find(l=>l.code===document.getElementById('editLang').value); notes[editingIndex].code=lang.code; notes[editingIndex].lang=lang.name; notes[editingIndex].flag=lang.flag; notes[editingIndex].date=new Date().toLocaleString()+' (edited)'; notes[editingIndex].ts=Date.now(); saveAll(); render(); if(viewerIndex>=0) openNoteViewer(viewerIndex); editModal.style.display='none'; }});
 document.getElementById('doEditTranslate').addEventListener('click',async()=>{ const to=document.getElementById('editTranslateTo').value; const orig=document.getElementById('editText').value; document.getElementById('editText').value='Translating...'; const tr=await translateText(orig,to); document.getElementById('editText').value=tr; document.getElementById('editLang').value=to; });
 document.getElementById('editSpeakBtn').addEventListener('click',()=>{ const txt=document.getElementById('editText').value; const code=document.getElementById('editLang').value; if(txt) speakClear(txt,code); });
 document.getElementById('voiceSelect').addEventListener('change',e=>{ settings.voiceURI=e.target.value; saveAll(); });
