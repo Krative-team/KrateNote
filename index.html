@@ -26,8 +26,8 @@
   .dark{--bg:#121212;--card:#1e1e1e;--text:#fff;--muted:#2a2a2a;--box:#252525;--primary:#fff}
   html[data-theme="dark"]{--bg:#121212;--card:#1e1e1e;--text:#fff;--muted:#2a2a2a;--box:#252525;--primary:#fff}
   *{box-sizing:border-box;font-family:-apple-system,sans-serif} body{margin:0;background:var(--bg);color:var(--text);padding:14px}
-  .header{display:flex;justify-content:space-between;align-items:center;background:var(--card);padding:16px 20px;border-radius:14px;margin-bottom:14px;flex-wrap:wrap;gap:10px}
-  .brand{display:flex;flex-direction:column;line-height:1.2} .userTag{font-size:11px;background:#e0e7ff;color:#3730a3;padding:4px 10px;border-radius:12px;display:inline-flex;gap:5px;align-items:center;margin-top:5px;width:fit-content}
+  .header{display:flex;justify-content:space-between;align-items:center;background:var(--card);padding:16px 20px;border-radius:14px;margin-bottom:14px;flex-wrap:nowrap;gap:10px}
+  .brand{display:flex;flex-direction:column;line-height:1.2;flex:1;min-width:0} .brand > div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .userTag{font-size:11px;background:#e0e7ff;color:#3730a3;padding:4px 10px;border-radius:12px;display:inline-flex;gap:5px;align-items:center;margin-top:5px;width:fit-content;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
   .main{max-width:1100px;margin:auto;display:flex;flex-direction:column;gap:14px} @media(min-width:900px){.main{flex-direction:row}}
   .card{background:var(--card);border-radius:14px;padding:16px;flex:1}
   #transcriptBox{min-height:180px;background:var(--box);border-radius:10px;padding:14px;line-height:26px;font-size:17px;white-space:pre-wrap;border:2px solid transparent;outline:none;display:flex;align-items:center;justify-content:center;flex-direction:column;color:#888}
@@ -36,7 +36,7 @@
   input,select,textarea{width:100%;padding:12px;border-radius:8px;border:none;background:var(--muted);color:var(--text);margin-bottom:10px;font-size:15px}
   button{padding:12px 14px;border-radius:10px;border:none;font-weight:600;font-size:14px;cursor:pointer;display:inline-flex;gap:7px;justify-content:center;align-items:center}
   .full{width:100%;margin-top:10px} #recBtn{background:var(--primary);color:var(--bg);font-size:16px;padding:16px} #recBtn.rec{background:#e11d48;color:#fff}
-  .iconBtn{width:auto;padding:7px 11px;border-radius:8px;background:var(--muted);color:var(--text);font-size:12px}
+  .iconBtn{width:auto;padding:7px 11px;border-radius:8px;background:var(--muted);color:var(--text);font-size:12px;white-space:nowrap;flex-shrink:0}
   .note{background:var(--box);padding:16px;border-radius:12px;margin-bottom:14px;position:relative}
   .note.pinned{border:2px solid #f59e0b}
   .note.archived{border:1px dashed #a5b4fc;opacity:.95}
@@ -112,8 +112,8 @@
   .noteDateTime{text-align:right;white-space:nowrap;line-height:1.3;flex-shrink:0}
   .noteDateTime small{display:block;font-size:11px;opacity:.6}
   .noteDateTime .noteTime{opacity:.9;font-weight:700;color:var(--text)}
-  .syncBadge{font-size:10px;padding:4px 8px;border-radius:999px;background:#dcfce7;color:#166534;display:inline-flex;gap:4px;align-items:center;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  #syncTime{opacity:.75;font-weight:400}
+  .syncBadge{font-size:9px;padding:3px 6px;border-radius:999px;background:#dcfce7;color:#166534;display:inline-flex;gap:4px;align-items:center;white-space:nowrap;flex-shrink:0;line-height:1;max-width:110px;overflow:hidden;text-overflow:ellipsis}
+  #syncTime{opacity:.75;font-weight:400;white-space:nowrap}
   .archiveTabs{display:flex;gap:8px;margin:12px 0 0}
   .archiveTab{flex:1;padding:10px;border-radius:999px;background:var(--muted);font-size:12px;font-weight:700;cursor:pointer;border:2px solid transparent}
   .archiveTab.active{background:#111;color:#fff} .dark .archiveTab.active{background:#fff;color:#111} html[data-theme="dark"] .archiveTab.active{background:#fff;color:#111}
@@ -122,13 +122,13 @@
   .dark #backToTop, html[data-theme="dark"] #backToTop{background:#fff;color:#111}
   #backToTop.show{display:flex}
   #backToTop:active{transform:scale(.92)}
-  @media(max-width:480px){ .emptyTxt{font-size:13px} #backToTop{right:12px;bottom:12px;width:44px;height:44px} }
+  @media(max-width:480px){ .emptyTxt{font-size:13px} #backToTop{right:12px;bottom:12px;width:44px;height:44px} #syncTime{display:none} .syncBadge{font-size:9px;padding:3px 6px;max-width:80px} .header{padding:12px 14px} }
 </style>
 </head>
 <body>
 <div class="header">
   <div class="brand"><div><b><i class="fa-solid fa-microphone-lines"></i> KrateNote</b> <small id="statusTxt" style="color:#6366f1;margin-left:8px;display:inline"></small></div><span id="userInfo" class="userTag" style="display:none"><i class="fa-solid fa-user"></i> <span id="userNameText"></span></span><span id="syncStatus" class="syncBadge" style="display:none"><i class="fa-solid fa-cloud"></i> <span id="syncStatusTxt">Synced</span><span id="syncTime"></span></span></div>
-  <div style="display:flex;gap:8px;align-items:center"><button class="iconBtn" id="openSetBtn"><i class="fa-solid fa-gear"></i> Settings</button><button class="iconBtn" id="logoutBtn" style="background:#fee2e2;color:#991b1b"><i class="fa-solid fa-right-from-bracket"></i> Logout</button></div>
+  <div style="display:flex;gap:8px;align-items:center;flex-shrink:0"><button class="iconBtn" id="openSetBtn"><i class="fa-solid fa-gear"></i> Settings</button><button class="iconBtn" id="logoutBtn" style="background:#fee2e2;color:#991b1b"><i class="fa-solid fa-right-from-bracket"></i> Logout</button></div>
 </div>
 <div class="main" style="max-width:1100px;margin:auto">
 <div style="width:100%">
