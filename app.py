@@ -51,6 +51,8 @@ if DATABASE_URL:
                     subject TEXT,
                     pinned BOOLEAN DEFAULT FALSE,
                     archived BOOLEAN DEFAULT FALSE,
+                    edited BOOLEAN DEFAULT FALSE,
+                    edited_at BIGINT DEFAULT 0,
                     subs JSONB DEFAULT '[]'::jsonb,
                     highlights JSONB DEFAULT '[]'::jsonb,
                     ts BIGINT DEFAULT 0,
@@ -58,8 +60,10 @@ if DATABASE_URL:
                     PRIMARY KEY (email, note_id)
                 )
             """)
-            # Migration for old tables wey dem create before archive feature
+            # Migrations for old tables
             cur.execute("ALTER TABLE notes ADD COLUMN IF NOT EXISTS archived BOOLEAN DEFAULT FALSE")
+            cur.execute("ALTER TABLE notes ADD COLUMN IF NOT EXISTS edited BOOLEAN DEFAULT FALSE")
+            cur.execute("ALTER TABLE notes ADD COLUMN IF NOT EXISTS edited_at BIGINT DEFAULT 0")
         print("Neon connected - users + notes tables ready")
     except Exception as e:
         print(f"Neon failed: {e}")
@@ -113,7 +117,7 @@ def load_notes_for(email):
         return []
     try:
         with db.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-            cur.execute("SELECT note_id, title, text, date, lang, code, flag, folder, subject, pinned, archived, subs, highlights, ts FROM notes WHERE email=%s ORDER BY ts DESC", (email,))
+            cur.execute("SELECT note_id, title, text, date, lang, code, flag, folder, subject, pinned, archived, edited, edited_at, subs, highlights, ts FROM notes WHERE email=%s ORDER BY ts DESC", (email,))
             rows = cur.fetchall()
             out=[]
             for r in rows:
@@ -125,12 +129,26 @@ def load_notes_for(email):
                 if isinstance(hl, str):
                     try: hl=json.loads(hl)
                     except: hl=[]
+                # Clean old "(edited)" wey dey inside date before
+                raw_date = (r['date'] or "").replace(" (edited)", "").replace("(edited)", "").strip()
+                is_edited = bool(r.get('edited', False) if isinstance(r, dict) else False)
+                # If old note get "(edited)" for date, treat am as edited
+                if "(edited)" in (r['date'] or ""):
+                    is_edited = True
+                edited_at = 0
+                try:
+                    edited_at = int(r.get('edited_at', 0) or 0) if isinstance(r, dict) else 0
+                except:
+                    edited_at = 0
+                if is_edited and not edited_at:
+                    edited_at = int(r['ts'] or 0)
                 out.append({
                     "id": r['note_id'], "title": r['title'] or "", "text": r['text'] or "",
-                    "date": r['date'] or "", "lang": r['lang'] or "", "code": r['code'] or "",
+                    "date": raw_date, "lang": r['lang'] or "", "code": r['code'] or "",
                     "flag": r['flag'] or "🇬🇧", "folder": r['folder'] or "General",
                     "subject": r['subject'] or "General", "pinned": bool(r['pinned']),
                     "archived": bool(r.get('archived', False) if isinstance(r, dict) else False),
+                    "edited": is_edited, "editedAt": edited_at,
                     "subs": subs or [], "highlights": hl or [], "ts": r['ts'] or 0
                 })
             return out
@@ -145,13 +163,22 @@ def save_notes_for(email, notes_list):
         with db.cursor() as cur:
             cur.execute("DELETE FROM notes WHERE email=%s", (email,))
             for n in notes_list:
+                clean_date = str(n.get("date","") or "").replace(" (edited)", "").replace("(edited)", "").strip()
+                is_edited = bool(n.get("edited", False))
+                # Fallback: if date get (edited) text, mark edited
+                if "(edited)" in str(n.get("date","") or ""):
+                    is_edited = True
+                edited_at = int(n.get("editedAt", 0) or n.get("edited_at", 0) or 0)
+                if is_edited and not edited_at:
+                    edited_at = int(n.get("ts", 0) or 0)
                 cur.execute(
-                    """INSERT INTO notes (email, note_id, title, text, date, lang, code, flag, folder, subject, pinned, archived, subs, highlights, ts, updated_at)
-                       VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
+                    """INSERT INTO notes (email, note_id, title, text, date, lang, code, flag, folder, subject, pinned, archived, edited, edited_at, subs, highlights, ts, updated_at)
+                       VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
                     (email, str(n.get("id") or n.get("note_id") or hashlib.sha256(f"{email}{n.get('title','')}{n.get('ts',0)}".encode()).hexdigest()[:16]),
-                     n.get("title",""), n.get("text",""), n.get("date",""), n.get("lang",""), n.get("code",""),
+                     n.get("title",""), n.get("text",""), clean_date, n.get("lang",""), n.get("code",""),
                      n.get("flag","🇬🇧"), n.get("folder","General"), n.get("subject","General"),
                      bool(n.get("pinned", False)), bool(n.get("archived", False)),
+                     is_edited, edited_at,
                      json.dumps(n.get("subs",[]) or []), json.dumps(n.get("highlights",[]) or []),
                      int(n.get("ts",0) or 0), datetime.now().isoformat())
                 )
