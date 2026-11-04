@@ -79,7 +79,7 @@
   .primerFeature i{color:#6366f1;margin-top:2px}
   .primerFeature b{display:block}
   .primerFeature small{opacity:.6}
-  /* ===== FULL SCREEN - TRANSPARENT FIXED NAVBAR ONLY, NO BOTTOM BUTTONS ===== */
+  /* ===== FULL SCREEN - TRANSPARENT FIXED NAVBAR ONLY, NO BOTTOM BUTTONS, NO SECOND HEADER ===== */
   #noteViewer{position:fixed;inset:0;background:var(--bg);z-index:2000;display:none;flex-direction:column;animation:viewerIn .22s ease}
   @keyframes viewerIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
   #noteViewer.show{display:flex}
@@ -91,16 +91,13 @@
   .viewerNavMeta span{display:inline-flex;gap:4px;align-items:center}
   .viewerClose{width:38px;height:38px;border-radius:50%;background:var(--muted);color:var(--text);padding:0;font-size:16px;flex-shrink:0}
   .viewerBody{flex:1;overflow:auto;padding:76px 16px 34px;max-width:760px;width:100%;margin:0 auto}
-  .viewerTitle{font-size:22px;line-height:1.3;margin:4px 0 8px}
-  .viewerMeta{font-size:12px;opacity:.6;margin-bottom:12px}
-  .viewerTags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
   .viewerText{white-space:pre-wrap;line-height:26px;font-size:16px;background:var(--card);border-radius:14px;padding:18px}
   .viewerH{font-weight:800;font-size:17px;margin:18px 0 8px;line-height:1.4}
   .viewerH:first-child{margin-top:0}
   .viewerSubs{margin-top:16px}
   .viewerSubs .subNote{scroll-margin-top:80px}
   .viewerH{scroll-margin-top:80px}
-  @media(max-width:480px){ .emptyTxt{font-size:13px} .viewerTitle{font-size:20px} }
+  @media(max-width:480px){ .emptyTxt{font-size:13px} }
 </style>
 </head>
 <body>
@@ -170,7 +167,7 @@
   <small style="display:block;margin-top:12px;opacity:.5;font-size:11px">You can still type notes manually without voice. You fit enable voice later anytime.</small>
 </div></div>
 
-<!-- FULL SCREEN NOTE VIEWER - TRANSPARENT NAVBAR ONLY, NO BOTTOM BUTTONS -->
+<!-- FULL SCREEN NOTE VIEWER - ONLY FIXED NAVBAR, NO SECOND HEADER -->
 <div id="noteViewer">
   <div class="viewerTop">
     <div class="viewerNavLeft">
@@ -180,9 +177,6 @@
     <button class="viewerClose" id="viewerCloseBtn"><i class="fa-solid fa-xmark"></i></button>
   </div>
   <div class="viewerBody" id="viewerBody">
-    <h2 class="viewerTitle" id="viewerTitle"></h2>
-    <div class="viewerMeta" id="viewerMeta"></div>
-    <div class="viewerTags" id="viewerTags"></div>
     <div class="viewerText" id="viewerText"></div>
     <div class="viewerSubs" id="viewerSubs"></div>
   </div>
@@ -378,17 +372,13 @@ function renderViewerText(text){
   });
   return html;
 }
-/* ===== FULL SCREEN VIEWER - TRANSPARENT NAVBAR, TITLE FOLLOWS SCROLL ===== */
+/* ===== FULL SCREEN VIEWER - ONLY FIXED NAVBAR, NO SECOND HEADER ===== */
 function openNoteViewer(idx){
   const n=notes[idx]; if(!n) return;
   viewerIndex=idx;
   viewerMainTitle=(n.pinned?'📌 ':'')+(n.flag||'🇬🇧')+' '+n.title;
-  const f=FOLDERS[n.folder||'General']||FOLDERS.General;
   document.getElementById('viewerNavTitle').textContent=viewerMainTitle;
   document.getElementById('viewerNavMeta').innerHTML=`<span><i class="fa-solid fa-calendar"></i> ${escapeHtml(n.date)}</span><span><i class="fa-solid fa-book"></i> ${escapeHtml(n.subject||'General')}</span><span>${escapeHtml(n.flag||'🇬🇧')} ${escapeHtml(n.lang||'')}</span>`;
-  document.getElementById('viewerTitle').textContent=viewerMainTitle;
-  document.getElementById('viewerMeta').textContent=n.date;
-  document.getElementById('viewerTags').innerHTML=`<span class="folderTag" style="background:${f.bg};color:${f.c}"><i class="fa-solid ${f.icon}"></i> ${n.folder||'General'}</span><span class="folderTag" style="background:#eef2ff;color:#3730a3"><i class="fa-solid fa-book"></i> ${n.subject||'General'}</span><span class="langTag">${n.flag||'🇬🇧'} ${n.lang||''}</span>`;
   document.getElementById('viewerText').innerHTML=renderViewerText(n.text);
   document.getElementById('viewerSubs').innerHTML=(n.subs||[]).length? `<h3 style="font-size:15px;margin:0 0 10px">Sub-topics</h3>` + (n.subs||[]).map(s=>`<div class="subNote" data-heading="${escapeHtml(s.title)}"><div class="subNote-header"><span>${escapeHtml(s.title)}</span><small>${escapeHtml(s.date.split(',')[0])}</small></div><div class="subNote-content">${escapeHtml(s.text)}</div></div>`).join('') : '';
   document.getElementById('noteViewer').classList.add('show');
