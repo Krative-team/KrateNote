@@ -67,6 +67,7 @@
   .tplBtn{white-space:nowrap;padding:9px 14px;border-radius:20px;background:var(--muted);font-size:12px;border:none;cursor:pointer;flex:0 0 auto} .tplBtn.active{background:#111;color:#fff} .dark .tplBtn.active{background:#fff;color:#111} html[data-theme="dark"] .tplBtn.active{background:#fff;color:#111}
   .folderTag{font-size:11px;padding:5px 10px;border-radius:12px;font-weight:700;display:inline-flex;gap:6px;align-items:center}
   .langTag{font-size:11px;padding:5px 10px;border-radius:12px;background:#eee;display:inline-flex;gap:5px;align-items:center}
+  .langBadge{font-size:10px;font-weight:800;padding:3px 6px;border-radius:6px;background:#111;color:#fff;display:inline-flex;gap:4px;align-items:center;letter-spacing:.5px} .dark .langBadge{background:#fff;color:#111} html[data-theme="dark"] .langBadge{background:#fff;color:#111}
   .contextBar{background:#111;color:#fff;border-radius:12px;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:14px} .dark .contextBar{background:#fff;color:#111} html[data-theme="dark"] .contextBar{background:#fff;color:#111}
   .actionRow{display:flex;gap:10px} .actionRow button{flex:1}
   .titleItem{padding:12px 13px;cursor:pointer;font-size:14px;display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid var(--muted)} .titleItem:last-child{border-bottom:none} .titleItem:hover{background:var(--box)}
@@ -143,7 +144,7 @@
       <button class="tplBtn" data-tpl="idea"><i class="fa-solid fa-lightbulb"></i> Idea</button>
     </div>
     <input id="titleInput" placeholder="Note Title">
-    <div style="margin-bottom:10px"><span id="liveBadge" class="badge">LIVE</span><span id="detectedBadge" class="badge on" style="background:#eee;color:#666">🌐 Ready - Type or Record</span></div>
+    <div style="margin-bottom:10px"><span id="liveBadge" class="badge">LIVE</span><span id="detectedBadge" class="badge on" style="background:#eee;color:#666"><i class="fa-solid fa-globe"></i> Ready - Type or Record</span></div>
     <div id="transcriptBox" contenteditable="true"></div>
     <button class="full" id="recBtn"><i class="fa-solid fa-microphone"></i> START RECORDING</button>
     <div class="actionRow" style="margin-top:10px">
@@ -250,7 +251,9 @@ document.getElementById('deleteAccountConfirm').addEventListener('click',async()
   try{ Object.keys(localStorage).forEach(k=>{ if(k.indexOf('k_notes_')===0) localStorage.removeItem(k); }); }catch(e){}
   location.href='login.html';
 });
-const LANGS=[{code:'auto',name:'Auto',flag:'🌐',tts:'en-US'},{code:'en',name:'English',flag:'🇬🇧',tts:'en-US'},{code:'ibb',name:'Ibibio',flag:'🇳🇬',tts:'en-NG'},{code:'efi',name:'Efik',flag:'🇳🇬',tts:'en-NG'},{code:'ha',name:'Hausa',flag:'🇳🇬',tts:'ha-NG'},{code:'yo',name:'Yoruba',flag:'🇳🇬',tts:'yo-NG'},{code:'ig',name:'Igbo',flag:'🇳🇬',tts:'ig-NG'},{code:'pcm',name:'Pidgin',flag:'🇳🇬',tts:'en-NG'},{code:'fr',name:'French',flag:'🇫🇷',tts:'fr-FR'},{code:'es',name:'Spanish',flag:'🇪🇸',tts:'es-ES'},{code:'de',name:'German',flag:'🇩🇪',tts:'de-DE'},{code:'pt',name:'Portuguese',flag:'🇵🇹',tts:'pt-PT'},{code:'it',name:'Italian',flag:'🇮🇹',tts:'it-IT'},{code:'nl',name:'Dutch',flag:'🇳🇱',tts:'nl-NL'},{code:'ar',name:'Arabic',flag:'🇸🇦',tts:'ar-SA'},{code:'zh',name:'Chinese',flag:'🇨🇳',tts:'zh-CN'},{code:'ja',name:'Japanese',flag:'🇯🇵',tts:'ja-JP'},{code:'ko',name:'Korean',flag:'🇰🇷',tts:'ko-KR'},{code:'ru',name:'Russian',flag:'🇷🇺',tts:'ru-RU'},{code:'hi',name:'Hindi',flag:'🇮🇳',tts:'hi-IN'},{code:'sw',name:'Swahili',flag:'🇰🇪',tts:'sw-KE'},{code:'zu',name:'Zulu',flag:'🇿🇦',tts:'zu-ZA'},{code:'am',name:'Amharic',flag:'🇪🇹',tts:'am-ET'},{code:'tr',name:'Turkish',flag:'🇹🇷',tts:'tr-TR'},{code:'el',name:'Greek',flag:'🇬🇷',tts:'el-GR'},{code:'he',name:'Hebrew',flag:'🇮🇱',tts:'he-IL'},{code:'sv',name:'Swedish',flag:'🇸🇪',tts:'sv-SE'},{code:'no',name:'Norwegian',flag:'🇳🇴',tts:'nb-NO'},{code:'pl',name:'Polish',flag:'🇵🇱',tts:'pl-PL'},{code:'id',name:'Indonesian',flag:'🇮🇩',tts:'id-ID'},{code:'th',name:'Thai',flag:'🇹🇭',tts:'th-TH'}];
+const LANGS=[{code:'auto',name:'Auto',flag:'AUTO',tts:'en-US'},{code:'en',name:'English',flag:'EN',tts:'en-US'},{code:'ibb',name:'Ibibio',flag:'IBB',tts:'en-NG'},{code:'efi',name:'Efik',flag:'EFI',tts:'en-NG'},{code:'ha',name:'Hausa',flag:'HA',tts:'ha-NG'},{code:'yo',name:'Yoruba',flag:'YO',tts:'yo-NG'},{code:'ig',name:'Igbo',flag:'IG',tts:'ig-NG'},{code:'pcm',name:'Pidgin',flag:'PCM',tts:'en-NG'},{code:'fr',name:'French',flag:'FR',tts:'fr-FR'},{code:'es',name:'Spanish',flag:'ES',tts:'es-ES'},{code:'de',name:'German',flag:'DE',tts:'de-DE'},{code:'pt',name:'Portuguese',flag:'PT',tts:'pt-PT'},{code:'it',name:'Italian',flag:'IT',tts:'it-IT'},{code:'nl',name:'Dutch',flag:'NL',tts:'nl-NL'},{code:'ar',name:'Arabic',flag:'AR',tts:'ar-SA'},{code:'zh',name:'Chinese',flag:'ZH',tts:'zh-CN'},{code:'ja',name:'Japanese',flag:'JA',tts:'ja-JP'},{code:'ko',name:'Korean',flag:'KO',tts:'ko-KR'},{code:'ru',name:'Russian',flag:'RU',tts:'ru-RU'},{code:'hi',name:'Hindi',flag:'HI',tts:'hi-IN'},{code:'sw',name:'Swahili',flag:'SW',tts:'sw-KE'},{code:'zu',name:'Zulu',flag:'ZU',tts:'zu-ZA'},{code:'am',name:'Amharic',flag:'AM',tts:'am-ET'},{code:'tr',name:'Turkish',flag:'TR',tts:'tr-TR'},{code:'el',name:'Greek',flag:'EL',tts:'el-GR'},{code:'he',name:'Hebrew',flag:'HE',tts:'he-IL'},{code:'sv',name:'Swedish',flag:'SV',tts:'sv-SE'},{code:'no',name:'Norwegian',flag:'NO',tts:'nb-NO'},{code:'pl',name:'Polish',flag:'PL',tts:'pl-PL'},{code:'id',name:'Indonesian',flag:'ID',tts:'id-ID'},{code:'th',name:'Thai',flag:'TH',tts:'th-TH'}];
+function langBadge(code){ const l=LANGS.find(x=>x.code===code)||LANGS[1]; return '<span class="langBadge"><i class="fa-solid fa-language"></i> '+l.flag+'</span>'; }
+function langLabel(code){ const l=LANGS.find(x=>x.code===code)||LANGS[1]; return '<i class="fa-solid fa-language"></i> '+l.name; }
 const FOLDERS={School:{icon:'fa-graduation-cap',bg:'#e0e7ff',c:'#3730a3'},Work:{icon:'fa-briefcase',bg:'#dbeafe',c:'#1e40af'},Church:{icon:'fa-church',bg:'#fef3c7',c:'#92400e'},Personal:{icon:'fa-user',bg:'#fce7f3',c:'#9d174d'},Business:{icon:'fa-chart-line',bg:'#dcfce7',c:'#166534'},General:{icon:'fa-folder',bg:'#eee',c:'#333'}};
 const TEMPLATES={
   blank:{title:'',text:''},
@@ -261,7 +264,7 @@ const TEMPLATES={
   journal:{title:'Journal - '+new Date().toLocaleDateString(),text:'Today I feel...\n\nGrateful for:\n- \n\nWhat happened today:\n\nTomorrow I will:\n'},
   idea:{title:'Idea - ',text:'Idea:\n\nWhy it matters:\n\nHow to start:\n1. \n'}
 };
-function fillLangSelects(){const opts=LANGS.map(l=>`<option value="${l.code}">${l.flag} ${l.name}</option>`).join('');const optsNoAuto=LANGS.filter(l=>l.code!=='auto').map(l=>`<option value="${l.code}">${l.flag} ${l.name}</option>`).join('');document.getElementById('speechLang').innerHTML=opts;document.getElementById('translateTo').innerHTML=optsNoAuto;document.getElementById('fromLang').innerHTML=opts;document.getElementById('toLang').innerHTML=optsNoAuto;document.getElementById('editLang').innerHTML=optsNoAuto;document.getElementById('editTranslateTo').innerHTML=optsNoAuto;}
+function fillLangSelects(){const opts=LANGS.map(l=>`<option value="${l.code}">${l.flag} - ${l.name}</option>`).join('');const optsNoAuto=LANGS.filter(l=>l.code!=='auto').map(l=>`<option value="${l.code}">${l.flag} - ${l.name}</option>`).join('');document.getElementById('speechLang').innerHTML=opts;document.getElementById('translateTo').innerHTML=optsNoAuto;document.getElementById('fromLang').innerHTML=opts;document.getElementById('toLang').innerHTML=optsNoAuto;document.getElementById('editLang').innerHTML=optsNoAuto;document.getElementById('editTranslateTo').innerHTML=optsNoAuto;}
 function detectLanguage(text){const t=(text||'').toLowerCase();if(!t.trim())return LANGS[0];if(/(mmesiere|mma|nsido|idem|ufok|nwed|sosongo|eti|yak|mfin)/.test(t))return LANGS.find(l=>l.code==='ibb');if(/(emem|mokomor|efi|sosongho)/.test(t))return LANGS.find(l=>l.code==='efi');if(/(sannu|ina kwana|hausa)/.test(t))return LANGS.find(l=>l.code==='ha');if(/(bawo|kaaro|yoruba)/.test(t))return LANGS.find(l=>l.code==='yo');if(/(kedu|ndewo|igbo)/.test(t))return LANGS.find(l=>l.code==='ig');if(/(how una dey|wetin|na so|abi|shebi)/.test(t))return LANGS.find(l=>l.code==='pcm');if(/(bonjour|merci)/.test(t))return LANGS.find(l=>l.code==='fr');if(/(hola|gracias)/.test(t))return LANGS.find(l=>l.code==='es');return LANGS.find(l=>l.code==='en');}
 let isRec=false,transcript='',notes=[],editingIndex=-1,pendingDeleteIndex=-1,pendingClearAll=false,subParentIndex=-1,pendingSubParent=-1,pendingSubIndex=-1,viewerIndex=-1,viewerMainTitle='';
 let settings={dark:false,font:'17px',voiceURI:'',serverUrl:'https://kratenote-1.onrender.com',speed:0.9,pitch:1,speechLang:'auto',translateTo:'en',autoDetect:true};
@@ -334,6 +337,8 @@ async function pullNotesFromServer(){
     serverNotes.forEach(sn=>{
       if(!sn.id) sn.id=newNoteId();
       if(sn.archived===undefined) sn.archived=false;
+      // Old notes wey get emoji flag for server - convert to code
+      if(sn.flag && sn.flag.length>4){ const found=LANGS.find(l=>l.code===sn.code); sn.flag=found?found.flag:'EN'; }
       const local=map.get(sn.id);
       if(!local){ map.set(sn.id, sn); }
       else if((sn.ts||0) > (local.ts||0)){ map.set(sn.id, sn); }
@@ -346,10 +351,10 @@ async function pullNotesFromServer(){
 }
 try{const userEmail = user?.email || 'guest'; notes=JSON.parse(localStorage.getItem('k_notes_'+userEmail)||localStorage.getItem('k_notes')||'[]'); const s=JSON.parse(localStorage.getItem('k_settings')||'{}');settings={...settings,...s}; 
 var _t = localStorage.getItem('k_theme'); if(_t) settings.dark = (_t==='dark');
-notes.forEach(n=>{ if(!n.folder) n.folder='General'; if(!n.subject) n.subject='General'; if(n.pinned===undefined) n.pinned=false; if(!n.subs) n.subs=[]; if(!n.highlights) n.highlights=[]; if(!n.id) n.id=newNoteId(); if(n.archived===undefined) n.archived=false; if(!n.flag){ const lf=LANGS.find(l=>l.code===n.code); n.flag=lf?lf.flag:'🇬🇧'; } });}catch(e){}
+notes.forEach(n=>{ if(!n.folder) n.folder='General'; if(!n.subject) n.subject='General'; if(n.pinned===undefined) n.pinned=false; if(!n.subs) n.subs=[]; if(!n.highlights) n.highlights=[]; if(!n.id) n.id=newNoteId(); if(n.archived===undefined) n.archived=false; if(!n.flag || n.flag.length>4){ const lf=LANGS.find(l=>l.code===n.code); n.flag=lf?lf.flag:'EN'; } });}catch(e){}
 const recBtn=document.getElementById('recBtn'),box=document.getElementById('transcriptBox'),modal=document.getElementById('settingsModal'),editModal=document.getElementById('editModal'),transModal=document.getElementById('translateModal'),confirmModal=document.getElementById('confirmModal'),liveBadge=document.getElementById('liveBadge'),detectedBadge=document.getElementById('detectedBadge'),statusTxt=document.getElementById('statusTxt'),subModal=document.getElementById('subModal');
 let voices=[],recognition=null,finalTranscriptLive='';
-function setEmptyState(){box.classList.remove('has-text');box.innerHTML='<i class="fa-solid fa-waveform-lines emptyIcon"></i><div class="emptyTxt">Tap mic to record OR type note manually</div>';transcript='';finalTranscriptLive='';liveBadge.classList.remove('on');detectedBadge.textContent='🌐 Ready - Type or Record';detectedBadge.className='badge on';detectedBadge.style.background='#eee';detectedBadge.style.color='#666';statusTxt.textContent='';recBtn.innerHTML='<i class="fa-solid fa-microphone"></i> START RECORDING';recBtn.classList.remove('rec');isRec=false;}
+function setEmptyState(){box.classList.remove('has-text');box.innerHTML='<i class="fa-solid fa-waveform-lines emptyIcon"></i><div class="emptyTxt">Tap mic to record OR type note manually</div>';transcript='';finalTranscriptLive='';liveBadge.classList.remove('on');detectedBadge.innerHTML='<i class="fa-solid fa-globe"></i> Ready - Type or Record';detectedBadge.className='badge on';detectedBadge.style.background='#eee';detectedBadge.style.color='#666';statusTxt.textContent='';recBtn.innerHTML='<i class="fa-solid fa-microphone"></i> START RECORDING';recBtn.classList.remove('rec');isRec=false;}
 box.addEventListener('focus',()=>{ if(!box.classList.contains('has-text')){ box.innerHTML=''; box.classList.add('has-text'); } });
 box.addEventListener('input',()=>{ transcript=box.innerText; if(transcript.trim()){ showDetectedRealTime(transcript); } });
 function loadVoices(){voices=speechSynthesis.getVoices();const sel=document.getElementById('voiceSelect');if(voices.length){sel.innerHTML=voices.map(v=>`<option value="${v.voiceURI}">${v.name} (${v.lang})</option>`).join('');if(settings.voiceURI)sel.value=settings.voiceURI;}}
@@ -357,7 +362,7 @@ speechSynthesis.onvoiceschanged=loadVoices;setTimeout(loadVoices,800);
 function saveAll(){ ensureNoteIds(); saveLocalOnly(); scheduleSync(); }
 function applySettings(){document.body.classList.toggle('dark',settings.dark);document.documentElement.setAttribute('data-theme', settings.dark ? 'dark' : 'light');document.documentElement.classList.toggle('dark',settings.dark);document.getElementById('darkSwitch').classList.toggle('on',settings.dark);document.getElementById('autoSwitch').classList.toggle('on',settings.autoDetect);document.getElementById('fontSelect').value=settings.font;document.getElementById('speechLang').value=settings.speechLang;document.getElementById('translateTo').value=settings.translateTo;document.getElementById('speedRange').value=settings.speed;document.getElementById('pitchRange').value=settings.pitch;document.getElementById('speedVal').textContent=settings.speed;document.getElementById('pitchVal').textContent=settings.pitch;box.style.fontSize=settings.font;}
 function speakClear(text,forcedLang=null){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);let langCode=forcedLang||settings.speechLang;if(langCode==='auto')langCode=detectLanguage(text).code;const langObj=LANGS.find(l=>l.code===langCode)||LANGS[1];u.lang=langObj.tts||'en-US';const voice=voices.find(v=>v.voiceURI===settings.voiceURI)||voices[0];if(voice)u.voice=voice;u.rate=parseFloat(settings.speed);u.pitch=parseFloat(settings.pitch);speechSynthesis.speak(u);}
-function showDetectedRealTime(text){const lang=detectLanguage(text);detectedBadge.textContent=lang.flag+' '+lang.name;detectedBadge.className='badge on';detectedBadge.style.background='#6366f1';detectedBadge.style.color='#fff';if(lang.code!=='en'&&lang.code!=='auto'){detectedBadge.style.background='#10b981';}}
+function showDetectedRealTime(text){const lang=detectLanguage(text);detectedBadge.innerHTML='<i class="fa-solid fa-language"></i> '+lang.name;detectedBadge.className='badge on';detectedBadge.style.background='#6366f1';detectedBadge.style.color='#fff';if(lang.code!=='en'&&lang.code!=='auto'){detectedBadge.style.background='#10b981';}}
 function createRecognition(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){alert('Use Chrome for voice');return null;}const rec=new SR();rec.continuous=true;rec.interimResults=true;rec.lang='en-US';rec.onstart=()=>{liveBadge.classList.add('on');detectedBadge.textContent='Listening...';detectedBadge.className='badge on';detectedBadge.style.background='#6366f1';detectedBadge.style.color='#fff';statusTxt.textContent='Listening...';box.classList.add('has-text');if(!finalTranscriptLive)box.textContent='';};rec.onresult=(e)=>{let interim='';let finalPart='';for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript;if(e.results[i].isFinal)finalPart+=t+' ';else interim+=t;}if(e.results[e.results.length-1].isFinal)finalTranscriptLive+=finalPart;const full=(finalTranscriptLive+interim).trim();if(full){box.textContent=full;transcript=full;showDetectedRealTime(full);}};rec.onerror=(e)=>{console.log('SR',e.error);if(e.error==='not-allowed'||e.error==='service-not-allowed'){localStorage.setItem('k_voice_choice','denied');}};rec.onend=()=>{liveBadge.classList.remove('on');if(isRec){try{rec.start();}catch(err){}}};return rec;}
 const primerModal=document.getElementById('voicePrimerModal');
 let primerResolve=null;
@@ -524,9 +529,9 @@ function openNoteViewer(idx){
   const n=notes[idx]; if(!n) return;
   viewerIndex=idx;
   if(!n.highlights) n.highlights=[];
-  viewerMainTitle=(n.pinned?'📌 ':'')+(n.archived?'📦 ':'')+(n.flag||'🇬🇧')+' '+n.title;
+  viewerMainTitle=(n.pinned?'[Pinned] ':'')+(n.archived?'[Archived] ':'')+n.title;
   document.getElementById('viewerNavTitle').textContent=viewerMainTitle;
-  document.getElementById('viewerNavMeta').innerHTML=`<span><i class="fa-solid fa-calendar"></i> ${escapeHtml(n.date)}</span><span><i class="fa-solid fa-book"></i> ${escapeHtml(n.subject||'General')}</span><span>${escapeHtml(n.flag||'🇬🇧')} ${escapeHtml(n.lang||'')}</span>${n.archived?'<span><i class="fa-solid fa-box-archive"></i> Archived</span>':''}`;
+  document.getElementById('viewerNavMeta').innerHTML=`<span><i class="fa-solid fa-calendar"></i> ${escapeHtml(n.date)}</span><span><i class="fa-solid fa-book"></i> ${escapeHtml(n.subject||'General')}</span><span>${langBadge(n.code)} ${escapeHtml(n.lang||'')}</span>${n.archived?'<span><i class="fa-solid fa-box-archive"></i> Archived</span>':''}`;
   document.getElementById('viewerText').innerHTML=renderViewerText(n.text, n.highlights);
   document.getElementById('viewerSubs').innerHTML=(n.subs||[]).length? `<h3 style="font-size:15px;margin:0 0 10px">Sub-topics</h3>` + (n.subs||[]).map(s=>`<div class="subNote" data-heading="${escapeHtml(s.title)}"><div class="subNote-header"><span>${escapeHtml(s.title)}</span><small>${escapeHtml(s.date.split(',')[0])}</small></div><div class="subNote-content">${applyHighlights(escapeHtml(s.text), n.highlights)}</div></div>`).join('') : '';
   document.getElementById('noteViewer').classList.add('show');
@@ -641,7 +646,7 @@ searchInput.addEventListener('input',(e)=>{
   if(searchQuery.length>=1){
     const matches = notes.filter(n=> n.title.toLowerCase().includes(searchQuery) || n.date.toLowerCase().includes(searchQuery)).slice(0,5);
     if(matches.length>0){
-      suggBox.innerHTML=matches.map(n=>`<div class="sugItem" data-title="${n.title.replace(/"/g,'&quot;')}"><span><i class="fa-solid fa-magnifying-glass"></i> ${n.flag||''} ${n.title}</span><small>${n.date.split(',')[0]}</small></div>`).join('');
+      suggBox.innerHTML=matches.map(n=>`<div class="sugItem" data-title="${n.title.replace(/"/g,'&quot;')}"><span><i class="fa-solid fa-magnifying-glass"></i> ${langBadge(n.code)} ${n.title}</span><small>${n.date.split(',')[0]}</small></div>`).join('');
       suggBox.classList.add('on');
       suggBox.querySelectorAll('.sugItem').forEach(el=>el.addEventListener('click',()=>{ searchInput.value=el.dataset.title; searchQuery=el.dataset.title.toLowerCase(); suggBox.classList.remove('on'); render(); }));
     } else { suggBox.classList.remove('on'); }
@@ -662,7 +667,7 @@ document.getElementById('listBtn').addEventListener('click',()=>{
   } else {
     listEl.innerHTML = ctxNotes.map((n)=>{
       const escTitle = n.title.replace(/"/g,'&quot;');
-      return `<div class="titleItem" data-title="${escTitle}"><span>${n.pinned?'📌 ':''}${n.archived?'📦 ':''}${n.flag||'🇬🇧'} ${n.title}</span><small style="opacity:.5;white-space:nowrap">${n.date.split(',')[0]}</small></div>`;
+      return `<div class="titleItem" data-title="${escTitle}"><span>${n.pinned?'<i class="fa-solid fa-thumbtack"></i> ':''}${n.archived?'<i class="fa-solid fa-box-archive"></i> ':''}${langBadge(n.code)} ${n.title}</span><small style="opacity:.5;white-space:nowrap">${n.date.split(',')[0]}</small></div>`;
     }).join('');
     listEl.querySelectorAll('.titleItem').forEach(el=>el.addEventListener('click',()=>{
       searchInput.value=el.dataset.title; searchQuery=el.dataset.title.toLowerCase(); showAll=true; titlesModal.style.display='none'; render();
@@ -740,7 +745,7 @@ function render(){
       const f=FOLDERS[n.folder||'General']||FOLDERS.General;
       const folderTag=`<span class="folderTag" style="background:${f.bg};color:${f.c}"><i class="fa-solid ${f.icon}"></i> ${n.folder||'General'}</span>`;
       const subjTag=`<span class="folderTag" style="background:#eef2ff;color:#3730a3"><i class="fa-solid fa-book"></i> ${n.subject||'General'}</span>`;
-      const langTag=`<span class="langTag">${n.flag||'🇬🇧'} ${n.lang||''}</span>`;
+      const langTag=`<span class="langTag">${langBadge(n.code)} ${n.lang||''}</span>`;
       const archivedTag=n.archived?`<span class="archivedTag"><i class="fa-solid fa-box-archive"></i> Archived</span>`:'';
       const dt=formatDateTimeParts(n.date);
       const subsHtml = (n.subs||[]).map((s,si)=>`<div class="subNote"><div class="subNote-header"><span>${s.title}</span><small>${s.date.split(',')[0]}</small></div><div class="subNote-content">${s.text}</div><button class="iconBtn" data-action="delsub" data-parent="${realIndex}" data-sub="${si}" style="margin-top:10px;background:#fee2e2;color:#991b1b;font-size:10px"><i class="fa-solid fa-trash"></i> Remove</button></div>`).join('');
@@ -748,7 +753,7 @@ function render(){
         ? `<button class="actBtn unarchive" data-action="unarchive" data-index="${realIndex}"><i class="fa-solid fa-box-open"></i> Unarchive</button>`
         : `<button class="actBtn archive" data-action="archive" data-index="${realIndex}"><i class="fa-solid fa-box-archive"></i> Archive</button>`;
       return `<div class="note ${n.pinned?'pinned':''} ${n.archived?'archived':''}">
-        <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start"><b>${n.pinned?'<i class="fa-solid fa-thumbtack"></i> ':''}${n.archived?'📦 ':''}${n.flag||'🇬🇧'} ${n.title}</b><div class="noteDateTime"><small>${dt.date}</small><small class="noteTime">${dt.time}</small></div></div>
+        <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start"><b>${n.pinned?'<i class="fa-solid fa-thumbtack"></i> ':''}${n.archived?'<i class="fa-solid fa-box-archive"></i> ':''}${langBadge(n.code)} ${n.title}</b><div class="noteDateTime"><small>${dt.date}</small><small class="noteTime">${dt.time}</small></div></div>
         <div style="display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap">${folderTag}${subjTag}${langTag}${archivedTag}</div>
         <div id="noteWrap-${realIndex}" class="noteTextWrap"><div id="noteText-${realIndex}" data-idx="${realIndex}" class="noteText">${n.text}</div></div>
         <button class="viewAllBtn" data-action="viewfull" data-index="${realIndex}"><i class="fa-solid fa-expand"></i> View all - Full screen</button>
