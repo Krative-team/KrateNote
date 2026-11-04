@@ -39,9 +39,10 @@
   .iconBtn{width:auto;padding:7px 11px;border-radius:8px;background:var(--muted);color:var(--text);font-size:12px}
   .note{background:var(--box);padding:16px;border-radius:12px;margin-bottom:14px;position:relative}
   .note.pinned{border:2px solid #f59e0b}
+  .note.archived{border:1px dashed #a5b4fc;opacity:.95}
   .noteActions{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
   .actBtn{padding:9px 14px;border-radius:9px;font-size:12px;border:none;display:inline-flex;gap:6px;align-items:center;cursor:pointer}
-  .actBtn.edit{background:#e0e7ff;color:#3730a3} .actBtn.speak{background:#dcfce7;color:#166534} .actBtn.del{background:#fee2e2;color:#991b1b} .actBtn.pdf{background:#ede9fe;color:#5b21b6} .actBtn.share{background:#d1fae5;color:#065f46} .actBtn.sub{background:#fef9c3;color:#854d0e} .actBtn.pin{background:#fef3c7;color:#92400e}
+  .actBtn.edit{background:#e0e7ff;color:#3730a3} .actBtn.speak{background:#dcfce7;color:#166534} .actBtn.del{background:#fee2e2;color:#991b1b} .actBtn.pdf{background:#ede9fe;color:#5b21b6} .actBtn.share{background:#d1fae5;color:#065f46} .actBtn.sub{background:#fef9c3;color:#854d0e} .actBtn.pin{background:#fef3c7;color:#92400e} .actBtn.archive{background:#e5e7eb;color:#374151} .actBtn.unarchive{background:#dcfce7;color:#166534}
   .subNote{margin-top:12px;padding:12px 14px;background:var(--card);border-radius:8px;border-left:3px solid #6366f1}
   .subNote-header{font-weight:700;font-size:14px;color:var(--text);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;gap:10px}
   .subNote-content{font-size:13px;line-height:20px;white-space:pre-wrap;opacity:.9}
@@ -110,13 +111,18 @@
   .noteDateTime{text-align:right;white-space:nowrap;line-height:1.3;flex-shrink:0}
   .noteDateTime small{display:block;font-size:11px;opacity:.6}
   .noteDateTime .noteTime{opacity:.9;font-weight:700;color:var(--text)}
-  .syncBadge{font-size:10px;padding:4px 8px;border-radius:999px;background:#dcfce7;color:#166534;display:inline-flex;gap:4px;align-items:center}
+  .syncBadge{font-size:10px;padding:4px 8px;border-radius:999px;background:#dcfce7;color:#166534;display:inline-flex;gap:4px;align-items:center;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #syncTime{opacity:.75;font-weight:400}
+  .archiveTabs{display:flex;gap:8px;margin:12px 0 0}
+  .archiveTab{flex:1;padding:10px;border-radius:999px;background:var(--muted);font-size:12px;font-weight:700;cursor:pointer;border:2px solid transparent}
+  .archiveTab.active{background:#111;color:#fff} .dark .archiveTab.active{background:#fff;color:#111} html[data-theme="dark"] .archiveTab.active{background:#fff;color:#111}
+  .archivedTag{font-size:11px;padding:5px 10px;border-radius:12px;background:#e5e7eb;color:#374151;display:inline-flex;gap:5px;align-items:center;font-weight:700}
   @media(max-width:480px){ .emptyTxt{font-size:13px} }
 </style>
 </head>
 <body>
 <div class="header">
-  <div class="brand"><div><b><i class="fa-solid fa-microphone-lines"></i> KrateNote</b> <small id="statusTxt" style="color:#6366f1;margin-left:8px;display:inline"></small></div><span id="userInfo" class="userTag" style="display:none"><i class="fa-solid fa-user"></i> <span id="userNameText"></span></span><span id="syncStatus" class="syncBadge" style="display:none"><i class="fa-solid fa-cloud"></i> <span id="syncStatusTxt">Synced</span></span></div>
+  <div class="brand"><div><b><i class="fa-solid fa-microphone-lines"></i> KrateNote</b> <small id="statusTxt" style="color:#6366f1;margin-left:8px;display:inline"></small></div><span id="userInfo" class="userTag" style="display:none"><i class="fa-solid fa-user"></i> <span id="userNameText"></span></span><span id="syncStatus" class="syncBadge" style="display:none"><i class="fa-solid fa-cloud"></i> <span id="syncStatusTxt">Synced</span><span id="syncTime"></span></span></div>
   <div style="display:flex;gap:8px;align-items:center"><button class="iconBtn" id="openSetBtn"><i class="fa-solid fa-gear"></i> Settings</button><button class="iconBtn" id="logoutBtn" style="background:#fee2e2;color:#991b1b"><i class="fa-solid fa-right-from-bracket"></i> Logout</button></div>
 </div>
 <div class="main" style="max-width:1100px;margin:auto">
@@ -148,6 +154,7 @@
   </div>
   <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><b>Notes (<span id="count">0</span>)</b><div style="display:flex;gap:8px;align-items:center"><button class="iconBtn" id="listBtn"><i class="fa-solid fa-list"></i> List</button><span style="font-size:11px;opacity:.6" id="pinnedCount"></span></div></div>
+    <div class="archiveTabs"><button class="archiveTab active" id="activeTab"><i class="fa-solid fa-note-sticky"></i> Active (<span id="activeCount">0</span>)</button><button class="archiveTab" id="archivedTab"><i class="fa-solid fa-box-archive"></i> Archived (<span id="archivedCount">0</span>)</button></div>
     <div class="toolbar">
       <div class="searchBox"><i class="fa-solid fa-magnifying-glass"></i><input id="searchInput" placeholder="Search by title or date..." autocomplete="off"><div id="suggestions" class="suggestions"></div></div>
       <select id="sortSelect" style="width:auto;min-width:110px;margin:0;padding:10px 8px;font-size:12px"><option value="" disabled selected>Sort by</option><option value="newest">Newest</option><option value="oldest">Oldest</option><option value="az">A-Z</option><option value="za">Z-A</option></select>
@@ -238,7 +245,7 @@ document.getElementById('deleteAccountConfirm').addEventListener('click',async()
     await fetch(base+'/delete-account',{method:'DELETE',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({email:email})});
   }catch(e){}
   try{ speechSynthesis.cancel(); }catch(e){}
-  const keysToRemove=['k_token','k_user','k_current_folder','k_current_subject','k_settings','k_theme','k_voice_choice','k_notes','k_notes_'+email];
+  const keysToRemove=['k_token','k_user','k_current_folder','k_current_subject','k_settings','k_theme','k_voice_choice','k_notes','k_notes_'+email,'k_last_sync'];
   keysToRemove.forEach(k=>{ try{ localStorage.removeItem(k); }catch(e){} });
   try{ Object.keys(localStorage).forEach(k=>{ if(k.indexOf('k_notes_')===0) localStorage.removeItem(k); }); }catch(e){}
   location.href='login.html';
@@ -259,10 +266,47 @@ function detectLanguage(text){const t=(text||'').toLowerCase();if(!t.trim())retu
 let isRec=false,transcript='',notes=[],editingIndex=-1,pendingDeleteIndex=-1,pendingClearAll=false,subParentIndex=-1,pendingSubParent=-1,pendingSubIndex=-1,viewerIndex=-1,viewerMainTitle='';
 let settings={dark:false,font:'17px',voiceURI:'',serverUrl:'https://kratenote-1.onrender.com',speed:0.9,pitch:1,speechLang:'auto',translateTo:'en',autoDetect:true};
 let showAll=false, searchQuery='', sortBy='newest';
+let showArchived=false;
 let syncTimer=null, isSyncing=false;
+let lastSyncAt=parseInt(localStorage.getItem('k_last_sync')||'0',10)||0;
+let lastSyncLabel='Synced';
 function newNoteId(){ try{ return 'n_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,9); }catch(e){ return 'n_'+Date.now(); } }
-function ensureNoteIds(){ notes.forEach(n=>{ if(!n.id) n.id=newNoteId(); }); }
-function setSyncStatus(txt, ok=true){ const el=document.getElementById('syncStatus'); const t=document.getElementById('syncStatusTxt'); if(!el) return; el.style.display='inline-flex'; el.style.background= ok ? '#dcfce7' : '#fef3c7'; el.style.color= ok ? '#166534' : '#92400e'; if(t) t.textContent=txt; }
+function ensureNoteIds(){ notes.forEach(n=>{ if(!n.id) n.id=newNoteId(); if(n.archived===undefined) n.archived=false; }); }
+function timeAgo(ts){
+  if(!ts) return '';
+  const diff=Math.max(0, Date.now()-ts);
+  const s=Math.floor(diff/1000);
+  if(s<10) return 'just now';
+  if(s<60) return s+' sec ago';
+  const m=Math.floor(s/60);
+  if(m<60) return m===1 ? '1 min ago' : m+' min ago';
+  const h=Math.floor(m/60);
+  if(h<24) return h===1 ? '1h ago' : h+'h ago';
+  const d=Math.floor(h/24);
+  if(d<7) return d===1 ? '1 day ago' : d+' days ago';
+  return new Date(ts).toLocaleDateString();
+}
+function refreshSyncTime(){
+  const el=document.getElementById('syncTime');
+  if(!el) return;
+  if(!lastSyncAt){ el.textContent=''; return; }
+  el.textContent=' • '+timeAgo(lastSyncAt);
+}
+function setSyncStatus(txt, ok=true){
+  lastSyncLabel=txt;
+  const el=document.getElementById('syncStatus'); const t=document.getElementById('syncStatusTxt');
+  if(!el) return;
+  el.style.display='inline-flex';
+  el.style.background= ok ? '#dcfce7' : '#fef3c7';
+  el.style.color= ok ? '#166534' : '#92400e';
+  if(t) t.textContent=txt;
+  refreshSyncTime();
+}
+function markSynced(){
+  lastSyncAt=Date.now();
+  try{ localStorage.setItem('k_last_sync', String(lastSyncAt)); }catch(e){}
+  setSyncStatus('Synced', true);
+}
 function saveLocalOnly(){ const userEmail = user?.email || 'guest'; localStorage.setItem('k_notes_'+userEmail,JSON.stringify(notes)); localStorage.setItem('k_settings',JSON.stringify(settings)); localStorage.setItem('k_theme', settings.dark ? 'dark' : 'light'); }
 async function pushNotesToServer(){
   if(isSyncing || !token) return;
@@ -270,7 +314,7 @@ async function pushNotesToServer(){
   try{
     const base=(settings.serverUrl||'https://kratenote-1.onrender.com').replace(/\/$/,'');
     const res=await fetch(base+'/notes',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({notes:notes})});
-    if(res.ok){ setSyncStatus('Synced', true); } else { setSyncStatus('Offline - saved locally', false); }
+    if(res.ok){ markSynced(); } else { setSyncStatus('Offline - saved locally', false); }
   }catch(e){ setSyncStatus('Offline - saved locally', false); }
   isSyncing=false;
 }
@@ -283,26 +327,26 @@ async function pullNotesFromServer(){
     if(!res.ok) return;
     const data=await res.json();
     const serverNotes=Array.isArray(data.notes)? data.notes : [];
+    markSynced();
     if(serverNotes.length===0 && notes.length>0){ await pushNotesToServer(); return; }
     const map=new Map();
     notes.forEach(n=>{ if(n.id) map.set(n.id, n); });
     serverNotes.forEach(sn=>{
       if(!sn.id) sn.id=newNoteId();
+      if(sn.archived===undefined) sn.archived=false;
       const local=map.get(sn.id);
       if(!local){ map.set(sn.id, sn); }
       else if((sn.ts||0) > (local.ts||0)){ map.set(sn.id, sn); }
     });
-    // also keep local notes wey no get id yet (old) - dem don get id for ensureNoteIds, so dem dey for map
     const merged=[...map.values()].sort((a,b)=>(b.ts||0)-(a.ts||0));
     if(merged.length!==notes.length || JSON.stringify(merged)!==JSON.stringify(notes)){
       notes=merged; ensureNoteIds(); saveLocalOnly(); render();
-      setSyncStatus('Synced', true);
     }
   }catch(e){ setSyncStatus('Offline - saved locally', false); }
 }
 try{const userEmail = user?.email || 'guest'; notes=JSON.parse(localStorage.getItem('k_notes_'+userEmail)||localStorage.getItem('k_notes')||'[]'); const s=JSON.parse(localStorage.getItem('k_settings')||'{}');settings={...settings,...s}; 
 var _t = localStorage.getItem('k_theme'); if(_t) settings.dark = (_t==='dark');
-notes.forEach(n=>{ if(!n.folder) n.folder='General'; if(!n.subject) n.subject='General'; if(n.pinned===undefined) n.pinned=false; if(!n.subs) n.subs=[]; if(!n.highlights) n.highlights=[]; if(!n.id) n.id=newNoteId(); if(!n.flag){ const lf=LANGS.find(l=>l.code===n.code); n.flag=lf?lf.flag:'🇬🇧'; } });}catch(e){}
+notes.forEach(n=>{ if(!n.folder) n.folder='General'; if(!n.subject) n.subject='General'; if(n.pinned===undefined) n.pinned=false; if(!n.subs) n.subs=[]; if(!n.highlights) n.highlights=[]; if(!n.id) n.id=newNoteId(); if(n.archived===undefined) n.archived=false; if(!n.flag){ const lf=LANGS.find(l=>l.code===n.code); n.flag=lf?lf.flag:'🇬🇧'; } });}catch(e){}
 const recBtn=document.getElementById('recBtn'),box=document.getElementById('transcriptBox'),modal=document.getElementById('settingsModal'),editModal=document.getElementById('editModal'),transModal=document.getElementById('translateModal'),confirmModal=document.getElementById('confirmModal'),liveBadge=document.getElementById('liveBadge'),detectedBadge=document.getElementById('detectedBadge'),statusTxt=document.getElementById('statusTxt'),subModal=document.getElementById('subModal');
 let voices=[],recognition=null,finalTranscriptLive='';
 function setEmptyState(){box.classList.remove('has-text');box.innerHTML='<i class="fa-solid fa-waveform-lines emptyIcon"></i><div class="emptyTxt">Tap mic to record OR type note manually</div>';transcript='';finalTranscriptLive='';liveBadge.classList.remove('on');detectedBadge.textContent='🌐 Ready - Type or Record';detectedBadge.className='badge on';detectedBadge.style.background='#eee';detectedBadge.style.color='#666';statusTxt.textContent='';recBtn.innerHTML='<i class="fa-solid fa-microphone"></i> START RECORDING';recBtn.classList.remove('rec');isRec=false;}
@@ -347,14 +391,15 @@ recBtn.addEventListener('click',async()=>{
   }
 });
 async function translateText(text,to){try{statusTxt.textContent='Translating...';const res=await fetch(settings.serverUrl.replace(/\/$/,'')+'/translate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:text.substring(0,3000),to:to})});const data=await res.json();statusTxt.textContent='';if(data.translated)return data.translated;return text;}catch(e){statusTxt.textContent='';return text;}}
-function saveNote(){const txt=(box.innerText||'').trim()||transcript.trim();if(!txt||txt.includes('Tap mic')||txt==='Listening...'||txt.length<2)return alert('Type or record something first!');let title=document.getElementById('titleInput').value.trim();if(!title){ title=txt.split('\n')[0].split(' ').slice(0,6).join(' '); } const lang=detectLanguage(txt);notes.unshift({id:newNoteId(),title,text:txt,date:new Date().toLocaleString(),lang:lang.name,code:lang.code,flag:lang.flag, ts: Date.now(), subs:[], highlights:[], folder:currentFolder, subject:currentSubject, pinned:false});saveAll();render();document.getElementById('titleInput').value='';setEmptyState();document.querySelectorAll('.tplBtn').forEach(b=>b.classList.remove('active'));document.querySelector('[data-tpl="blank"]').classList.add('active');}
+function saveNote(){const txt=(box.innerText||'').trim()||transcript.trim();if(!txt||txt.includes('Tap mic')||txt==='Listening...'||txt.length<2)return alert('Type or record something first!');let title=document.getElementById('titleInput').value.trim();if(!title){ title=txt.split('\n')[0].split(' ').slice(0,6).join(' '); } const lang=detectLanguage(txt);notes.unshift({id:newNoteId(),title,text:txt,date:new Date().toLocaleString(),lang:lang.name,code:lang.code,flag:lang.flag, ts: Date.now(), subs:[], highlights:[], folder:currentFolder, subject:currentSubject, pinned:false, archived:false});saveAll();render();document.getElementById('titleInput').value='';setEmptyState();document.querySelectorAll('.tplBtn').forEach(b=>b.classList.remove('active'));document.querySelector('[data-tpl="blank"]').classList.add('active');}
 function openConfirmDelete(index,isClearAll=false){
   pendingDeleteIndex=index;pendingClearAll=isClearAll;pendingSubParent=-1;pendingSubIndex=-1;
   const icon=document.querySelector('#confirmModal .confirmIcon');
   const title=document.getElementById('confirmTitle');
   icon.className='confirmIcon delete'; icon.innerHTML='<i class="fa-solid fa-trash"></i>'; title.textContent='Delete Note?';
   if(isClearAll){
-    document.getElementById('confirmText').innerHTML=`<b>Delete all ${notes.length} notes?</b><br>This will permanently remove all your saved notes.`;
+    const activeCount=notes.filter(n=>!n.archived).length;
+    document.getElementById('confirmText').innerHTML=`<b>Delete all ${activeCount} active notes?</b><br>Archived notes go stay. This will permanently remove all your active saved notes.`;
     document.getElementById('confirmDelete').innerHTML='<i class="fa-solid fa-trash"></i> Yes, Delete All';
   }else{
     const note=notes[index];
@@ -386,7 +431,7 @@ document.getElementById('confirmDelete').addEventListener('click',()=>{
     notes[pendingSubParent].subs.splice(pendingSubIndex,1);
     saveAll(); render(); if(viewerIndex>=0) openNoteViewer(viewerIndex);
   } else if(pendingClearAll){
-    notes=[];saveAll();render();modal.style.display='none';
+    notes=notes.filter(n=>n.archived);saveAll();render();modal.style.display='none';
   } else if(pendingDeleteIndex>=0){
     const wasViewer = viewerIndex===pendingDeleteIndex;
     notes.splice(pendingDeleteIndex,1);saveAll();render();
@@ -401,7 +446,8 @@ function getFilteredSortedNotes(){
     const q=searchQuery.toLowerCase();
     const matchesQ = n.title.toLowerCase().includes(q) || n.date.toLowerCase().includes(q) || n.text.toLowerCase().includes(q);
     const matchesCtx = (n.folder||'General').toLowerCase()===currentFolder.toLowerCase() && (n.subject||'General').toLowerCase()===currentSubject.toLowerCase();
-    return matchesQ && matchesCtx;
+    const matchesArchive = (n.archived||false)===showArchived;
+    return matchesQ && matchesCtx && matchesArchive;
   });
   filtered.forEach((n,i)=>{ if(!n.ts) n.ts=Date.now()-i*1000; });
   filtered.sort((a,b)=> (b.pinned?1:0)-(a.pinned?1:0) || b.ts-a.ts);
@@ -478,9 +524,9 @@ function openNoteViewer(idx){
   const n=notes[idx]; if(!n) return;
   viewerIndex=idx;
   if(!n.highlights) n.highlights=[];
-  viewerMainTitle=(n.pinned?'📌 ':'')+(n.flag||'🇬🇧')+' '+n.title;
+  viewerMainTitle=(n.pinned?'📌 ':'')+(n.archived?'📦 ':'')+(n.flag||'🇬🇧')+' '+n.title;
   document.getElementById('viewerNavTitle').textContent=viewerMainTitle;
-  document.getElementById('viewerNavMeta').innerHTML=`<span><i class="fa-solid fa-calendar"></i> ${escapeHtml(n.date)}</span><span><i class="fa-solid fa-book"></i> ${escapeHtml(n.subject||'General')}</span><span>${escapeHtml(n.flag||'🇬🇧')} ${escapeHtml(n.lang||'')}</span>`;
+  document.getElementById('viewerNavMeta').innerHTML=`<span><i class="fa-solid fa-calendar"></i> ${escapeHtml(n.date)}</span><span><i class="fa-solid fa-book"></i> ${escapeHtml(n.subject||'General')}</span><span>${escapeHtml(n.flag||'🇬🇧')} ${escapeHtml(n.lang||'')}</span>${n.archived?'<span><i class="fa-solid fa-box-archive"></i> Archived</span>':''}`;
   document.getElementById('viewerText').innerHTML=renderViewerText(n.text, n.highlights);
   document.getElementById('viewerSubs').innerHTML=(n.subs||[]).length? `<h3 style="font-size:15px;margin:0 0 10px">Sub-topics</h3>` + (n.subs||[]).map(s=>`<div class="subNote" data-heading="${escapeHtml(s.title)}"><div class="subNote-header"><span>${escapeHtml(s.title)}</span><small>${escapeHtml(s.date.split(',')[0])}</small></div><div class="subNote-content">${applyHighlights(escapeHtml(s.text), n.highlights)}</div></div>`).join('') : '';
   document.getElementById('noteViewer').classList.add('show');
@@ -605,16 +651,18 @@ searchInput.addEventListener('input',(e)=>{
 document.addEventListener('click',(e)=>{ if(!e.target.closest('.searchBox')) suggBox.classList.remove('on'); });
 document.getElementById('sortSelect').addEventListener('change',(e)=>{ sortBy=e.target.value; showAll=false; render(); });
 document.getElementById('viewMoreBtn').addEventListener('click',()=>{ showAll=!showAll; render(); });
+document.getElementById('activeTab').addEventListener('click',()=>{ showArchived=false; showAll=false; document.getElementById('activeTab').classList.add('active'); document.getElementById('archivedTab').classList.remove('active'); render(); });
+document.getElementById('archivedTab').addEventListener('click',()=>{ showArchived=true; showAll=false; document.getElementById('archivedTab').classList.add('active'); document.getElementById('activeTab').classList.remove('active'); render(); });
 const titlesModal=document.getElementById('titlesModal');
 document.getElementById('listBtn').addEventListener('click',()=>{
   const listEl=document.getElementById('titlesList');
-  const ctxNotes = notes.filter(n=> (n.folder||'General').toLowerCase()===currentFolder.toLowerCase() && (n.subject||'General').toLowerCase()===currentSubject.toLowerCase());
+  const ctxNotes = notes.filter(n=> (n.folder||'General').toLowerCase()===currentFolder.toLowerCase() && (n.subject||'General').toLowerCase()===currentSubject.toLowerCase() && (n.archived||false)===showArchived);
   if(ctxNotes.length===0){
     listEl.innerHTML='<div style="text-align:center;padding:20px;opacity:.5">No notes yet in '+currentSubject+'</div>';
   } else {
     listEl.innerHTML = ctxNotes.map((n)=>{
       const escTitle = n.title.replace(/"/g,'&quot;');
-      return `<div class="titleItem" data-title="${escTitle}"><span>${n.pinned?'📌 ':''}${n.flag||'🇬🇧'} ${n.title}</span><small style="opacity:.5;white-space:nowrap">${n.date.split(',')[0]}</small></div>`;
+      return `<div class="titleItem" data-title="${escTitle}"><span>${n.pinned?'📌 ':''}${n.archived?'📦 ':''}${n.flag||'🇬🇧'} ${n.title}</span><small style="opacity:.5;white-space:nowrap">${n.date.split(',')[0]}</small></div>`;
     }).join('');
     listEl.querySelectorAll('.titleItem').forEach(el=>el.addEventListener('click',()=>{
       searchInput.value=el.dataset.title; searchQuery=el.dataset.title.toLowerCase(); showAll=true; titlesModal.style.display='none'; render();
@@ -633,6 +681,8 @@ document.getElementById('notesList').addEventListener('click',(e)=>{
   if(action==='viewfull'){ openNoteViewer(idx); return; }
   if(action==='del'){ openConfirmDelete(idx,false); }
   else if(action==='pin'){ notes[idx].pinned=!notes[idx].pinned; saveAll(); render(); }
+  else if(action==='archive'){ notes[idx].archived=true; notes[idx].ts=Date.now(); saveAll(); render(); }
+  else if(action==='unarchive'){ notes[idx].archived=false; notes[idx].ts=Date.now(); saveAll(); render(); }
   else if(action==='speak'){ const nn=notes[idx]; speakClear(nn.text,nn.code); }
   else if(action==='edit'){ editingIndex=idx; document.getElementById('editTitle').value=notes[idx].title; document.getElementById('editText').value=notes[idx].text; document.getElementById('editLang').value=notes[idx].code||'en'; editModal.style.display='flex'; }
   else if(action==='pdf'){ downloadSinglePdf(notes[idx]); }
@@ -663,15 +713,22 @@ function applyClamp(){
   });
 }
 function render(){
+  const ctxNotesAll = notes.filter(n=> (n.folder||'General').toLowerCase()===currentFolder.toLowerCase() && (n.subject||'General').toLowerCase()===currentSubject.toLowerCase());
+  const activeCtx = ctxNotesAll.filter(n=>!n.archived);
+  const archivedCtx = ctxNotesAll.filter(n=>n.archived);
+  document.getElementById('activeCount').textContent=activeCtx.length;
+  document.getElementById('archivedCount').textContent=archivedCtx.length;
   const filtered = getFilteredSortedNotes();
   document.getElementById('count').textContent=filtered.length;
-  const pinnedInSubject = notes.filter(n=> n.pinned && (n.folder||'General').toLowerCase()===currentFolder.toLowerCase() && (n.subject||'General').toLowerCase()===currentSubject.toLowerCase()).length;
+  const pinnedInSubject = notes.filter(n=> n.pinned && !n.archived && (n.folder||'General').toLowerCase()===currentFolder.toLowerCase() && (n.subject||'General').toLowerCase()===currentSubject.toLowerCase()).length;
   document.getElementById('pinnedCount').textContent = pinnedInSubject ? `${pinnedInSubject} pinned` : '';
   const viewMoreBtn=document.getElementById('viewMoreBtn');
   if(filtered.length===0){
     if(searchQuery){
       document.getElementById('notesList').innerHTML=`<div style="text-align:center;padding:24px;background:var(--box);border-radius:12px;border:1px dashed #ccc"><i class="fa-solid fa-circle-exclamation" style="font-size:36px;color:#f59e0b;display:block;margin-bottom:10px"></i><b>No match found</b><br><small style="opacity:.7">No note matches "${searchQuery}"</small><br><button id="clearSearchLink" style="margin-top:10px;background:#e0e7ff;color:#3730a3;padding:8px 14px;border-radius:8px;border:none;font-size:12px;cursor:pointer"><i class="fa-solid fa-xmark"></i> Clear search</button></div>`;
       const link=document.getElementById('clearSearchLink'); if(link) link.addEventListener('click',()=>{ searchInput.value=''; searchQuery=''; suggBox.classList.remove('on'); render(); });
+    } else if(showArchived){
+      document.getElementById('notesList').innerHTML='<div style="text-align:center;padding:20px;opacity:.4"><i class="fa-solid fa-box-archive" style="font-size:32px;display:block;margin-bottom:8px"></i>No archived notes yet<br><small>Archive a note to keep am here, safe</small></div>';
     } else {
       document.getElementById('notesList').innerHTML='<div style="text-align:center;padding:20px;opacity:.4"><i class="fa-solid fa-inbox" style="font-size:32px;display:block;margin-bottom:8px"></i>No notes yet in '+currentSubject+'<br><small>Tap a template above to start</small></div>';
     }
@@ -684,11 +741,15 @@ function render(){
       const folderTag=`<span class="folderTag" style="background:${f.bg};color:${f.c}"><i class="fa-solid ${f.icon}"></i> ${n.folder||'General'}</span>`;
       const subjTag=`<span class="folderTag" style="background:#eef2ff;color:#3730a3"><i class="fa-solid fa-book"></i> ${n.subject||'General'}</span>`;
       const langTag=`<span class="langTag">${n.flag||'🇬🇧'} ${n.lang||''}</span>`;
+      const archivedTag=n.archived?`<span class="archivedTag"><i class="fa-solid fa-box-archive"></i> Archived</span>`:'';
       const dt=formatDateTimeParts(n.date);
       const subsHtml = (n.subs||[]).map((s,si)=>`<div class="subNote"><div class="subNote-header"><span>${s.title}</span><small>${s.date.split(',')[0]}</small></div><div class="subNote-content">${s.text}</div><button class="iconBtn" data-action="delsub" data-parent="${realIndex}" data-sub="${si}" style="margin-top:10px;background:#fee2e2;color:#991b1b;font-size:10px"><i class="fa-solid fa-trash"></i> Remove</button></div>`).join('');
-      return `<div class="note ${n.pinned?'pinned':''}">
-        <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start"><b>${n.pinned?'<i class="fa-solid fa-thumbtack"></i> ':''}${n.flag||'🇬🇧'} ${n.title}</b><div class="noteDateTime"><small>${dt.date}</small><small class="noteTime">${dt.time}</small></div></div>
-        <div style="display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap">${folderTag}${subjTag}${langTag}</div>
+      const archiveBtn=n.archived
+        ? `<button class="actBtn unarchive" data-action="unarchive" data-index="${realIndex}"><i class="fa-solid fa-box-open"></i> Unarchive</button>`
+        : `<button class="actBtn archive" data-action="archive" data-index="${realIndex}"><i class="fa-solid fa-box-archive"></i> Archive</button>`;
+      return `<div class="note ${n.pinned?'pinned':''} ${n.archived?'archived':''}">
+        <div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start"><b>${n.pinned?'<i class="fa-solid fa-thumbtack"></i> ':''}${n.archived?'📦 ':''}${n.flag||'🇬🇧'} ${n.title}</b><div class="noteDateTime"><small>${dt.date}</small><small class="noteTime">${dt.time}</small></div></div>
+        <div style="display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap">${folderTag}${subjTag}${langTag}${archivedTag}</div>
         <div id="noteWrap-${realIndex}" class="noteTextWrap"><div id="noteText-${realIndex}" data-idx="${realIndex}" class="noteText">${n.text}</div></div>
         <button class="viewAllBtn" data-action="viewfull" data-index="${realIndex}"><i class="fa-solid fa-expand"></i> View all - Full screen</button>
         ${subsHtml}
@@ -699,6 +760,7 @@ function render(){
           <button class="actBtn pdf" data-action="pdf" data-index="${realIndex}"><i class="fa-solid fa-file-pdf"></i> PDF</button>
           <button class="actBtn share" data-action="share" data-index="${realIndex}"><i class="fa-solid fa-share-nodes"></i> Share</button>
           <button class="actBtn sub" data-action="sub" data-index="${realIndex}"><i class="fa-solid fa-plus"></i> Sub-topic</button>
+          ${archiveBtn}
           <button class="actBtn del" data-action="del" data-index="${realIndex}"><i class="fa-solid fa-trash"></i> Delete</button>
         </div>
       </div>`;
@@ -728,14 +790,16 @@ document.getElementById('speedRange').addEventListener('input',e=>{ settings.spe
 document.getElementById('pitchRange').addEventListener('input',e=>{ settings.pitch=e.target.value; document.getElementById('pitchVal').textContent=e.target.value; saveAll(); });
 document.getElementById('darkSwitch').addEventListener('click',()=>{ settings.dark=!settings.dark; document.body.classList.toggle('dark',settings.dark); document.documentElement.setAttribute('data-theme', settings.dark ? 'dark' : 'light'); document.documentElement.classList.toggle('dark',settings.dark); document.getElementById('darkSwitch').classList.toggle('on',settings.dark); saveAll(); });
 document.getElementById('autoSwitch').addEventListener('click',()=>{ settings.autoDetect=!settings.autoDetect; document.getElementById('autoSwitch').classList.toggle('on',settings.autoDetect); saveAll(); });
-document.getElementById('clearBtn').addEventListener('click',()=>{ if(notes.length===0) return alert('No notes'); openConfirmDelete(-1,true); });
+document.getElementById('clearBtn').addEventListener('click',()=>{ if(notes.filter(n=>!n.archived).length===0) return alert('No active notes'); openConfirmDelete(-1,true); });
 document.getElementById('saveBtn').addEventListener('click',saveNote);
 document.getElementById('speakBtn').addEventListener('click',()=>{const t=box.innerText.trim();if(t&&!t.includes('Tap mic')&&t!=='Listening...')speakClear(t);});
 document.getElementById('translateBtn').addEventListener('click',()=>{const t=box.innerText.trim();if(!t||t.includes('Tap mic'))return alert('No text');document.getElementById('origText').value=t;document.getElementById('fromLang').value='auto';document.getElementById('toLang').value=settings.translateTo;transModal.style.display='flex';});
 document.getElementById('doTranslateBtn').addEventListener('click',async()=>{const orig=document.getElementById('origText').value;const to=document.getElementById('toLang').value;document.getElementById('transText').value='Translating...';const tr=await translateText(orig,to);document.getElementById('transText').value=tr;});
 document.getElementById('speakTransBtn').addEventListener('click',()=>{const txt=document.getElementById('transText').value;const to=document.getElementById('toLang').value;if(txt)speakClear(txt,to);});
-document.getElementById('saveTransBtn').addEventListener('click',()=>{const txt=document.getElementById('transText').value;if(!txt)return;const lang=LANGS.find(l=>l.code===document.getElementById('toLang').value);notes.unshift({id:newNoteId(),title:'Translated to '+lang.name,text:txt,date:new Date().toLocaleString(),lang:lang.name,code:lang.code,flag:lang.flag,ts:Date.now(),subs:[],highlights:[],folder:currentFolder,subject:currentSubject,pinned:false});saveAll();render();transModal.style.display='none';});
+document.getElementById('saveTransBtn').addEventListener('click',()=>{const txt=document.getElementById('transText').value;if(!txt)return;const lang=LANGS.find(l=>l.code===document.getElementById('toLang').value);notes.unshift({id:newNoteId(),title:'Translated to '+lang.name,text:txt,date:new Date().toLocaleString(),lang:lang.name,code:lang.code,flag:lang.flag,ts:Date.now(),subs:[],highlights:[],folder:currentFolder,subject:currentSubject,pinned:false,archived:false});saveAll();render();transModal.style.display='none';});
 fillLangSelects(); applySettings(); setEmptyState(); render();
+if(lastSyncAt){ setSyncStatus(lastSyncLabel, true); } else { setSyncStatus('Syncing...', false); }
+setInterval(()=>{ refreshSyncTime(); }, 30000);
 pullNotesFromServer();
 window.addEventListener('online', ()=>{ pullNotesFromServer(); });
 document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) pullNotesFromServer(); });
