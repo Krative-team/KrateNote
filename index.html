@@ -48,11 +48,12 @@
   .toolbar{display:flex;gap:10px;margin:12px 0 10px} .searchBox{position:relative;flex:1} .searchBox i{position:absolute;left:11px;top:50%;transform:translateY(-50%);opacity:.4;font-size:12px} .searchBox input{padding-left:30px;margin:0}
   .suggestions{position:absolute;top:100%;left:0;right:0;background:var(--card);border-radius:10px;box-shadow:0 10px 25px rgba(0,0,0,.18);z-index:30;display:none;max-height:200px;overflow:auto;border:1px solid var(--muted);margin-top:6px}
   .suggestions.on{display:block} .sugItem{padding:11px 13px;cursor:pointer;font-size:13px;display:flex;justify-content:space-between;align-items:center;gap:10px} .sugItem:hover{background:var(--box)}
-  #settingsModal,#editModal,#translateModal,#confirmModal,#logoutModal,#subModal,#titlesModal,#voicePrimerModal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:999;padding:12px;backdrop-filter:blur(6px)}
+  #settingsModal,#editModal,#translateModal,#confirmModal,#logoutModal,#subModal,#titlesModal,#voicePrimerModal,#deleteAccountModal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:999;padding:12px;backdrop-filter:blur(6px)}
   .modalBox{background:var(--card);width:100%;max-width:560px;border-radius:16px;padding:20px;max-height:90vh;overflow:auto;animation:pop .25s ease}
   @keyframes pop{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
   .confirmIcon{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 14px}
   .confirmIcon.delete{background:#fee2e2;color:#dc2626} .confirmIcon.logout{background:#fef3c7;color:#d97706} .confirmIcon.sub{background:#fef9c3;color:#a16207}
+  .confirmIcon.deleteAccount{background:#fee2e2;color:#dc2626}
   .row{display:flex;justify-content:space-between;align-items:center;margin:14px 0;gap:10px}
   .switch{width:46px;height:28px;background:#ccc;border-radius:20px;position:relative;cursor:pointer;flex-shrink:0} .switch.on{background:var(--primary)} .dot{width:24px;height:24px;background:#fff;border-radius:50%;position:absolute;top:2px;left:2px;transition:.2s} .switch.on .dot{left:20px}
   label{font-size:13px;font-weight:600;margin:10px 0 5px;display:block;opacity:.8}
@@ -79,6 +80,8 @@
   .primerFeature i{color:#6366f1;margin-top:2px}
   .primerFeature b{display:block}
   .primerFeature small{opacity:.6}
+  .dangerZone{margin-top:18px;border-top:1px dashed #fca5a5;padding-top:14px}
+  .dangerZone small{display:block;font-size:11px;opacity:.6;margin-bottom:10px;line-height:1.4}
   /* ===== FULL SCREEN - TRANSPARENT FIXED NAVBAR ONLY, NO BOTTOM BUTTONS, NO SECOND HEADER ===== */
   #noteViewer{position:fixed;inset:0;background:var(--bg);z-index:2000;display:none;flex-direction:column;animation:viewerIn .22s ease}
   @keyframes viewerIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
@@ -154,7 +157,9 @@
     <button id="viewMoreBtn" class="full" style="display:none;background:var(--muted);margin-top:12px"></button>
   </div>
 </div>
-<div id="settingsModal"><div class="modalBox"><div style="display:flex;justify-content:space-between;gap:10px"><h3>Settings</h3><button class="iconBtn" id="closeSetBtn"><i class="fa-solid fa-xmark"></i></button></div><input id="serverUrl" type="hidden" value="https://kratenote-1.onrender.com"><label>Voice</label><select id="voiceSelect"></select><label>Speech Language</label><select id="speechLang"></select><label>Translate To</label><select id="translateTo"></select><label>Speed: <span id="speedVal">0.9</span></label><input type="range" id="speedRange" min="0.5" max="1.5" step="0.1" value="0.9"><label>Pitch: <span id="pitchVal">1.0</span></label><input type="range" id="pitchRange" min="0.5" max="1.5" step="0.1" value="1.0"><label>Font Size</label><select id="fontSelect"><option value="15px">Small</option><option value="17px" selected>Medium</option><option value="20px">Large</option><option value="24px">XL</option></select><div class="row"><span>Dark Mode</span><div id="darkSwitch" class="switch"><div class="dot"></div></div></div><div class="row"><span>Auto Detect</span><div class="switch on" id="autoSwitch"><div class="dot"></div></div></div><button class="full" style="background:#fee2e2;color:#b91c1c;margin-top:12px" id="clearBtn"><i class="fa-solid fa-trash"></i> Clear All Notes</button></div></div>
+<div id="settingsModal"><div class="modalBox"><div style="display:flex;justify-content:space-between;gap:10px"><h3>Settings</h3><button class="iconBtn" id="closeSetBtn"><i class="fa-solid fa-xmark"></i></button></div><input id="serverUrl" type="hidden" value="https://kratenote-1.onrender.com"><label>Voice</label><select id="voiceSelect"></select><label>Speech Language</label><select id="speechLang"></select><label>Translate To</label><select id="translateTo"></select><label>Speed: <span id="speedVal">0.9</span></label><input type="range" id="speedRange" min="0.5" max="1.5" step="0.1" value="0.9"><label>Pitch: <span id="pitchVal">1.0</span></label><input type="range" id="pitchRange" min="0.5" max="1.5" step="0.1" value="1.0"><label>Font Size</label><select id="fontSelect"><option value="15px">Small</option><option value="17px" selected>Medium</option><option value="20px">Large</option><option value="24px">XL</option></select><div class="row"><span>Dark Mode</span><div id="darkSwitch" class="switch"><div class="dot"></div></div></div><div class="row"><span>Auto Detect</span><div class="switch on" id="autoSwitch"><div class="dot"></div></div></div><button class="full" style="background:#fee2e2;color:#b91c1c;margin-top:12px" id="clearBtn"><i class="fa-solid fa-trash"></i> Clear All Notes</button>
+<div class="dangerZone"><label style="color:#dc2626;margin:0">Danger Zone</label><small>This go permanently delete your account and everything inside am. You no fit undo am.</small><button class="full" id="deleteAccountBtn" style="background:#dc2626;color:#fff;margin-top:0"><i class="fa-solid fa-user-xmark"></i> Delete Account</button></div>
+</div></div>
 <div id="editModal"><div class="modalBox"><div style="display:flex;justify-content:space-between;gap:10px"><h3>Edit Note</h3><button class="iconBtn" id="closeEditBtn"><i class="fa-solid fa-xmark"></i></button></div>
 <label>Title</label><input id="editTitle"><label>Language</label><select id="editLang"></select><label>Text</label><textarea id="editText" rows="8"></textarea>
 <label>Translate To</label><div class="compactRow"><select id="editTranslateTo"></select><button class="iconBtn" id="doEditTranslate"><i class="fa-solid fa-language"></i></button><button class="iconBtn" id="editSpeakBtn" style="background:#dcfce7;color:#166534"><i class="fa-solid fa-volume-high"></i></button></div>
@@ -168,6 +173,7 @@
 <div id="titlesModal"><div class="modalBox" style="max-width:420px"><div style="display:flex;justify-content:space-between;gap:10px"><h3><i class="fa-solid fa-list"></i> All Saved Notes</h3><button class="iconBtn" id="closeTitlesBtn"><i class="fa-solid fa-xmark"></i></button></div><div id="titlesList" style="margin-top:10px;max-height:60vh;overflow:auto"></div></div></div>
 <div id="confirmModal"><div class="modalBox" style="max-width:380px;text-align:center"><div class="confirmIcon delete"><i class="fa-solid fa-trash"></i></div><h3 id="confirmTitle">Delete Note?</h3><p id="confirmText" style="font-size:14px;opacity:.7;margin:0 0 18px"></p><div style="display:flex;gap:10px"><button class="full" id="confirmCancel" style="background:var(--muted)"><i class="fa-solid fa-xmark"></i> Cancel</button><button class="full" id="confirmDelete" style="background:#dc2626;color:#fff"><i class="fa-solid fa-trash"></i> Yes, Delete</button></div></div></div>
 <div id="logoutModal"><div class="modalBox" style="max-width:380px;text-align:center"><div class="confirmIcon logout"><i class="fa-solid fa-right-from-bracket"></i></div><h3>Logout from KrateNote?</h3><p style="font-size:14px;opacity:.7;margin:0 0 6px">You will need to login again.</p><div style="background:var(--box);border-radius:10px;padding:12px;margin:14px 0;display:flex;align-items:center;gap:12px;text-align:left"><div style="width:36px;height:36px;border-radius:50%;background:#6366f1;color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fa-solid fa-user"></i></div><div><b id="logoutName"></b><br><small id="logoutEmail" style="opacity:.6;font-size:11px"></small></div></div><div style="display:flex;gap:10px"><button class="full" id="logoutCancel" style="background:var(--muted)"><i class="fa-solid fa-xmark"></i> Stay</button><button class="full" id="logoutConfirm" style="background:#111;color:#fff"><i class="fa-solid fa-right-from-bracket"></i> Yes, Logout</button></div></div></div>
+<div id="deleteAccountModal"><div class="modalBox" style="max-width:380px;text-align:center"><div class="confirmIcon deleteAccount"><i class="fa-solid fa-triangle-exclamation"></i></div><h3>Delete your KrateNote account?</h3><p style="font-size:14px;opacity:.7;margin:0 0 6px">This go permanently delete your account, all your notes, folders and settings. This cannot be undone.</p><div style="background:var(--box);border-radius:10px;padding:12px;margin:14px 0;display:flex;align-items:center;gap:12px;text-align:left"><div style="width:36px;height:36px;border-radius:50%;background:#dc2626;color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fa-solid fa-user"></i></div><div style="min-width:0"><b id="deleteAccountName"></b><br><small id="deleteAccountEmail" style="opacity:.6;font-size:11px;word-break:break-all"></small></div></div><div style="background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:10px 12px;font-size:12px;color:#991b1b;text-align:left;margin-bottom:14px"><i class="fa-solid fa-circle-exclamation"></i> You go lose <b id="deleteAccountNotesCount">0</b> notes. Make sure you don export anything you need.</div><div style="display:flex;gap:10px"><button class="full" id="deleteAccountCancel" style="background:var(--muted)"><i class="fa-solid fa-xmark"></i> Cancel</button><button class="full" id="deleteAccountConfirm" style="background:#dc2626;color:#fff"><i class="fa-solid fa-trash"></i> Yes, Delete My Account</button></div></div></div>
 <div id="voicePrimerModal"><div class="modalBox" style="max-width:400px;text-align:center">
   <div class="primerIcon"><i class="fa-solid fa-microphone"></i></div>
   <h3 style="margin:0 0 6px">Enable Voice Notes?</h3>
@@ -211,12 +217,40 @@ if(user){
   document.getElementById('userNameText').textContent=user.name;
   document.getElementById('logoutName').textContent=user.name;
   document.getElementById('logoutEmail').textContent=user.email;
+  document.getElementById('deleteAccountName').textContent=user.name;
+  document.getElementById('deleteAccountEmail').textContent=user.email;
 }
 const logoutModal=document.getElementById('logoutModal');
 document.getElementById('logoutBtn').addEventListener('click',()=>{ logoutModal.style.display='flex'; });
 document.getElementById('logoutCancel').addEventListener('click',()=>{ logoutModal.style.display='none'; });
 document.getElementById('logoutConfirm').addEventListener('click',()=>{ localStorage.removeItem('k_token'); localStorage.removeItem('k_user'); location.href='login.html'; });
 logoutModal.addEventListener('click',(e)=>{ if(e.target===logoutModal) logoutModal.style.display='none'; });
+/* ===== DELETE ACCOUNT ===== */
+const deleteAccountModal=document.getElementById('deleteAccountModal');
+document.getElementById('deleteAccountBtn').addEventListener('click',()=>{
+  document.getElementById('deleteAccountName').textContent=user?.name||'';
+  document.getElementById('deleteAccountEmail').textContent=user?.email||'';
+  document.getElementById('deleteAccountNotesCount').textContent=notes.length;
+  deleteAccountModal.style.display='flex';
+});
+document.getElementById('deleteAccountCancel').addEventListener('click',()=>{ deleteAccountModal.style.display='none'; });
+deleteAccountModal.addEventListener('click',(e)=>{ if(e.target===deleteAccountModal) deleteAccountModal.style.display='none'; });
+document.getElementById('deleteAccountConfirm').addEventListener('click',async()=>{
+  const btn=document.getElementById('deleteAccountConfirm');
+  btn.disabled=true; btn.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Deleting...';
+  const email=user?.email||'guest';
+  try{
+    const base=(settings && settings.serverUrl ? settings.serverUrl : 'https://kratenote-1.onrender.com').replace(/\/$/,'');
+    await fetch(base+'/delete-account',{method:'DELETE',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},body:JSON.stringify({email:email})});
+  }catch(e){}
+  try{ speechSynthesis.cancel(); }catch(e){}
+  const keysToRemove=['k_token','k_user','k_current_folder','k_current_subject','k_settings','k_theme','k_voice_choice','k_notes','k_notes_'+email];
+  keysToRemove.forEach(k=>{ try{ localStorage.removeItem(k); }catch(e){} });
+  try{
+    Object.keys(localStorage).forEach(k=>{ if(k.indexOf('k_notes_')===0) localStorage.removeItem(k); });
+  }catch(e){}
+  location.href='login.html';
+});
 const LANGS=[{code:'auto',name:'Auto',flag:'🌐',tts:'en-US'},{code:'en',name:'English',flag:'🇬🇧',tts:'en-US'},{code:'ibb',name:'Ibibio',flag:'🇳🇬',tts:'en-NG'},{code:'efi',name:'Efik',flag:'🇳🇬',tts:'en-NG'},{code:'ha',name:'Hausa',flag:'🇳🇬',tts:'ha-NG'},{code:'yo',name:'Yoruba',flag:'🇳🇬',tts:'yo-NG'},{code:'ig',name:'Igbo',flag:'🇳🇬',tts:'ig-NG'},{code:'pcm',name:'Pidgin',flag:'🇳🇬',tts:'en-NG'},{code:'fr',name:'French',flag:'🇫🇷',tts:'fr-FR'},{code:'es',name:'Spanish',flag:'🇪🇸',tts:'es-ES'},{code:'de',name:'German',flag:'🇩🇪',tts:'de-DE'},{code:'pt',name:'Portuguese',flag:'🇵🇹',tts:'pt-PT'},{code:'it',name:'Italian',flag:'🇮🇹',tts:'it-IT'},{code:'nl',name:'Dutch',flag:'🇳🇱',tts:'nl-NL'},{code:'ar',name:'Arabic',flag:'🇸🇦',tts:'ar-SA'},{code:'zh',name:'Chinese',flag:'🇨🇳',tts:'zh-CN'},{code:'ja',name:'Japanese',flag:'🇯🇵',tts:'ja-JP'},{code:'ko',name:'Korean',flag:'🇰🇷',tts:'ko-KR'},{code:'ru',name:'Russian',flag:'🇷🇺',tts:'ru-RU'},{code:'hi',name:'Hindi',flag:'🇮🇳',tts:'hi-IN'},{code:'sw',name:'Swahili',flag:'🇰🇪',tts:'sw-KE'},{code:'zu',name:'Zulu',flag:'🇿🇦',tts:'zu-ZA'},{code:'am',name:'Amharic',flag:'🇪🇹',tts:'am-ET'},{code:'tr',name:'Turkish',flag:'🇹🇷',tts:'tr-TR'},{code:'el',name:'Greek',flag:'🇬🇷',tts:'el-GR'},{code:'he',name:'Hebrew',flag:'🇮🇱',tts:'he-IL'},{code:'sv',name:'Swedish',flag:'🇸🇪',tts:'sv-SE'},{code:'no',name:'Norwegian',flag:'🇳🇴',tts:'nb-NO'},{code:'pl',name:'Polish',flag:'🇵🇱',tts:'pl-PL'},{code:'id',name:'Indonesian',flag:'🇮🇩',tts:'id-ID'},{code:'th',name:'Thai',flag:'🇹🇭',tts:'th-TH'}];
 const FOLDERS={School:{icon:'fa-graduation-cap',bg:'#e0e7ff',c:'#3730a3'},Work:{icon:'fa-briefcase',bg:'#dbeafe',c:'#1e40af'},Church:{icon:'fa-church',bg:'#fef3c7',c:'#92400e'},Personal:{icon:'fa-user',bg:'#fce7f3',c:'#9d174d'},Business:{icon:'fa-chart-line',bg:'#dcfce7',c:'#166534'},General:{icon:'fa-folder',bg:'#eee',c:'#333'}};
 const TEMPLATES={
