@@ -37,11 +37,13 @@
   button{padding:12px 14px;border-radius:10px;border:none;font-weight:600;font-size:14px;cursor:pointer;display:inline-flex;gap:7px;justify-content:center;align-items:center}
   .full{width:100%;margin-top:10px} #recBtn{background:var(--primary);color:var(--bg);font-size:16px;padding:16px} #recBtn.rec{background:#e11d48;color:#fff}
   .iconBtn{width:auto;padding:7px 11px;border-radius:8px;background:var(--muted);color:var(--text);font-size:12px;white-space:nowrap;flex-shrink:0}
-  .note{background:var(--box);padding:16px;border-radius:12px;margin-bottom:14px;position:relative}
+  #notesList{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start}
+  #notesList > div:only-child{grid-column:1 / -1}
+  .note{background:var(--box);padding:14px;border-radius:12px;margin-bottom:0;position:relative;height:100%}
   .note.pinned{border:2px solid #f59e0b}
   .note.archived{border:1px dashed #a5b4fc;opacity:.95}
-  .noteActions{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
-  .actBtn{padding:9px 14px;border-radius:9px;font-size:12px;border:none;display:inline-flex;gap:6px;align-items:center;cursor:pointer}
+  .noteActions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+  .actBtn{padding:8px 11px;border-radius:9px;font-size:11px;border:none;display:inline-flex;gap:5px;align-items:center;cursor:pointer}
   .actBtn.edit{background:#e0e7ff;color:#3730a3} .actBtn.speak{background:#dcfce7;color:#166534} .actBtn.del{background:#fee2e2;color:#991b1b} .actBtn.pdf{background:#ede9fe;color:#5b21b6} .actBtn.share{background:#d1fae5;color:#065f46} .actBtn.sub{background:#fef9c3;color:#854d0e} .actBtn.pin{background:#fef3c7;color:#92400e} .actBtn.archive{background:#e5e7eb;color:#374151} .actBtn.unarchive{background:#dcfce7;color:#166534}
   .subNote{margin-top:12px;padding:12px 14px;background:var(--card);border-radius:8px;border-left:3px solid #6366f1}
   .subNote-header{font-weight:700;font-size:14px;color:var(--text);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;gap:10px}
@@ -72,7 +74,7 @@
   .actionRow{display:flex;gap:10px} .actionRow button{flex:1}
   .titleItem{padding:12px 13px;cursor:pointer;font-size:14px;display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid var(--muted)} .titleItem:last-child{border-bottom:none} .titleItem:hover{background:var(--box)}
   .noteTextWrap{position:relative}
-  .noteText{margin-top:10px;white-space:pre-wrap;line-height:22px;font-size:15px;overflow:hidden;max-height:220px}
+  .noteText{margin-top:10px;white-space:pre-wrap;line-height:22px;font-size:15px;overflow:hidden;max-height:160px}
   .noteText.clamped::after{content:'';position:absolute;left:0;right:0;bottom:0;height:44px;background:linear-gradient(transparent, var(--box));pointer-events:none}
   .viewAllBtn{background:none;border:none;color:#6366f1;font-size:12px;font-weight:700;padding:8px 0 0;cursor:pointer;display:none;gap:5px;align-items:center}
   .viewAllBtn.show{display:inline-flex}
@@ -122,7 +124,7 @@
   .dark #backToTop, html[data-theme="dark"] #backToTop{background:#fff;color:#111}
   #backToTop.show{display:flex}
   #backToTop:active{transform:scale(.92)}
-  @media(max-width:480px){ .emptyTxt{font-size:13px} #backToTop{right:12px;bottom:12px;width:44px;height:44px} #syncTime{display:none} .syncBadge{font-size:9px;padding:3px 6px;max-width:80px} .header{padding:12px 14px} }
+  @media(max-width:480px){ .emptyTxt{font-size:13px} #backToTop{right:12px;bottom:12px;width:44px;height:44px} #syncTime{display:none} .syncBadge{font-size:9px;padding:3px 6px;max-width:80px} .header{padding:12px 14px} #notesList{grid-template-columns:1fr 1fr;gap:10px} .note{padding:12px} .noteText{font-size:14px;line-height:20px} }
 </style>
 </head>
 <body>
@@ -721,7 +723,7 @@ function applyClamp(){
     el.style.maxHeight='none';
     const fullHeight = el.scrollHeight;
     el.style.maxHeight='';
-    if(fullHeight > 222){ el.parentElement.classList.add('clamped'); btn.classList.add('show'); }
+    if(fullHeight > 162){ el.parentElement.classList.add('clamped'); btn.classList.add('show'); }
     else{ el.parentElement.classList.remove('clamped'); btn.classList.remove('show'); el.style.maxHeight='none'; }
   });
 }
@@ -747,7 +749,7 @@ function render(){
     }
     viewMoreBtn.style.display='none';
   } else {
-    const toShow = showAll ? filtered : filtered.slice(0,2);
+    const toShow = showAll ? filtered : filtered.slice(0,4);
     document.getElementById('notesList').innerHTML=toShow.map((n)=>{
       const realIndex = notes.indexOf(n);
       const f=FOLDERS[n.folder||'General']||FOLDERS.General;
@@ -778,9 +780,9 @@ function render(){
         </div>
       </div>`;
     }).join('');
-    if(filtered.length>2){
+    if(filtered.length>4){
       viewMoreBtn.style.display='flex';
-      viewMoreBtn.innerHTML = showAll ? `<i class="fa-solid fa-chevron-up"></i> View Less` : `<i class="fa-solid fa-chevron-down"></i> View More (${filtered.length-2} hidden)`;
+      viewMoreBtn.innerHTML = showAll ? `<i class="fa-solid fa-chevron-up"></i> View Less` : `<i class="fa-solid fa-chevron-down"></i> View More (${filtered.length-4} hidden)`;
     } else {
       viewMoreBtn.style.display='none';
     }
