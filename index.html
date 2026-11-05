@@ -51,6 +51,9 @@
   .subNote{margin-top:12px;padding:12px 14px;background:var(--card);border-radius:8px;border-left:3px solid #6366f1;max-width:100%;overflow:hidden;overflow-wrap:anywhere;word-break:break-word}
   .subNote-header{font-weight:700;font-size:14px;color:var(--text);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;gap:10px}
   .subNote-content{font-size:13px;line-height:20px;white-space:pre-wrap;opacity:.9;overflow-wrap:anywhere;word-break:break-word}
+  .subActions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  .subBtn{padding:7px 10px;border-radius:8px;font-size:11px;border:none;display:inline-flex;gap:5px;align-items:center;cursor:pointer;font-weight:600}
+  .subBtn.edit{background:#e0e7ff;color:#3730a3} .subBtn.del{background:#fee2e2;color:#991b1b}
   .toolbar{display:flex;gap:10px;margin:12px 0 10px;min-width:0} .searchBox{position:relative;flex:1;min-width:0} .searchBox i{position:absolute;left:11px;top:50%;transform:translateY(-50%);opacity:.4;font-size:12px} .searchBox input{padding-left:30px;margin:0}
   .suggestions{position:absolute;top:100%;left:0;right:0;background:var(--card);border-radius:10px;box-shadow:0 10px 25px rgba(0,0,0,.18);z-index:30;display:none;max-height:200px;overflow:auto;border:1px solid var(--muted);margin-top:6px}
   .suggestions.on{display:block} .sugItem{padding:11px 13px;cursor:pointer;font-size:13px;display:flex;justify-content:space-between;align-items:center;gap:10px} .sugItem:hover{background:var(--box)}
@@ -99,6 +102,7 @@
   .viewerNavMeta{font-size:11px;opacity:.6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
   .viewerNavMeta span{display:inline-flex;gap:4px;align-items:center}
   .viewerClose{width:38px;height:38px;border-radius:50%;background:var(--muted);color:var(--text);padding:0;font-size:16px;flex-shrink:0}
+  .viewerEdit{height:38px;padding:0 14px;border-radius:999px;background:#e0e7ff;color:#3730a3;font-size:12px;flex-shrink:0;white-space:nowrap}
   .viewerBody{flex:1;overflow:auto;padding:76px 16px 34px;max-width:760px;width:100%;margin:0 auto}
   .viewerText{white-space:pre-wrap;line-height:26px;font-size:16px;background:var(--card);border-radius:14px;padding:18px;user-select:text;-webkit-user-select:text;overflow-wrap:anywhere;word-break:break-word}
   .viewerH{font-weight:800;font-size:17px;margin:18px 0 8px;line-height:1.4}
@@ -181,11 +185,11 @@
 <label>Title</label><input id="editTitle"><label>Language</label><select id="editLang"></select><label>Text</label><textarea id="editText" rows="8"></textarea>
 <label>Translate To</label><div class="compactRow"><select id="editTranslateTo"></select><button class="iconBtn" id="doEditTranslate"><i class="fa-solid fa-language"></i></button><button class="iconBtn" id="editSpeakBtn" style="background:#dcfce7;color:#166534"><i class="fa-solid fa-volume-high"></i></button></div>
 <div style="display:flex;gap:10px;margin-top:14px"><button class="full" id="saveEditBtn" style="background:var(--primary);color:var(--bg)"><i class="fa-solid fa-check"></i> Save</button><button class="full" id="cancelEditBtn" style="background:var(--muted)"><i class="fa-solid fa-xmark"></i> Cancel</button></div></div></div>
-<div id="subModal"><div class="modalBox" style="max-width:420px"><div style="display:flex;justify-content:space-between;gap:10px"><h3><i class="fa-solid fa-list-ul"></i> Add Sub-Topic</h3><button class="iconBtn" id="closeSubBtn"><i class="fa-solid fa-xmark"></i></button></div>
+<div id="subModal"><div class="modalBox" style="max-width:420px"><div style="display:flex;justify-content:space-between;gap:10px"><h3 id="subModalTitle"><i class="fa-solid fa-list-ul"></i> Add Sub-Topic</h3><button class="iconBtn" id="closeSubBtn"><i class="fa-solid fa-xmark"></i></button></div>
 <label>Sub Title</label><input id="subTitle" placeholder="e.g. Introduction, Methodology">
 <label>Note</label><div id="subTranscript" contenteditable="true" placeholder="Type like: 1. Point one 2. Point two Or record..."></div>
 <div style="display:flex;gap:10px;margin-bottom:12px"><button class="subRecBtn" id="subRecBtn"><i class="fa-solid fa-microphone"></i> Record Sub</button><span id="subStatus" style="font-size:11px;color:#6366f1;display:flex;align-items:center"></span></div>
-<button class="full" id="saveSubBtn" style="background:var(--primary);color:var(--bg)"><i class="fa-solid fa-plus"></i> Add Sub-Topic</button></div></div>
+<button class="full" id="saveSubBtn" style="background:var(--primary);color:var(--bg)"><i class="fa-solid fa-plus"></i> <span id="saveSubBtnTxt">Add Sub-Topic</span></button></div></div>
 <div id="translateModal"><div class="modalBox"><div style="display:flex;justify-content:space-between;gap:10px"><h3>Translate</h3><button class="iconBtn" id="closeTranslateBtn"><i class="fa-solid fa-xmark"></i></button></div><label>From</label><select id="fromLang"></select><label>To</label><select id="toLang"></select><label>Original</label><textarea id="origText" rows="4"></textarea><label>Translated</label><textarea id="transText" rows="4"></textarea><div style="display:flex;gap:10px"><button class="full" id="doTranslateBtn" style="background:var(--primary);color:var(--bg)">Translate</button><button class="full" id="speakTransBtn" style="background:var(--muted)"><i class="fa-solid fa-volume-high"></i> Speak</button></div><button class="full" id="saveTransBtn" style="background:#e0e7ff;color:#1e1b4b;margin-top:8px"><i class="fa-solid fa-floppy-disk"></i> Save</button></div></div>
 <div id="titlesModal"><div class="modalBox" style="max-width:420px"><div style="display:flex;justify-content:space-between;gap:10px"><h3><i class="fa-solid fa-list"></i> All Saved Notes</h3><button class="iconBtn" id="closeTitlesBtn"><i class="fa-solid fa-xmark"></i></button></div><div id="titlesList" style="margin-top:10px;max-height:60vh;overflow:auto"></div></div></div>
 <div id="confirmModal"><div class="modalBox" style="max-width:380px;text-align:center"><div class="confirmIcon delete"><i class="fa-solid fa-trash"></i></div><h3 id="confirmTitle">Delete Note?</h3><p id="confirmText" style="font-size:14px;opacity:.7;margin:0 0 18px"></p><div style="display:flex;gap:10px"><button class="full" id="confirmCancel" style="background:var(--muted)"><i class="fa-solid fa-xmark"></i> Cancel</button><button class="full" id="confirmDelete" style="background:#dc2626;color:#fff"><i class="fa-solid fa-trash"></i> Yes, Delete</button></div></div></div>
@@ -207,6 +211,7 @@
       <div class="viewerNavTitle" id="viewerNavTitle"></div>
       <div class="viewerNavMeta" id="viewerNavMeta"></div>
     </div>
+    <button class="viewerEdit" id="viewerEditBtn"><i class="fa-solid fa-pen-to-square"></i> Edit Note</button>
     <button class="viewerClose" id="viewerCloseBtn"><i class="fa-solid fa-xmark"></i></button>
   </div>
   <div class="viewerBody" id="viewerBody">
@@ -275,6 +280,7 @@ const TEMPLATES={
 function fillLangSelects(){const opts=LANGS.map(l=>`<option value="${l.code}">${l.flag} ${l.name}</option>`).join('');const optsNoAuto=LANGS.filter(l=>l.code!=='auto').map(l=>`<option value="${l.code}">${l.flag} ${l.name}</option>`).join('');document.getElementById('speechLang').innerHTML=opts;document.getElementById('translateTo').innerHTML=optsNoAuto;document.getElementById('fromLang').innerHTML=opts;document.getElementById('toLang').innerHTML=optsNoAuto;document.getElementById('editLang').innerHTML=optsNoAuto;document.getElementById('editTranslateTo').innerHTML=optsNoAuto;}
 function detectLanguage(text){const t=(text||'').toLowerCase();if(!t.trim())return LANGS[0];if(/(mmesiere|mma|nsido|idem|ufok|nwed|sosongo|eti|yak|mfin)/.test(t))return LANGS.find(l=>l.code==='ibb');if(/(emem|mokomor|efi|sosongho)/.test(t))return LANGS.find(l=>l.code==='efi');if(/(sannu|ina kwana|hausa)/.test(t))return LANGS.find(l=>l.code==='ha');if(/(bawo|kaaro|yoruba)/.test(t))return LANGS.find(l=>l.code==='yo');if(/(kedu|ndewo|igbo)/.test(t))return LANGS.find(l=>l.code==='ig');if(/(how una dey|wetin|na so|abi|shebi)/.test(t))return LANGS.find(l=>l.code==='pcm');if(/(bonjour|merci)/.test(t))return LANGS.find(l=>l.code==='fr');if(/(hola|gracias)/.test(t))return LANGS.find(l=>l.code==='es');return LANGS.find(l=>l.code==='en');}
 let isRec=false,transcript='',notes=[],editingIndex=-1,pendingDeleteIndex=-1,pendingClearAll=false,subParentIndex=-1,pendingSubParent=-1,pendingSubIndex=-1,viewerIndex=-1,viewerMainTitle='';
+let editingSubParent=-1, editingSubIndex=-1;
 let settings={dark:false,font:'17px',voiceURI:'',serverUrl:'https://kratenote-1.onrender.com',speed:0.9,pitch:1,speechLang:'auto',translateTo:'en',autoDetect:true};
 let showAll=false, searchQuery='', sortBy='newest';
 let showArchived=false;
@@ -546,13 +552,50 @@ function openNoteViewer(idx){
   document.getElementById('viewerNavTitle').textContent=viewerMainTitle;
   document.getElementById('viewerNavMeta').innerHTML=`<span><i class="fa-solid fa-calendar"></i> ${escapeHtml(cleanDateStr(n.date))}</span><span><i class="fa-solid fa-book"></i> ${escapeHtml(n.subject||'General')}</span><span>${escapeHtml(n.flag||'🇬🇧')} ${escapeHtml(n.lang||'')}</span>${n.archived?'<span><i class="fa-solid fa-box-archive"></i> Archived</span>':''}${editedLabel}`;
   document.getElementById('viewerText').innerHTML=renderViewerText(n.text, n.highlights);
-  document.getElementById('viewerSubs').innerHTML=(n.subs||[]).length? `<h3 style="font-size:15px;margin:0 0 10px">Sub-topics</h3>` + (n.subs||[]).map(s=>`<div class="subNote" data-heading="${escapeHtml(s.title)}"><div class="subNote-header"><span>${escapeHtml(s.title)}</span><small>${escapeHtml(s.date.split(',')[0])}</small></div><div class="subNote-content">${applyHighlights(escapeHtml(s.text), n.highlights)}</div></div>`).join('') : '';
+  document.getElementById('viewerSubs').innerHTML=(n.subs||[]).length? `<h3 style="font-size:15px;margin:0 0 10px">Sub-topics (${n.subs.length})</h3>` + (n.subs||[]).map((s,si)=>`<div class="subNote" data-heading="${escapeHtml(s.title)}"><div class="subNote-header"><span>${escapeHtml(s.title)}</span><small>${escapeHtml((s.date||'').split(',')[0])}</small></div><div class="subNote-content">${applyHighlights(escapeHtml(s.text), n.highlights)}</div><div class="subActions"><button class="subBtn edit" data-sub-action="edit" data-sub="${si}"><i class="fa-solid fa-pen-to-square"></i> Edit Sub-topic</button><button class="subBtn del" data-sub-action="del" data-sub="${si}"><i class="fa-solid fa-trash"></i> Delete</button></div></div>`).join('') : '<div style="text-align:center;padding:14px;opacity:.5;font-size:13px">No sub-topics yet</div>';
   document.getElementById('noteViewer').classList.add('show');
   document.body.style.overflow='hidden';
   const body=document.getElementById('viewerBody'); body.scrollTop=0;
 }
 function closeNoteViewer(){ document.getElementById('noteViewer').classList.remove('show'); document.body.style.overflow=''; viewerIndex=-1; viewerMainTitle=''; document.getElementById('hlToolbar').style.display='none'; }
 document.getElementById('viewerCloseBtn').addEventListener('click',closeNoteViewer);
+document.getElementById('viewerEditBtn').addEventListener('click',()=>{
+  if(viewerIndex<0) return;
+  editingIndex=viewerIndex;
+  document.getElementById('editTitle').value=notes[viewerIndex].title;
+  document.getElementById('editText').value=notes[viewerIndex].text;
+  document.getElementById('editLang').value=notes[viewerIndex].code||'en';
+  editModal.style.display='flex';
+});
+document.getElementById('viewerSubs').addEventListener('click',(e)=>{
+  const btn=e.target.closest('[data-sub-action]');
+  if(!btn || viewerIndex<0) return;
+  const si=parseInt(btn.dataset.sub);
+  const act=btn.dataset.subAction;
+  if(act==='del'){ openConfirmSubDelete(viewerIndex, si); }
+  else if(act==='edit'){ openEditSub(viewerIndex, si); }
+});
+function openEditSub(parentIdx, subIdx){
+  const sub=notes[parentIdx].subs[subIdx];
+  if(!sub) return;
+  editingSubParent=parentIdx; editingSubIndex=subIdx;
+  subParentIndex=parentIdx;
+  document.getElementById('subModalTitle').innerHTML='<i class="fa-solid fa-pen-to-square"></i> Edit Sub-Topic';
+  document.getElementById('saveSubBtnTxt').textContent='Save Changes';
+  document.getElementById('subTitle').value=sub.title;
+  subBox.innerHTML=''; subBox.classList.add('has-text'); subBox.textContent=sub.text;
+  subFinal=sub.text; subRec=false;
+  subRecBtn.innerHTML='<i class="fa-solid fa-microphone"></i> Record Sub'; subRecBtn.classList.remove('rec'); subStatus.textContent='';
+  subModal.style.display='flex';
+}
+function openAddSub(parentIdx){
+  editingSubParent=-1; editingSubIndex=-1; subParentIndex=parentIdx;
+  document.getElementById('subModalTitle').innerHTML='<i class="fa-solid fa-list-ul"></i> Add Sub-Topic';
+  document.getElementById('saveSubBtnTxt').textContent='Add Sub-Topic';
+  document.getElementById('subTitle').value=''; subBox.innerHTML=''; subBox.classList.remove('has-text'); subFinal=''; subRec=false;
+  subRecBtn.innerHTML='<i class="fa-solid fa-microphone"></i> Record Sub'; subRecBtn.classList.remove('rec'); subStatus.textContent='';
+  subModal.style.display='flex';
+}
 document.getElementById('viewerBody').addEventListener('scroll',()=>{
   if(viewerIndex<0) return;
   const body=document.getElementById('viewerBody');
@@ -705,19 +748,25 @@ document.getElementById('notesList').addEventListener('click',(e)=>{
   else if(action==='edit'){ editingIndex=idx; document.getElementById('editTitle').value=notes[idx].title; document.getElementById('editText').value=notes[idx].text; document.getElementById('editLang').value=notes[idx].code||'en'; editModal.style.display='flex'; }
   else if(action==='pdf'){ downloadSinglePdf(notes[idx]); }
   else if(action==='share'){ shareNote(notes[idx]); }
-  else if(action==='sub'){ subParentIndex=idx; document.getElementById('subTitle').value=''; subBox.innerHTML=''; subBox.classList.remove('has-text'); subFinal=''; subRec=false; subRecBtn.innerHTML='<i class="fa-solid fa-microphone"></i> Record Sub'; subRecBtn.classList.remove('rec'); subStatus.textContent=''; subModal.style.display='flex'; }
+  else if(action==='sub'){ openAddSub(idx); }
   else if(action==='delsub'){ const parent=parseInt(btn.dataset.parent); const subIdx=parseInt(btn.dataset.sub); openConfirmSubDelete(parent, subIdx); }
 });
-document.getElementById('closeSubBtn').addEventListener('click',()=>{ if(subRec){ try{ subRecognition.stop(); }catch(e){} subRec=false; } subModal.style.display='none'; });
+document.getElementById('closeSubBtn').addEventListener('click',()=>{ if(subRec){ try{ subRecognition.stop(); }catch(e){} subRec=false; } subModal.style.display='none'; editingSubParent=-1; editingSubIndex=-1; });
 document.getElementById('saveSubBtn').addEventListener('click',()=>{
   const t=document.getElementById('subTitle').value.trim();
   const txt=subBox.innerText.trim();
   if(!t||!txt) return alert('Fill title and sub note (type or record)');
-  if(!notes[subParentIndex].subs) notes[subParentIndex].subs=[];
-  notes[subParentIndex].subs.push({title:t,text:txt,date:new Date().toLocaleString()});
-  saveAll(); render(); if(viewerIndex>=0) openNoteViewer(viewerIndex); subModal.style.display='none'; if(subRec){ try{ subRecognition.stop(); }catch(e){} subRec=false; }
+  if(editingSubParent>=0 && editingSubIndex>=0){
+    notes[editingSubParent].subs[editingSubIndex].title=t;
+    notes[editingSubParent].subs[editingSubIndex].text=txt;
+    notes[editingSubParent].subs[editingSubIndex].edited=true;
+  } else {
+    if(!notes[subParentIndex].subs) notes[subParentIndex].subs=[];
+    notes[subParentIndex].subs.push({title:t,text:txt,date:new Date().toLocaleString()});
+  }
+  saveAll(); render(); if(viewerIndex>=0) openNoteViewer(viewerIndex); subModal.style.display='none'; editingSubParent=-1; editingSubIndex=-1; if(subRec){ try{ subRecognition.stop(); }catch(e){} subRec=false; }
 });
-subModal.addEventListener('click',(e)=>{ if(e.target===subModal){ if(subRec){ try{ subRecognition.stop(); }catch(e){} subRec=false; } subModal.style.display='none'; } });
+subModal.addEventListener('click',(e)=>{ if(e.target===subModal){ if(subRec){ try{ subRecognition.stop(); }catch(e){} subRec=false; } subModal.style.display='none'; editingSubParent=-1; editingSubIndex=-1; } });
 function applyClamp(){
   document.querySelectorAll('.noteText').forEach(el=>{
     const idx=parseInt(el.dataset.idx);
@@ -835,6 +884,7 @@ document.getElementById('speakBtn').addEventListener('click',()=>{const t=box.in
 document.getElementById('translateBtn').addEventListener('click',()=>{const t=box.innerText.trim();if(!t||t.includes('Tap mic'))return alert('No text');document.getElementById('origText').value=t;document.getElementById('fromLang').value='auto';document.getElementById('toLang').value=settings.translateTo;transModal.style.display='flex';});
 document.getElementById('doTranslateBtn').addEventListener('click',async()=>{const orig=document.getElementById('origText').value;const to=document.getElementById('toLang').value;document.getElementById('transText').value='Translating...';const tr=await translateText(orig,to);document.getElementById('transText').value=tr;});
 document.getElementById('speakTransBtn').addEventListener('click',()=>{const txt=document.getElementById('transText').value;const to=document.getElementById('toLang').value;if(txt)speakClear(txt,to);});
+document.getElementById('saveTransBtn').addEventListener('click',()=>{const txt=document.getElementById('transTransBtn');});
 document.getElementById('saveTransBtn').addEventListener('click',()=>{const txt=document.getElementById('transText').value;if(!txt)return;const lang=LANGS.find(l=>l.code===document.getElementById('toLang').value);notes.unshift({id:newNoteId(),title:'Translated to '+lang.name,text:txt,date:new Date().toLocaleString(),lang:lang.name,code:lang.code,flag:lang.flag,ts:Date.now(),subs:[],highlights:[],folder:currentFolder,subject:currentSubject,pinned:false,archived:false,edited:false,editedAt:null});saveAll();render();transModal.style.display='none';});
 fillLangSelects(); applySettings(); setEmptyState(); render();
 if(lastSyncAt){ setSyncStatus(lastSyncLabel, true); } else { setSyncStatus('Syncing...', false); }
