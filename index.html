@@ -39,7 +39,7 @@
   button{padding:12px 14px;border-radius:10px;border:none;font-weight:600;font-size:14px;cursor:pointer;display:inline-flex;gap:7px;justify-content:center;align-items:center;max-width:100%}
   .full{width:100%;margin-top:10px} #recBtn{background:var(--primary);color:var(--bg);font-size:16px;padding:16px} #recBtn.rec{background:#e11d48;color:#fff}
   .iconBtn{width:auto;padding:7px 11px;border-radius:8px;background:var(--muted);color:var(--text);font-size:12px;white-space:nowrap;flex-shrink:0}
-  #notesList{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:stretch}
+  #notesList{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;align-items:stretch}
   #notesList > div:only-child{grid-column:1 / -1}
   .note{background:var(--box);padding:14px;border-radius:12px;margin-bottom:0;position:relative;height:100%;min-width:0;overflow:hidden;display:flex;flex-direction:column;overflow-wrap:anywhere;word-break:break-word}
   .note > div{max-width:100%;min-width:0}
@@ -127,7 +127,7 @@
   .dark #backToTop, html[data-theme="dark"] #backToTop{background:#fff;color:#111}
   #backToTop.show{display:flex}
   #backToTop:active{transform:scale(.92)}
-  @media(max-width:480px){ .emptyTxt{font-size:13px} #backToTop{right:12px;bottom:12px;width:44px;height:44px} #syncTime{display:none} .syncBadge{font-size:9px;padding:3px 6px;max-width:80px} .header{padding:12px 14px} body{padding:10px} .card{padding:12px} #notesList{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px} .note{padding:12px} .noteTextWrap{max-height:190px} .noteText{font-size:13px;line-height:19px;max-height:190px} .noteActions{gap:6px} .actBtn{padding:7px 9px;font-size:10px} .folderTag,.langTag{font-size:10px;padding:4px 7px} }
+  @media(max-width:480px){ .emptyTxt{font-size:13px} #backToTop{right:12px;bottom:12px;width:44px;height:44px} #syncTime{display:none} .syncBadge{font-size:9px;padding:3px 6px;max-width:80px} .header{padding:12px 14px} body{padding:10px} .card{padding:12px} #notesList{grid-template-columns:minmax(0,1fr);gap:12px} .note{padding:12px} .noteTextWrap{max-height:190px} .noteText{font-size:13px;line-height:19px;max-height:190px} .noteActions{gap:6px} .actBtn{padding:7px 9px;font-size:10px} .folderTag,.langTag{font-size:10px;padding:4px 7px} }
 </style>
 </head>
 <body>
@@ -723,7 +723,6 @@ function applyClamp(){
     const idx=parseInt(el.dataset.idx);
     const btn=document.querySelector(`[data-action="viewfull"][data-index="${idx}"]`);
     if(!btn) return;
-    // 10 lines: 21px * 10 = 210 desktop, 19px * 10 = 190 mobile
     const limit = window.innerWidth<=480 ? 190 : 210;
     el.style.maxHeight='none'; el.style.webkitLineClamp='none';
     const fullHeight = el.scrollHeight;
@@ -763,7 +762,6 @@ function render(){
       const langTag=`<span class="langTag">${n.flag||'🇬🇧'} ${n.lang||''}</span>`;
       const archivedTag=n.archived?`<span class="archivedTag"><i class="fa-solid fa-box-archive"></i> Archived</span>`:'';
       const dt=formatDateTimeParts(n.date);
-      // Sub-topics are NOT shown in card anymore - only in full-screen viewer. This keeps card collapsed to 10 lines even if sub-topic is added.
       const archiveBtn=n.archived
         ? `<button class="actBtn unarchive" data-action="unarchive" data-index="${realIndex}"><i class="fa-solid fa-box-open"></i> Unarchive</button>`
         : `<button class="actBtn archive" data-action="archive" data-index="${realIndex}"><i class="fa-solid fa-box-archive"></i> Archive</button>`;
@@ -793,7 +791,6 @@ function render(){
     requestAnimationFrame(()=>applyClamp());
   }
 }
-// Back to top - main page + viewer
 const backToTopBtn=document.getElementById('backToTop');
 function updateBackToTop(){
   const viewerOpen=document.getElementById('noteViewer').classList.contains('show');
