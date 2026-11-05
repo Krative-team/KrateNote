@@ -57,7 +57,7 @@
   .toolbar{display:flex;gap:10px;margin:12px 0 10px;min-width:0} .searchBox{position:relative;flex:1;min-width:0} .searchBox i{position:absolute;left:11px;top:50%;transform:translateY(-50%);opacity:.4;font-size:12px} .searchBox input{padding-left:30px;margin:0}
   .suggestions{position:absolute;top:100%;left:0;right:0;background:var(--card);border-radius:10px;box-shadow:0 10px 25px rgba(0,0,0,.18);z-index:30;display:none;max-height:200px;overflow:auto;border:1px solid var(--muted);margin-top:6px}
   .suggestions.on{display:block} .sugItem{padding:11px 13px;cursor:pointer;font-size:13px;display:flex;justify-content:space-between;align-items:center;gap:10px} .sugItem:hover{background:var(--box)}
-  #settingsModal,#editModal,#translateModal,#confirmModal,#logoutModal,#subModal,#titlesModal,#voicePrimerModal,#deleteAccountModal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:999;padding:12px;backdrop-filter:blur(6px)}
+  #settingsModal,#editModal,#translateModal,#confirmModal,#logoutModal,#subModal,#titlesModal,#voicePrimerModal,#deleteAccountModal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;justify-content:center;align-items:center;z-index:9999;padding:12px;backdrop-filter:blur(6px)}
   .modalBox{background:var(--card);width:100%;max-width:560px;border-radius:16px;padding:20px;max-height:90vh;overflow:auto;animation:pop .25s ease}
   @keyframes pop{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
   .confirmIcon{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 14px}
@@ -102,7 +102,6 @@
   .viewerNavMeta{font-size:11px;opacity:.6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
   .viewerNavMeta span{display:inline-flex;gap:4px;align-items:center}
   .viewerClose{width:38px;height:38px;border-radius:50%;background:var(--muted);color:var(--text);padding:0;font-size:16px;flex-shrink:0}
-  .viewerEdit{height:38px;padding:0 14px;border-radius:999px;background:#e0e7ff;color:#3730a3;font-size:12px;flex-shrink:0;white-space:nowrap}
   .viewerBody{flex:1;overflow:auto;padding:76px 16px 34px;max-width:760px;width:100%;margin:0 auto}
   .viewerText{white-space:pre-wrap;line-height:26px;font-size:16px;background:var(--card);border-radius:14px;padding:18px;user-select:text;-webkit-user-select:text;overflow-wrap:anywhere;word-break:break-word}
   .viewerH{font-weight:800;font-size:17px;margin:18px 0 8px;line-height:1.4}
@@ -112,7 +111,7 @@
   .viewerH{scroll-margin-top:80px}
   .hl{background:#fef08a;color:#111;border-radius:3px;padding:0 2px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
   .dark .hl, html[data-theme="dark"] .hl{background:#eab308;color:#111}
-  #hlToolbar{position:fixed;z-index:3000;display:none;gap:6px;background:#111;color:#fff;border-radius:999px;padding:6px;box-shadow:0 10px 25px rgba(0,0,0,.3);max-width:calc(100vw - 16px);flex-wrap:wrap}
+  #hlToolbar{position:fixed;z-index:3500;display:none;gap:6px;background:#111;color:#fff;border-radius:999px;padding:6px;box-shadow:0 10px 25px rgba(0,0,0,.3);max-width:calc(100vw - 16px);flex-wrap:wrap}
   .dark #hlToolbar, html[data-theme="dark"] #hlToolbar{background:#fff;color:#111}
   #hlToolbar button{padding:8px 12px;border-radius:999px;font-size:12px;font-weight:700}
   #hlToolbar .hlBtn{background:#facc15;color:#111}
@@ -127,7 +126,7 @@
   .archiveTab{flex:1;padding:10px;border-radius:999px;background:var(--muted);font-size:12px;font-weight:700;cursor:pointer;border:2px solid transparent;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .archiveTab.active{background:#111;color:#fff} .dark .archiveTab.active{background:#fff;color:#111} html[data-theme="dark"] .archiveTab.active{background:#fff;color:#111}
   .archivedTag{font-size:11px;padding:5px 10px;border-radius:12px;background:#e5e7eb;color:#374151;display:inline-flex;gap:5px;align-items:center;font-weight:700}
-  #backToTop{position:fixed;right:16px;bottom:16px;z-index:1500;width:46px;height:46px;border-radius:50%;background:#111;color:#fff;border:none;box-shadow:0 10px 25px rgba(0,0,0,.25);display:none;align-items:center;justify-content:center;font-size:16px;cursor:pointer;animation:pop .2s ease}
+  #backToTop{position:fixed;right:16px;bottom:16px;z-index:5000;width:48px;height:48px;border-radius:50%;background:#111;color:#fff;border:none;box-shadow:0 10px 25px rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;font-size:16px;cursor:pointer;animation:pop .2s ease;pointer-events:auto}
   .dark #backToTop, html[data-theme="dark"] #backToTop{background:#fff;color:#111}
   #backToTop.show{display:flex}
   #backToTop:active{transform:scale(.92)}
@@ -177,7 +176,7 @@
     <button id="viewMoreBtn" class="full" style="display:none;background:var(--muted);margin-top:12px"></button>
   </div>
 </div>
-<button id="backToTop" title="Back to top"><i class="fa-solid fa-arrow-up"></i></button>
+<button id="backToTop" type="button" title="Back to top" aria-label="Back to top"><i class="fa-solid fa-arrow-up"></i></button>
 <div id="settingsModal"><div class="modalBox"><div style="display:flex;justify-content:space-between;gap:10px"><h3>Settings</h3><button class="iconBtn" id="closeSetBtn"><i class="fa-solid fa-xmark"></i></button></div><input id="serverUrl" type="hidden" value="https://kratenote-1.onrender.com"><label>Voice</label><select id="voiceSelect"></select><label>Speech Language</label><select id="speechLang"></select><label>Translate To</label><select id="translateTo"></select><label>Speed: <span id="speedVal">0.9</span></label><input type="range" id="speedRange" min="0.5" max="1.5" step="0.1" value="0.9"><label>Pitch: <span id="pitchVal">1.0</span></label><input type="range" id="pitchRange" min="0.5" max="1.5" step="0.1" value="1.0"><label>Font Size</label><select id="fontSelect"><option value="15px">Small</option><option value="17px" selected>Medium</option><option value="20px">Large</option><option value="24px">XL</option></select><div class="row"><span>Dark Mode</span><div id="darkSwitch" class="switch"><div class="dot"></div></div></div><div class="row"><span>Auto Detect</span><div class="switch on" id="autoSwitch"><div class="dot"></div></div></div><button class="full" style="background:#fee2e2;color:#b91c1c;margin-top:12px" id="clearBtn"><i class="fa-solid fa-trash"></i> Clear All Notes</button>
 <div class="dangerZone"><label style="color:#dc2626;margin:0">Danger Zone</label><small>This go permanently delete your account and everything inside am. You no fit undo am.</small><button class="full" id="deleteAccountBtn" style="background:#dc2626;color:#fff;margin-top:0"><i class="fa-solid fa-user-xmark"></i> Delete Account</button></div>
 </div></div>
@@ -211,7 +210,6 @@
       <div class="viewerNavTitle" id="viewerNavTitle"></div>
       <div class="viewerNavMeta" id="viewerNavMeta"></div>
     </div>
-    <button class="viewerEdit" id="viewerEditBtn"><i class="fa-solid fa-pen-to-square"></i> Edit Note</button>
     <button class="viewerClose" id="viewerCloseBtn"><i class="fa-solid fa-xmark"></i></button>
   </div>
   <div class="viewerBody" id="viewerBody">
@@ -552,24 +550,18 @@ function openNoteViewer(idx){
   document.getElementById('viewerNavTitle').textContent=viewerMainTitle;
   document.getElementById('viewerNavMeta').innerHTML=`<span><i class="fa-solid fa-calendar"></i> ${escapeHtml(cleanDateStr(n.date))}</span><span><i class="fa-solid fa-book"></i> ${escapeHtml(n.subject||'General')}</span><span>${escapeHtml(n.flag||'🇬🇧')} ${escapeHtml(n.lang||'')}</span>${n.archived?'<span><i class="fa-solid fa-box-archive"></i> Archived</span>':''}${editedLabel}`;
   document.getElementById('viewerText').innerHTML=renderViewerText(n.text, n.highlights);
-  document.getElementById('viewerSubs').innerHTML=(n.subs||[]).length? `<h3 style="font-size:15px;margin:0 0 10px">Sub-topics (${n.subs.length})</h3>` + (n.subs||[]).map((s,si)=>`<div class="subNote" data-heading="${escapeHtml(s.title)}"><div class="subNote-header"><span>${escapeHtml(s.title)}</span><small>${escapeHtml((s.date||'').split(',')[0])}</small></div><div class="subNote-content">${applyHighlights(escapeHtml(s.text), n.highlights)}</div><div class="subActions"><button class="subBtn edit" data-sub-action="edit" data-sub="${si}"><i class="fa-solid fa-pen-to-square"></i> Edit Sub-topic</button><button class="subBtn del" data-sub-action="del" data-sub="${si}"><i class="fa-solid fa-trash"></i> Delete</button></div></div>`).join('') : '<div style="text-align:center;padding:14px;opacity:.5;font-size:13px">No sub-topics yet</div>';
+  document.getElementById('viewerSubs').innerHTML=(n.subs||[]).length? `<h3 style="font-size:15px;margin:0 0 10px">Sub-topics (${n.subs.length})</h3>` + (n.subs||[]).map((s,si)=>`<div class="subNote" data-heading="${escapeHtml(s.title)}"><div class="subNote-header"><span>${escapeHtml(s.title)}</span><small>${escapeHtml((s.date||'').split(',')[0])}</small></div><div class="subNote-content">${applyHighlights(escapeHtml(s.text), n.highlights)}</div><div class="subActions"><button type="button" class="subBtn edit" data-sub-action="edit" data-sub="${si}"><i class="fa-solid fa-pen-to-square"></i> Edit Sub-topic</button><button type="button" class="subBtn del" data-sub-action="del" data-sub="${si}"><i class="fa-solid fa-trash"></i> Delete</button></div></div>`).join('') : '<div style="text-align:center;padding:14px;opacity:.5;font-size:13px">No sub-topics yet</div>';
   document.getElementById('noteViewer').classList.add('show');
   document.body.style.overflow='hidden';
   const body=document.getElementById('viewerBody'); body.scrollTop=0;
+  updateBackToTop();
 }
-function closeNoteViewer(){ document.getElementById('noteViewer').classList.remove('show'); document.body.style.overflow=''; viewerIndex=-1; viewerMainTitle=''; document.getElementById('hlToolbar').style.display='none'; }
+function closeNoteViewer(){ document.getElementById('noteViewer').classList.remove('show'); document.body.style.overflow=''; viewerIndex=-1; viewerMainTitle=''; document.getElementById('hlToolbar').style.display='none'; updateBackToTop(); }
 document.getElementById('viewerCloseBtn').addEventListener('click',closeNoteViewer);
-document.getElementById('viewerEditBtn').addEventListener('click',()=>{
-  if(viewerIndex<0) return;
-  editingIndex=viewerIndex;
-  document.getElementById('editTitle').value=notes[viewerIndex].title;
-  document.getElementById('editText').value=notes[viewerIndex].text;
-  document.getElementById('editLang').value=notes[viewerIndex].code||'en';
-  editModal.style.display='flex';
-});
 document.getElementById('viewerSubs').addEventListener('click',(e)=>{
   const btn=e.target.closest('[data-sub-action]');
   if(!btn || viewerIndex<0) return;
+  e.stopPropagation();
   const si=parseInt(btn.dataset.sub);
   const act=btn.dataset.subAction;
   if(act==='del'){ openConfirmSubDelete(viewerIndex, si); }
@@ -580,7 +572,7 @@ function openEditSub(parentIdx, subIdx){
   if(!sub) return;
   editingSubParent=parentIdx; editingSubIndex=subIdx;
   subParentIndex=parentIdx;
-  document.getElementById('subModalTitle').innerHTML='<i class="fa-solid fa-pen-to-square"></i> Edit';
+  document.getElementById('subModalTitle').innerHTML='<i class="fa-solid fa-pen-to-square"></i> Edit Sub-Topic';
   document.getElementById('saveSubBtnTxt').textContent='Save Changes';
   document.getElementById('subTitle').value=sub.title;
   subBox.innerHTML=''; subBox.classList.add('has-text'); subBox.textContent=sub.text;
@@ -608,6 +600,7 @@ document.getElementById('viewerBody').addEventListener('scroll',()=>{
     if(rect.top - bodyRect.top <= 90){ current=h.getAttribute('data-heading') || current; }
   });
   nav.textContent=current;
+  updateBackToTop();
 });
 let lastSelection='';
 function hideHlToolbar(){ document.getElementById('hlToolbar').style.display='none'; }
@@ -841,27 +834,34 @@ function render(){
   }
 }
 const backToTopBtn=document.getElementById('backToTop');
+function isViewerOpen(){ return document.getElementById('noteViewer').classList.contains('show'); }
 function updateBackToTop(){
-  const viewerOpen=document.getElementById('noteViewer').classList.contains('show');
   let show=false;
-  if(viewerOpen){
+  if(isViewerOpen()){
     const vb=document.getElementById('viewerBody');
-    show = vb.scrollTop > 300;
+    show = vb && vb.scrollTop > 300;
   } else {
-    show = window.scrollY > 400;
+    show = (window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0) > 400;
   }
   backToTopBtn.classList.toggle('show', show);
 }
 window.addEventListener('scroll', updateBackToTop, {passive:true});
+document.addEventListener('scroll', updateBackToTop, {passive:true});
 document.getElementById('viewerBody').addEventListener('scroll', updateBackToTop, {passive:true});
-backToTopBtn.addEventListener('click',()=>{
-  const viewerOpen=document.getElementById('noteViewer').classList.contains('show');
+function scrollToTopNow(){
+  const viewerOpen=isViewerOpen();
   if(viewerOpen){
-    document.getElementById('viewerBody').scrollTo({top:0, behavior:'smooth'});
+    const vb=document.getElementById('viewerBody');
+    if(vb){ try{ vb.scrollTo({top:0, behavior:'smooth'}); }catch(e){ vb.scrollTop=0; } setTimeout(()=>{ vb.scrollTop=0; updateBackToTop(); }, 500); }
   } else {
-    window.scrollTo({top:0, behavior:'smooth'});
+    try{ window.scrollTo({top:0, behavior:'smooth'}); }catch(e){ window.scrollTo(0,0); }
+    try{ document.documentElement.scrollTo({top:0, behavior:'smooth'}); }catch(e){}
+    try{ document.body.scrollTo({top:0, behavior:'smooth'}); }catch(e){}
+    setTimeout(()=>{ window.scrollTo(0,0); document.documentElement.scrollTop=0; document.body.scrollTop=0; updateBackToTop(); }, 500);
   }
-});
+}
+backToTopBtn.addEventListener('click', (e)=>{ e.preventDefault(); e.stopPropagation(); scrollToTopNow(); });
+backToTopBtn.addEventListener('touchend', (e)=>{ e.preventDefault(); e.stopPropagation(); scrollToTopNow(); }, {passive:false});
 document.getElementById('openSetBtn').addEventListener('click',()=>modal.style.display='flex');
 document.getElementById('closeSetBtn').addEventListener('click',()=>modal.style.display='none');
 document.getElementById('closeEditBtn').addEventListener('click',()=>editModal.style.display='none');
@@ -884,7 +884,6 @@ document.getElementById('speakBtn').addEventListener('click',()=>{const t=box.in
 document.getElementById('translateBtn').addEventListener('click',()=>{const t=box.innerText.trim();if(!t||t.includes('Tap mic'))return alert('No text');document.getElementById('origText').value=t;document.getElementById('fromLang').value='auto';document.getElementById('toLang').value=settings.translateTo;transModal.style.display='flex';});
 document.getElementById('doTranslateBtn').addEventListener('click',async()=>{const orig=document.getElementById('origText').value;const to=document.getElementById('toLang').value;document.getElementById('transText').value='Translating...';const tr=await translateText(orig,to);document.getElementById('transText').value=tr;});
 document.getElementById('speakTransBtn').addEventListener('click',()=>{const txt=document.getElementById('transText').value;const to=document.getElementById('toLang').value;if(txt)speakClear(txt,to);});
-document.getElementById('saveTransBtn').addEventListener('click',()=>{const txt=document.getElementById('transTransBtn');});
 document.getElementById('saveTransBtn').addEventListener('click',()=>{const txt=document.getElementById('transText').value;if(!txt)return;const lang=LANGS.find(l=>l.code===document.getElementById('toLang').value);notes.unshift({id:newNoteId(),title:'Translated to '+lang.name,text:txt,date:new Date().toLocaleString(),lang:lang.name,code:lang.code,flag:lang.flag,ts:Date.now(),subs:[],highlights:[],folder:currentFolder,subject:currentSubject,pinned:false,archived:false,edited:false,editedAt:null});saveAll();render();transModal.style.display='none';});
 fillLangSelects(); applySettings(); setEmptyState(); render();
 if(lastSyncAt){ setSyncStatus(lastSyncLabel, true); } else { setSyncStatus('Syncing...', false); }
@@ -892,6 +891,7 @@ setInterval(()=>{ refreshSyncTime(); }, 30000);
 pullNotesFromServer();
 window.addEventListener('online', ()=>{ pullNotesFromServer(); });
 document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) pullNotesFromServer(); });
+setTimeout(updateBackToTop, 500);
 </script>
 </body>
 </html>
