@@ -580,7 +580,7 @@ function openEditSub(parentIdx, subIdx){
   if(!sub) return;
   editingSubParent=parentIdx; editingSubIndex=subIdx;
   subParentIndex=parentIdx;
-  document.getElementById('subModalTitle').innerHTML='<i class="fa-solid fa-pen-to-square"></i> Edit Sub-Topic';
+  document.getElementById('subModalTitle').innerHTML='<i class="fa-solid fa-pen-to-square"></i> Edit';
   document.getElementById('saveSubBtnTxt').textContent='Save Changes';
   document.getElementById('subTitle').value=sub.title;
   subBox.innerHTML=''; subBox.classList.add('has-text'); subBox.textContent=sub.text;
