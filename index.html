@@ -199,7 +199,7 @@
   <h3 style="margin:0 0 6px">Enable Voice Notes?</h3>
   <p style="font-size:13px;opacity:.65;margin:0 0 16px;line-height:1.5">Speak and KrateNote go type am for you. Your browser go ask once to confirm, tap <b>Allow</b> there.</p>
   <div class="primerFeature"><i class="fa-solid fa-bolt"></i><div><b>Instant voice to text</b><br><small>Speak, we type am for you</small></div></div>
-  <div class="primerFeature"><i class="fa-solid fa-language"></i><div><b>30 languages</b><br><small>English, Ibibio, Yoruba, Hausa, Pidgin &amp; more</small></div></div>
+  <div class="primerFeature"><i class="fa-solid fa-language"></i><div><b>30 languages</b><br><small>English, Ibibio, Efik, Yoruba, Hausa, Pidgin &amp; more</small></div></div>
   <div class="primerFeature"><i class="fa-solid fa-lock"></i><div><b>Private</b><br><small>Audio only used to create your note</small></div></div>
   <div style="display:flex;gap:10px;margin-top:16px"><button class="full" id="primerCancelBtn" style="background:var(--muted)">Type Instead</button><button class="full" id="primerAllowBtn" style="background:#6366f1;color:#fff"><i class="fa-solid fa-microphone"></i> Enable Voice</button></div>
   <small style="display:block;margin-top:12px;opacity:.5;font-size:11px">You can still type notes manually without voice. You fit enable voice later anytime.</small>
@@ -275,10 +275,19 @@ const TEMPLATES={
   journal:{title:'Journal - '+new Date().toLocaleDateString(),text:'Today I feel...\n\nGrateful for:\n- \n\nWhat happened today:\n\nTomorrow I will:\n'},
   idea:{title:'Idea - ',text:'Idea:\n\nWhy it matters:\n\nHow to start:\n1. \n'}
 };
-// PIDGIN ONLY FOR VOICE / LANGUAGE - UI STAYS ENGLISH
-const PIDGIN_WORDS=['wetin','abeg','na wa','e don do','how far','shebi','wahala','na so','jollof','gbese','omo','ehen','sef','dey','don','go','make','no wahala','wahala','chop','sabi','waka','gist','japa','yawa','e choke','no be','na im','how una dey','wetin dey','e be like','abeg','bros','sis','oga','madam','nawa','wahala no dey','e don cast','e don set','how e be','you sabi','i sabi','we go','make we','no vex','e sweet','e pain','e hard','e soft','baba','mama','pikin','chop','sleep','waka','come','go','give','take','see','hear','talk','yarn'];
+// PIDGIN + IBIBIO + EFIK FOR VOICE / LANGUAGE ONLY - UI STAYS ENGLISH
+const PIDGIN_WORDS=['wetin','abeg','na wa','e don do','how far','shebi','wahala','na so','jollof','gbese','omo','ehen','sef','dey','don','go','make','no wahala','chop','sabi','waka','gist','japa','yawa','e choke','na im','wetin dey','e be like','bros','sis','oga','madam','nawa','e don cast','e don set','how e be','you sabi','i sabi','we go','make we','no vex','e sweet','e pain','e hard','e soft','baba','mama','pikin','chop','sleep','waka','come','give','take','see','hear','talk','yarn'];
+const IBIBIO_WORDS=['idem mfo','idem mmi','mmesiere','sosongo','yak','mfin','nwed','eti','ufok','mma','ete','ndo','mfon','abasi','ekpo','ima','mkpo','utuen','ukot','ubok','esit','idem','mfon o','okom','nne','nna','afia','mbok','ekam','edem','owo','adaha','ukana','mbo','idia','nno','eno','ami','afo','enyene','mmong','nsido','ukem','itie','isong','ufan','mbem','ekpe','mkpa','mbiet','ukod','nsuk','ntak','afia','mme','mbok','sosongo','mmesiere'];
+const EFIK_WORDS=['sosongho','sosong ho','mbre','ekom','akam','ndito','ubok','esen','ibom','ekpo','idem mfo','idem mmi','mmesiere','mfon','ndo','abasi','ufok','mma','ete','afia','mbok','ekam','edem','owo','mbo','idia','nno','eno','ami','afo','enyene','mmong','nsido','ukem','itie','isong','ufan','mbem','ekpe','mkpa','mbiet','ukod','nsuk','ntak','mme','mbok','sosongho','mmesiere','efi','efik','calabar','akwa','mbre','okom','nne','nna','yak','mfin','nwed','eti','mkpo','utuen','ukot','esit'];
+const EFIK_STRONG=['sosongho','mbre','ekom','akam','efik','calabar','ibom'];
 const PIDGIN_MAP=[
   ['how are you','how you dey'],['how are you doing','how you dey'],['what is happening','wetin dey happen'],['what happened','wetin happen'],['i am going','i dey go'],['i am coming','i dey come'],['i don\'t know','i no sabi'],['i do not know','i no sabi'],['i know','i sabi'],['please','abeg'],['thank you','thank you, e sweet me'],['thank you very much','thank you well well'],['good morning','good morning, how you dey'],['good afternoon','good afternoon'],['good evening','good evening'],['it is good','e good'],['it is very good','e good well well'],['it is difficult','e hard'],['it is easy','e easy'],['i am tired','i don tire'],['i am hungry','hunger dey catch me'],['i am happy','i dey happy, my belle sweet me'],['let us go','make we go'],['let\'s go','make we go'],['come here','come here abeg'],['go away','comot for here'],['do not worry','no worry, no wahala'],['don\'t worry','no worry'],['no problem','no wahala'],['everything is fine','everything don set'],['what do you want','wetin you want'],['where are you','where you dey'],['where are you going','where you dey go'],['i want','i want'],['i need','i need'],['money','money'],['my friend','my guy'],['my brother','my bro'],['my sister','my sis'],['understand','sabi'],['do you understand','you sabi?'],['i understand','i sabi'],['listen','make you hear'],['look','make you see'],['speak','talk'],['talk to me','yarn me'],['i love you','i love you well well'],['god bless you','god go bless you'],['well done','well done, you try'],['congratulations','congrats, e sweet me'],['i am sorry','abeg, no vex'],['sorry','sorry, abeg no vex'],['yes','yes na'],['no','no, e no be so'],['maybe','e fit be'],['tomorrow','tomorrow'],['today','today'],['yesterday','yesterday'],['now','now now'],['later','later'],['quickly','quick quick'],['slowly','small small'],['big','big'],['small','small'],['good','good'],['bad','bad, e no good'],['beautiful','fine well well'],['meeting','meeting'],['class','class'],['church','church'],['school','school'],['work','work'],['business','business'],['idea','idea'],['food','chop'],['eat','chop'],['drink','drink'],['sleep','sleep'],['go to sleep','go sleep'],['wake up','wake up'],['i will come','i go come'],['i will go','i go go'],['we will see','we go see'],['it will happen','e go happen']
+];
+const IBIBIO_MAP=[
+  ['how are you','Idem mfo?'],['how are you doing','Idem mfo?'],['i am fine','Idem mmi mfon'],['i am good','Idem mmi mfon'],['i am happy','Idem mmi mfon, esit mmi anam'],['thank you','Sosongo'],['thank you very much','Sosongo ke idem'],['thank you so much','Sosongo ke idem'],['good morning','Mmesiere emem'],['good afternoon','Mmesiere uwem'],['good evening','Mmesiere mbubreyo'],['welcome','Nno, yak abasi'],['come here','Di mi'],['come','Di'],['go','Ka'],['go away','Ka ke mbok'],['where are you','Afo amie?'],['where are you going','Afo aka ke meme?'],['what is your name','Enyin mfo edi nso?'],['my name is','Enyin mmi edi'],['i love you','Nma fi'],['i like you','Nma fi'],['god bless you','Abasi odiong fi'],['god bless','Abasi odiong'],['please','Mbok'],['sorry','Mbok, ku ndo'],['i am sorry','Mbok, ku ndo'],['do not worry','Ku ndo'],['don\'t worry','Ku ndo'],['no problem','Idiagha'],['yes','Ee'],['no','Mba'],['maybe','Ekemekeme'],['today','Mfin'],['tomorrow','Uwak'],['yesterday','Nwed'],['now','Nsin'],['later','Ekem'],['money','Okuk'],['food','Udia'],['water','Mmiong'],['eat','Dia'],['drink','Nwong'],['sleep','Diana'],['go to sleep','Ka dia nna'],['wake up','Yakka'],['house','Ufok'],['home','Ufok'],['mother','Mma'],['father','Ete'],['my mother','Mma mmi'],['my father','Ete mmi'],['friend','Ufan'],['my friend','Ufan mmi'],['brother','Ete mmi'],['sister','Ete mmi'],['child','Eyen'],['children','Nditọ'],['man','Eren'],['woman','Mmon'],['big','Ikpong'],['small','Ntịn'],['good','Mfon'],['bad','Idiọk'],['beautiful','Mfon ke idem'],['church','Ufok Abasi'],['school','Ufok nwed'],['work','Utom'],['meeting','Mbono'],['class','Nwed'],['business','Utom'],['idea','Idem'],['understand','Ukot'],['do you understand','Afo ukot?'],['i understand','Mukot'],['i do not understand','Ndukotke'],['listen','Kop'],['look','Se'],['speak','Sio'],['talk','Sio'],['talk to me','Sio ye ami'],['well done','Afo anam mfon'],['congratulations','Sosongo, Abasi odiong fi'],['i am tired','Idem mmi amaha'],['i am hungry','Ukara anam mi'],['it is good','O mfon'],['it is very good','O mfon ke idem'],['everything is fine','Afia amanam'],['what do you want','Nso afo oyom?'],['i want','Nyom'],['i need','Nyom'],['let us go','Yak ika'],['let\'s go','Yak ika'],['we will see','Iya ikot'],['it will happen','Eye nam']
+];
+const EFIK_MAP=[
+  ['how are you','Idem mfo?'],['how are you doing','Idem mfo?'],['i am fine','Idem mmi mfon'],['i am good','Idem mmi mfon'],['i am happy','Idem mmi mfon, esit mmi anam'],['thank you','Sosongho'],['thank you very much','Sosongho ke idem'],['thank you so much','Sosongho ke idem'],['good morning','Mmesiere emem'],['good afternoon','Mmesiere uwem'],['good evening','Mmesiere mbubreyo'],['welcome','Nno, yak Abasi'],['come here','Di mi'],['come','Di'],['go','Ka'],['go away','Ka ke mbok'],['where are you','Afo amie?'],['where are you going','Afo aka ke meme?'],['what is your name','Enyin mfo edi nso?'],['my name is','Enyin mmi edi'],['i love you','Nma fi'],['i like you','Nma fi'],['god bless you','Abasi odiong fi'],['god bless','Abasi odiong'],['please','Mbok'],['sorry','Mbok, ku ndo'],['i am sorry','Mbok, ku ndo'],['do not worry','Ku ndo'],['don\'t worry','Ku ndo'],['no problem','Idiagha'],['yes','Ee'],['no','Mba'],['maybe','Ekemekeme'],['today','Mfin'],['tomorrow','Uwak'],['yesterday','Nwed'],['now','Nsin'],['later','Ekem'],['money','Okuk'],['food','Udia'],['water','Mmiong'],['eat','Dia'],['drink','Nwong'],['sleep','Diana'],['go to sleep','Ka dia nna'],['wake up','Yakka'],['house','Ufok'],['home','Ufok'],['mother','Mma'],['father','Ete'],['my mother','Mma mmi'],['my father','Ete mmi'],['friend','Ufan'],['my friend','Ufan mmi'],['brother','Ete mmi'],['sister','Ete mmi'],['child','Eyen'],['children','Ndito'],['man','Eren'],['woman','Mmon'],['big','Ikpong'],['small','Ntin'],['good','Mfon'],['bad','Idiok'],['beautiful','Mfon ke idem'],['church','Ufok Abasi'],['school','Ufok nwed'],['work','Utom'],['meeting','Mbono'],['class','Nwed'],['business','Utom'],['idea','Idem'],['understand','Ukot'],['do you understand','Afo ukot?'],['i understand','Mukot'],['i do not understand','Ndukotke'],['listen','Kop'],['look','Se'],['speak','Sio'],['talk','Sio'],['talk to me','Sio ye ami'],['well done','Afo anam mfon'],['congratulations','Sosongho, Abasi odiong fi'],['i am tired','Idem mmi amaha'],['i am hungry','Ukara anam mi'],['it is good','O mfon'],['it is very good','O mfon ke idem'],['everything is fine','Afia amanam'],['what do you want','Nso afo oyom?'],['i want','Nyom'],['i need','Nyom'],['let us go','Yak ika'],['let\'s go','Yak ika'],['we will see','Iya ikot'],['it will happen','Eye nam'],['calabar','Calabar']
 ];
 function toPidgin(text){
   let out=' '+String(text||'')+' ';
@@ -286,18 +295,38 @@ function toPidgin(text){
     const re=new RegExp('\\b'+en.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','gi');
     out=out.replace(re,' '+pcm+' ');
   });
-  out=out.replace(/\bI am\b/gi,'I dey').replace(/\bam I\b/gi,'I dey').replace(/\bI have\b/gi,'I get').replace(/\bYou are\b/gi,'You dey').replace(/\bWe are\b/gi,'We dey').replace(/\bThey are\b/gi,'Dem dey').replace(/\bHe is\b/gi,'E dey').replace(/\bShe is\b/gi,'E dey').replace(/\bIt is\b/gi,'E be').replace(/\bThis is\b/gi,'Na this be').replace(/\bThat is\b/gi,'Na that be').replace(/\bWhat\b/gi,'Wetin').replace(/\bWhy\b/gi,'Why').replace(/\bWhen\b/gi,'When');
+  out=out.replace(/\bI am\b/gi,'I dey').replace(/\bI have\b/gi,'I get').replace(/\bYou are\b/gi,'You dey').replace(/\bWe are\b/gi,'We dey').replace(/\bThey are\b/gi,'Dem dey').replace(/\bHe is\b/gi,'E dey').replace(/\bShe is\b/gi,'E dey').replace(/\bIt is\b/gi,'E be').replace(/\bThis is\b/gi,'Na this be').replace(/\bThat is\b/gi,'Na that be').replace(/\bWhat\b/gi,'Wetin');
+  return out.replace(/\s+/g,' ').trim();
+}
+function toIbibio(text){
+  let out=' '+String(text||'')+' ';
+  IBIBIO_MAP.forEach(([en,ibb])=>{
+    const re=new RegExp('\\b'+en.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','gi');
+    out=out.replace(re,' '+ibb+' ');
+  });
+  return out.replace(/\s+/g,' ').trim();
+}
+function toEfik(text){
+  let out=' '+String(text||'')+' ';
+  EFIK_MAP.forEach(([en,efi])=>{
+    const re=new RegExp('\\b'+en.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','gi');
+    out=out.replace(re,' '+efi+' ');
+  });
   return out.replace(/\s+/g,' ').trim();
 }
 function fillLangSelects(){const opts=LANGS.map(l=>`<option value="${l.code}">${l.flag} ${l.name}</option>`).join('');const optsNoAuto=LANGS.filter(l=>l.code!=='auto').map(l=>`<option value="${l.code}">${l.flag} ${l.name}</option>`).join('');document.getElementById('speechLang').innerHTML=opts;document.getElementById('translateTo').innerHTML=optsNoAuto;document.getElementById('fromLang').innerHTML=opts;document.getElementById('toLang').innerHTML=optsNoAuto;document.getElementById('editLang').innerHTML=optsNoAuto;document.getElementById('editTranslateTo').innerHTML=optsNoAuto;}
 function detectLanguage(text){
   const t=(text||'').toLowerCase();
   if(!t.trim())return LANGS[0];
-  let pidginScore=0;
-  PIDGIN_WORDS.forEach(w=>{ if(t.includes(w)) pidginScore++; });
+  let efiStrong=0; EFIK_STRONG.forEach(w=>{ if(t.includes(w)) efiStrong++; });
+  if(efiStrong>=1) return LANGS.find(l=>l.code==='efi');
+  let ibbScore=0; IBIBIO_WORDS.forEach(w=>{ if(t.includes(w)) ibbScore++; });
+  let efiScore=0; EFIK_WORDS.forEach(w=>{ if(t.includes(w)) efiScore++; });
+  if(efiScore>=2 && efiScore>ibbScore) return LANGS.find(l=>l.code==='efi');
+  if(ibbScore>=1) return LANGS.find(l=>l.code==='ibb');
+  if(efiScore>=1) return LANGS.find(l=>l.code==='efi');
+  let pidginScore=0; PIDGIN_WORDS.forEach(w=>{ if(t.includes(w)) pidginScore++; });
   if(pidginScore>=1) return LANGS.find(l=>l.code==='pcm');
-  if(/(mmesiere|mma|nsido|idem|ufok|nwed|sosongo|eti|yak|mfin)/.test(t))return LANGS.find(l=>l.code==='ibb');
-  if(/(emem|mokomor|efi|sosongho)/.test(t))return LANGS.find(l=>l.code==='efi');
   if(/(sannu|ina kwana|hausa)/.test(t))return LANGS.find(l=>l.code==='ha');
   if(/(bawo|kaaro|yoruba)/.test(t))return LANGS.find(l=>l.code==='yo');
   if(/(kedu|ndewo|igbo)/.test(t))return LANGS.find(l=>l.code==='ig');
@@ -410,10 +439,9 @@ function speakClear(text,forcedLang=null){
   let langCode=forcedLang||settings.speechLang;
   if(langCode==='auto') langCode=detectLanguage(text).code;
   const langObj=LANGS.find(l=>l.code===langCode)||LANGS[1];
-  // Pidgin voice = en-NG, so e sound Naija
-  u.lang = langCode==='pcm' ? 'en-NG' : (langObj.tts||'en-US');
+  u.lang = (langCode==='pcm' || langCode==='ibb' || langCode==='efi') ? 'en-NG' : (langObj.tts||'en-US');
   let voice=null;
-  if(langCode==='pcm'){
+  if(langCode==='pcm' || langCode==='ibb' || langCode==='efi'){
     voice=voices.find(v=>v.lang && v.lang.toLowerCase().startsWith('en-ng')) || voices.find(v=>v.lang && v.lang.toLowerCase().startsWith('en')) || voices.find(v=>v.voiceURI===settings.voiceURI) || voices[0];
   } else {
     voice=voices.find(v=>v.voiceURI===settings.voiceURI)||voices[0];
@@ -427,9 +455,8 @@ function createRecognition(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(!SR){alert('Use Chrome for voice');return null;}
   const rec=new SR(); rec.continuous=true; rec.interimResults=true;
-  // Pidgin recognition: use en-NG, else en-US. Auto still uses en-US but detects Pidgin from words.
   let recLang='en-US';
-  if(settings.speechLang==='pcm') recLang='en-NG';
+  if(settings.speechLang==='pcm' || settings.speechLang==='ibb' || settings.speechLang==='efi') recLang='en-NG';
   else if(settings.speechLang && settings.speechLang!=='auto'){
     const lo=LANGS.find(l=>l.code===settings.speechLang);
     if(lo) recLang=lo.tts||'en-US';
@@ -473,9 +500,9 @@ recBtn.addEventListener('click',async()=>{
   }
 });
 async function translateText(text,to){
-  if(to==='pcm'){
-    return toPidgin(text);
-  }
+  if(to==='pcm') return toPidgin(text);
+  if(to==='ibb') return toIbibio(text);
+  if(to==='efi') return toEfik(text);
   try{statusTxt.textContent='Translating...';const res=await fetch(settings.serverUrl.replace(/\/$/,'')+'/translate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:text.substring(0,3000),to:to})});const data=await res.json();statusTxt.textContent='';if(data.translated)return data.translated;return text;}catch(e){statusTxt.textContent='';return text;}
 }
 function saveNote(){const txt=(box.innerText||'').trim()||transcript.trim();if(!txt||txt.includes('Tap mic')||txt==='Listening...'||txt.length<2)return alert('Type or record something first!');let title=document.getElementById('titleInput').value.trim();if(!title){ title=txt.split('\n')[0].split(' ').slice(0,6).join(' '); } const lang=detectLanguage(txt);notes.unshift({id:newNoteId(),title,text:txt,date:new Date().toLocaleString(),lang:lang.name,code:lang.code,flag:lang.flag, ts: Date.now(), subs:[], highlights:[], folder:currentFolder, subject:currentSubject, pinned:false, archived:false, edited:false, editedAt:null});saveAll();render();document.getElementById('titleInput').value='';setEmptyState();document.querySelectorAll('.tplBtn').forEach(b=>b.classList.remove('active'));document.querySelector('[data-tpl="blank"]').classList.add('active');}
@@ -735,7 +762,7 @@ function createSubRecognition(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition; if(!SR){ alert('Use Chrome'); return null; }
   const rec=new SR(); rec.continuous=true; rec.interimResults=true;
   let recLang='en-US';
-  if(settings.speechLang==='pcm') recLang='en-NG';
+  if(settings.speechLang==='pcm' || settings.speechLang==='ibb' || settings.speechLang==='efi') recLang='en-NG';
   else if(settings.speechLang && settings.speechLang!=='auto'){ const lo=LANGS.find(l=>l.code===settings.speechLang); if(lo) recLang=lo.tts||'en-US'; }
   rec.lang=recLang;
   rec.onstart=()=>{ subStatus.textContent='Listening...'; subBox.classList.add('has-text'); if(!subFinal) subBox.textContent=''; };
