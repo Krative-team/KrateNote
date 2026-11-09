@@ -60,7 +60,6 @@ if DATABASE_URL:
                     PRIMARY KEY (email, note_id)
                 )
             """)
-            # Migrations for old tables
             cur.execute("ALTER TABLE notes ADD COLUMN IF NOT EXISTS archived BOOLEAN DEFAULT FALSE")
             cur.execute("ALTER TABLE notes ADD COLUMN IF NOT EXISTS edited BOOLEAN DEFAULT FALSE")
             cur.execute("ALTER TABLE notes ADD COLUMN IF NOT EXISTS edited_at BIGINT DEFAULT 0")
@@ -129,10 +128,8 @@ def load_notes_for(email):
                 if isinstance(hl, str):
                     try: hl=json.loads(hl)
                     except: hl=[]
-                # Clean old "(edited)" wey dey inside date before
                 raw_date = (r['date'] or "").replace(" (edited)", "").replace("(edited)", "").strip()
                 is_edited = bool(r.get('edited', False) if isinstance(r, dict) else False)
-                # If old note get "(edited)" for date, treat am as edited
                 if "(edited)" in (r['date'] or ""):
                     is_edited = True
                 edited_at = 0
@@ -165,7 +162,6 @@ def save_notes_for(email, notes_list):
             for n in notes_list:
                 clean_date = str(n.get("date","") or "").replace(" (edited)", "").replace("(edited)", "").strip()
                 is_edited = bool(n.get("edited", False))
-                # Fallback: if date get (edited) text, mark edited
                 if "(edited)" in str(n.get("date","") or ""):
                     is_edited = True
                 edited_at = int(n.get("editedAt", 0) or n.get("edited_at", 0) or 0)
@@ -210,6 +206,7 @@ def home():
         "key_exists": bool(GROQ_KEY),
         "key_len": len(GROQ_KEY),
         "translate": True,
+        "transcribe": True,
         "auth": True,
         "model": "openai/gpt-oss-20b + dictionary",
         "db": "neon-postgres" if db else "NOT CONNECTED - CHECK DATABASE_URL",
@@ -272,7 +269,6 @@ def me():
         return jsonify({"error": "Account deleted"}), 401
     return jsonify({"email": email, "name": users[email]["name"]})
 
-# ===== NOTES SYNC =====
 @app.route("/notes", methods=["GET", "POST", "OPTIONS"])
 def notes_sync():
     if request.method == "OPTIONS":
@@ -282,7 +278,6 @@ def notes_sync():
         return jsonify({"error": "Invalid token", "details": err}), 401
     if request.method == "GET":
         return jsonify({"notes": load_notes_for(email), "email": email})
-    # POST - replace all notes for this user with list from phone
     data = request.get_json(silent=True) or {}
     incoming = data.get("notes", [])
     if not isinstance(incoming, list):
@@ -316,17 +311,38 @@ def transcribe():
         return "", 200
     if not client:
         return jsonify({"error": "Groq client not ready"}), 500
-    if 'file' not in request.files:
+    file = None
+    if 'file' in request.files:
+        file = request.files['file']
+    elif 'audio' in request.files:
+        file = request.files['audio']
+    else:
         return jsonify({"error": "No file"}), 400
-    file = request.files['file']
+    if file.filename == "":
+        return jsonify({"error": "Empty file"}), 400
+    lang = (request.form.get("language") or request.form.get("lang") or "en").lower()
+    if "-" in lang:
+        lang = lang.split("-")[0]
+    if lang in ["pcm", "ibb", "efi"]:
+        lang = "en"
+    if lang not in ["en","ha","yo","ig","fr","es","de","pt","it","nl","ar","zh","ja","ko","ru","hi","sw"]:
+        lang = "en"
     try:
+        audio_bytes = file.read()
+        if len(audio_bytes) < 500:
+            return jsonify({"text": "", "language": lang})
+        filename = file.filename or "chunk.webm"
+        if "." not in filename:
+            filename = "chunk.webm"
         transcription = client.audio.transcriptions.create(
-            file=(file.filename, file.read()),
+            file=(filename, audio_bytes),
             model="whisper-large-v3",
+            language=lang,
+            prompt="Classroom lecture transcription. Lecturer is dictating notes in English, sometimes Nigerian Pidgin. Transcribe clearly, with punctuation. Keep technical terms, names and numbers accurate.",
             response_format="verbose_json",
             temperature=0.0
         )
-        return jsonify({"text": transcription.text, "language": getattr(transcription, 'language', 'en')})
+        return jsonify({"text": transcription.text or "", "language": getattr(transcription, 'language', lang)})
     except Exception as e:
         print(f"Transcribe error: {e}")
         return jsonify({"error": str(e)}), 500
