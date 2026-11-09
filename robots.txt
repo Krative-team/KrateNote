@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://krative-team.github.io/KrateNote/sitemap.xml
