@@ -1,23 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>KrateNote - Speech to text transcription & translation</title>
-<meta name="description" content="KrateNote is a voice note app for students. Record lectures clearly even from back bench with Class Mode, transcribe with Whisper, translate notes to Pidgin, Ibibio, Efik, Yoruba, Hausa and 30 languages. Save, share and export to PDF.">
-<meta name="keywords" content="KrateNote, Krate Note, voice notes, lecture recorder, transcribe lectures, student notes app Nigeria, Pidgin translator, Ibibio, Efik, class notes app">
-<meta name="author" content="Krative Team">
-<meta name="robots" content="index, follow, max-image-preview:large">
-<meta name="googlebot" content="index, follow">
-<link rel="canonical" href="https://krative-team.github.io/KrateNote/login.html">
-<meta property="og:title" content="KrateNote - Record Lectures Clearly, Even From Back Bench">
-<meta property="og:description" content="Class Mode captures lecturer voice from far distance with Whisper. Save, translate, share notes.">
-<meta property="og:url" content="https://krative-team.github.io/KrateNote/">
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="KrateNote">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="KrateNote - Voice Notes for Students">
-<meta name="twitter:description" content="Record lectures from far distance, transcribe with Whisper, translate to Pidgin, Ibibio, Efik and more.">
+<title>Login - KrateNote</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#111111">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -25,20 +10,8 @@
 <meta name="apple-mobile-web-app-title" content="KrateNote">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  "name": "KrateNote",
-  "applicationCategory": "EducationalApplication",
-  "operatingSystem": "Web, Android, iOS",
-  "url": "https://krative-team.github.io/KrateNote/",
-  "description": "KrateNote helps students record lectures clearly even from back bench with Class Mode, transcribe with Whisper, and translate notes to Pidgin, Ibibio, Efik, Yoruba, Hausa and 30 languages.",
-  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "NGN" },
-  "author": { "@type": "Organization", "name": "Krative Team", "url": "https://krative-team.github.io/KrateNote/" }
-}
-</script>
 <script>
+  // THEME SYNC: Follow Settings from index.html - no flash
   (function(){
     try{
       var t = localStorage.getItem('k_theme');
@@ -53,8 +26,7 @@
 <style>
   :root{--bg:#F6F7FB;--card:#fff;--text:#111;--muted:#eee;--primary:#111}
   html[data-theme="dark"]{--bg:#121212;--card:#1e1e1e;--text:#fff;--muted:#2a2a2a;--primary:#fff}
-  *{box-sizing:border-box;font-family:-apple-system,sans-serif} body{margin:0;background:var(--bg);color:var(--text);display:flex;min-height:100vh;align-items:center;justify-content:center;padding:16px;flex-direction:column}
-  .wrap{width:100%;max-width:400px}
+  *{box-sizing:border-box;font-family:-apple-system,sans-serif} body{margin:0;background:var(--bg);color:var(--text);display:flex;min-height:100vh;align-items:center;justify-content:center;padding:16px}
   .box{background:var(--card);color:var(--text);width:100%;max-width:400px;border-radius:20px;padding:28px;box-shadow:0 10px 40px rgba(0,0,0,.08)}
   .logo{text-align:center;margin-bottom:20px} .logo i{font-size:42px;background:#111;color:#fff;width:64px;height:64px;border-radius:16px;display:inline-flex;align-items:center;justify-content:center}
   h2{margin:8px 0 4px;text-align:center} .sub{text-align:center;opacity:.6;font-size:14px;margin-bottom:20px}
@@ -63,55 +35,18 @@
   button{width:100%;padding:14px;border-radius:12px;border:none;background:var(--primary);color:var(--bg);font-weight:700;font-size:15px;cursor:pointer;display:flex;gap:8px;justify-content:center;align-items:center}
   button:disabled{opacity:.6} .link{text-align:center;margin-top:16px;font-size:14px} .link a{color:#6366f1;text-decoration:none;font-weight:600}
   .error{background:#fee2e2;color:#991b1b;padding:10px;border-radius:10px;font-size:13px;margin-bottom:12px;display:none} .error.on{display:block}
-  .seo{margin-top:22px;background:var(--card);border-radius:16px;padding:20px;font-size:13px;line-height:1.65}
-  .seo h2{font-size:16px;text-align:left;margin:0 0 8px} .seo h3{font-size:14px;margin:16px 0 6px} .seo p{opacity:.85;margin:0 0 10px} .seo ul{margin:6px 0 10px;padding-left:18px} .seo li{margin-bottom:6px;opacity:.85}
-  .seo details{border-top:1px solid var(--muted);padding:10px 0} .seo summary{font-weight:700;cursor:pointer} .seo details p{margin-top:6px}
-  .footer{font-size:11px;opacity:.5;text-align:center;margin-top:14px;line-height:1.5}
 </style>
 </head>
 <body>
-<div class="wrap">
 <div class="box">
   <div class="logo"><i class="fa-solid fa-microphone-lines"></i></div>
   <h2>Welcome back</h2>
   <p class="sub">Login to KrateNote</p>
   <div id="err" class="error"></div>
-  <input id="email" type="email" placeholder="Email address" autocomplete="email">
-  <input id="password" type="password" placeholder="Password" autocomplete="current-password">
+  <input id="email" type="email" placeholder="Email address">
+  <input id="password" type="password" placeholder="Password">
   <button id="loginBtn"><i class="fa-solid fa-right-to-bracket"></i> Login</button>
   <div class="link">No account? <a href="register.html">Create one</a></div>
-</div>
-
-<!-- SEO CONTENT: This is what Google reads. It does not affect login. -->
-<main class="seo">
-  <h2>KrateNote</h2>
-  <p><strong>KrateNote;</strong> a speech to text transcription app with translation features, with 25+ languages.</p>
-
-  <h3>Why KrateNote?</h3>
-  <ul>
-    <li><strong>Record notes from far distance</strong> — Mic boost + noise filter</li>
-    <li><strong>Auto-transcribe to text</strong> — Whisper transcription, no missing words</li>
-    <li><strong>Translate notes instantly</strong> — Pidgin, Ibibio, Efik, Yoruba, Hausa, Igbo, French and more</li>
-    <li><strong>Save, share and export to PDF</strong> — Organise by folder &amp; subject</li>
-  </ul>
-
-  <h3>How KrateNote works</h3>
-  <p>1. Login or create account &nbsp;•&nbsp; 2. Choose folder &amp; subject &nbsp;•&nbsp; 3. Tap <strong>Class Mode</strong> &nbsp;•&nbsp; 4. Tap START RECORDING &nbsp;•&nbsp; 5. Tap SAVE. Your notes sync across devices.</p>
-
-  <details>
-    <summary>Can KrateNote record speech from far distance?</summary>
-    <p>Yes. Class Mode uses mic boost, noise suppression and Whisper transcription to capture voice clearly even from distance.</p>
-  </details>
-  <details>
-    <summary>Does KrateNote translate to Pidgin, Ibibio and Efik?</summary>
-    <p>Yes. KrateNote translates notes to Nigerian Pidgin, Ibibio, Efik, Yoruba, Hausa, Igbo and 25+ other languages.</p>
-  </details>
-  <details>
-    <summary>Is KrateNote free?</summary>
-    <p>Yes. User can create an account, record, transcribe and save notes for free.</p>
-  </details>
-</main>
-<div class="footer">© 2026 KrateNote by Krative Team — Speech to text transcription app<br><a href="./" style="color:#6366f1;text-decoration:none">Open KrateNote</a> • <a href="register.html" style="color:#6366f1;text-decoration:none">Create Account</a></div>
 </div>
 <script>
 const SERVER='https://kratenote-1.onrender.com';
