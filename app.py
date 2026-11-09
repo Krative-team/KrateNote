@@ -1,6 +1,7 @@
 import os
 import json
 import hashlib
+import secrets
 from datetime import datetime, timedelta
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -60,11 +61,25 @@ if DATABASE_URL:
                     PRIMARY KEY (email, note_id)
                 )
             """)
-            # Migrations for old tables
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS public_notes (
+                    public_id TEXT PRIMARY KEY,
+                    email TEXT NOT NULL,
+                    note_id TEXT NOT NULL,
+                    title TEXT,
+                    text TEXT,
+                    folder TEXT,
+                    subject TEXT,
+                    date TEXT,
+                    ts BIGINT DEFAULT 0,
+                    created_at TEXT,
+                    UNIQUE(email, note_id)
+                )
+            """)
             cur.execute("ALTER TABLE notes ADD COLUMN IF NOT EXISTS archived BOOLEAN DEFAULT FALSE")
             cur.execute("ALTER TABLE notes ADD COLUMN IF NOT EXISTS edited BOOLEAN DEFAULT FALSE")
             cur.execute("ALTER TABLE notes ADD COLUMN IF NOT EXISTS edited_at BIGINT DEFAULT 0")
-        print("Neon connected - users + notes tables ready")
+        print("Neon connected - users + notes + public_notes tables ready")
     except Exception as e:
         print(f"Neon failed: {e}")
         db = None
@@ -109,6 +124,7 @@ def delete_user_notes(email):
     try:
         with db.cursor() as cur:
             cur.execute("DELETE FROM notes WHERE email = %s", (email,))
+            cur.execute("DELETE FROM public_notes WHERE email = %s", (email,))
     except Exception as e:
         print(f"DB delete notes error: {e}")
 
@@ -129,10 +145,8 @@ def load_notes_for(email):
                 if isinstance(hl, str):
                     try: hl=json.loads(hl)
                     except: hl=[]
-                # Clean old "(edited)" wey dey inside date before
                 raw_date = (r['date'] or "").replace(" (edited)", "").replace("(edited)", "").strip()
                 is_edited = bool(r.get('edited', False) if isinstance(r, dict) else False)
-                # If old note get "(edited)" for date, treat am as edited
                 if "(edited)" in (r['date'] or ""):
                     is_edited = True
                 edited_at = 0
@@ -165,16 +179,16 @@ def save_notes_for(email, notes_list):
             for n in notes_list:
                 clean_date = str(n.get("date","") or "").replace(" (edited)", "").replace("(edited)", "").strip()
                 is_edited = bool(n.get("edited", False))
-                # Fallback: if date get (edited) text, mark edited
                 if "(edited)" in str(n.get("date","") or ""):
                     is_edited = True
                 edited_at = int(n.get("editedAt", 0) or n.get("edited_at", 0) or 0)
                 if is_edited and not edited_at:
                     edited_at = int(n.get("ts", 0) or 0)
+                note_id_val = str(n.get("id") or n.get("note_id") or hashlib.sha256(f"{email}{n.get('title','')}{n.get('ts',0)}".encode()).hexdigest()[:16])
                 cur.execute(
                     """INSERT INTO notes (email, note_id, title, text, date, lang, code, flag, folder, subject, pinned, archived, edited, edited_at, subs, highlights, ts, updated_at)
                        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)""",
-                    (email, str(n.get("id") or n.get("note_id") or hashlib.sha256(f"{email}{n.get('title','')}{n.get('ts',0)}".encode()).hexdigest()[:16]),
+                    (email, note_id_val,
                      n.get("title",""), n.get("text",""), clean_date, n.get("lang",""), n.get("code",""),
                      n.get("flag","🇬🇧"), n.get("folder","General"), n.get("subject","General"),
                      bool(n.get("pinned", False)), bool(n.get("archived", False)),
@@ -182,6 +196,17 @@ def save_notes_for(email, notes_list):
                      json.dumps(n.get("subs",[]) or []), json.dumps(n.get("highlights",[]) or []),
                      int(n.get("ts",0) or 0), datetime.now().isoformat())
                 )
+                # Auto-update public copy if this note was shared before
+                try:
+                    cur.execute(
+                        """UPDATE public_notes 
+                           SET title=%s, text=%s, folder=%s, subject=%s, date=%s, ts=%s
+                           WHERE email=%s AND note_id=%s""",
+                        (n.get("title",""), n.get("text",""), n.get("folder","General"), n.get("subject","General"), clean_date, int(n.get("ts",0) or 0), email, note_id_val)
+                    )
+                except Exception as e:
+                    print(f"public update error: {e}")
+                    pass
         return True
     except Exception as e:
         print(f"DB save notes error: {e}")
@@ -272,7 +297,6 @@ def me():
         return jsonify({"error": "Account deleted"}), 401
     return jsonify({"email": email, "name": users[email]["name"]})
 
-# ===== NOTES SYNC =====
 @app.route("/notes", methods=["GET", "POST", "OPTIONS"])
 def notes_sync():
     if request.method == "OPTIONS":
@@ -282,7 +306,6 @@ def notes_sync():
         return jsonify({"error": "Invalid token", "details": err}), 401
     if request.method == "GET":
         return jsonify({"notes": load_notes_for(email), "email": email})
-    # POST - replace all notes for this user with list from phone
     data = request.get_json(silent=True) or {}
     incoming = data.get("notes", [])
     if not isinstance(incoming, list):
@@ -291,6 +314,72 @@ def notes_sync():
     if not ok:
         return jsonify({"error": "Could not save notes"}), 500
     return jsonify({"message": "Notes synced", "count": len(incoming)})
+
+@app.route("/make-public", methods=["POST", "OPTIONS"])
+def make_public():
+    if request.method == "OPTIONS":
+        return "", 200
+    email, err = get_email_from_token()
+    if not email:
+        return jsonify({"error": "Invalid token", "details": err}), 401
+    if not db:
+        return jsonify({"error": "Database not connected"}), 500
+    data = request.get_json(silent=True) or {}
+    note_id = str(data.get("id") or data.get("note_id") or "").strip()
+    if not note_id:
+        return jsonify({"error": "Note id required"}), 400
+    try:
+        with db.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute("SELECT note_id, title, text, folder, subject, date, ts FROM notes WHERE email=%s AND note_id=%s", (email, note_id))
+            row = cur.fetchone()
+            if not row:
+                return jsonify({"error": "Note not found"}), 404
+            cur.execute("SELECT public_id FROM public_notes WHERE email=%s AND note_id=%s", (email, note_id))
+            existing = cur.fetchone()
+            if existing:
+                return jsonify({"publicId": existing['public_id'], "alreadyPublic": True})
+            public_id = secrets.token_urlsafe(6).replace('-','').replace('_','')[:8].lower()
+            cur.execute("SELECT 1 FROM public_notes WHERE public_id=%s", (public_id,))
+            while cur.fetchone():
+                public_id = secrets.token_urlsafe(6).replace('-','').replace('_','')[:8].lower()
+                cur.execute("SELECT 1 FROM public_notes WHERE public_id=%s", (public_id,))
+            cur.execute(
+                "INSERT INTO public_notes (public_id, email, note_id, title, text, folder, subject, date, ts, created_at) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                (public_id, email, note_id, row['title'] or "", row['text'] or "", row['folder'] or "General", row['subject'] or "General", row['date'] or "", int(row['ts'] or 0), datetime.now().isoformat())
+            )
+            return jsonify({"publicId": public_id})
+    except Exception as e:
+        print(f"make-public error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/public-note/<public_id>", methods=["GET", "OPTIONS"])
+def public_note(public_id):
+    if request.method == "OPTIONS":
+        return "", 200
+    if not db:
+        return jsonify({"error": "Database not connected"}), 500
+    try:
+        with db.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute("SELECT public_id, title, text, folder, subject, date, ts, created_at FROM public_notes WHERE public_id=%s", (public_id.strip(),))
+            row = cur.fetchone()
+            if not row:
+                return jsonify({"error": "Note not found or not public"}), 404
+            return jsonify({
+                "publicId": row['public_id'],
+                "title": row['title'] or "Untitled Note",
+                "transcript": row['text'] or "",
+                "text": row['text'] or "",
+                "content": row['text'] or "",
+                "folder": row['folder'] or "General",
+                "subject": row['subject'] or "General",
+                "date": row['date'] or "",
+                "createdAt": row['created_at'] or row['date'] or "",
+                "ts": row['ts'] or 0,
+                "audioUrl": None
+            })
+    except Exception as e:
+        print(f"public-note error: {e}")
+        return jsonify({"error": str(e)}), 500
 
 @app.route("/delete-account", methods=["DELETE", "OPTIONS"])
 def delete_account():
