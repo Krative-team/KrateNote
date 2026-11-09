@@ -264,7 +264,7 @@ document.getElementById('deleteAccountConfirm').addEventListener('click',async()
   try{ Object.keys(localStorage).forEach(k=>{ if(k.indexOf('k_notes_')===0) localStorage.removeItem(k); }); }catch(e){}
   location.href='login.html';
 });
-const LANGS=[{code:'auto',name:'Auto',flag:'🌐',tts:'en-US'},{code:'en',name:'English',flag:'🇬🇧',tts:'en-US'},{code:'ibb',name:'Ibibio',flag:'🇳🇬',tts:'en-NG'},{code:'efi',name:'Efik',flag:'🇳🇬',tts:'en-NG'},{code:'ha',name:'Hausa',flag:'🇳🇬',tts:'ha-NG'},{code:'yo',name:'Yoruba',flag:'🇳🇬',tts:'yo-NG'},{code:'ig',name:'Igbo',flag:'🇳🇬',tts:'ig-NG'},{code:'pcm',name:'Pidgin',flag:'🇳🇬',tts:'en-NG'},{code:'fr',name:'French',flag:'🇫🇷',tts:'fr-FR'},{code:'es',name:'Spanish',flag:'🇪🇸',tts:'es-ES'},{code:'de',name:'German',flag:'🇩🇪',tts:'de-DE'},{code:'pt',name:'Portuguese',flag:'🇵🇹',tts:'pt-PT'},{code:'it',name:'Italian',flag:'🇮🇹',tts:'it-IT'},{code:'nl',name:'Dutch',flag:'🇳🇱',tts:'nl-NL'},{code:'ar',name:'Arabic',flag:'🇸🇦',tts:'ar-SA'},{code:'zh',name:'Chinese',flag:'🇨🇳',tts:'zh-CN'},{code:'ja',name:'Japanese',flag:'🇯🇵',tts:'ja-JP'},{code:'ko',name:'Korean',flag:'🇰🇷',tts:'ko-KR'},{code:'ru',name:'Russian',flag:'🇷🇺',tts:'ru-RU'},{code:'hi',name:'Hindi',flag:'🇮🇳',tts:'hi-IN'},{code:'sw',name:'Swahili',flag:'🇰🇪',tts:'sw-KE'},{code:'zu',name:'Zulu',flag:'🇿🇦',tts:'zu-ZA'},{code:'am',name:'Amharic',flag:'🇪🇹',tts:'am-ET'},{code:'tr',name:'Turkish',flag:'🇹🇷',tts:'tr-TR'},{code:'el',name:'Greek',flag:'🇬🇷',tts:'el-GR'},{code:'he',name:'Hebrew',flag:'🇮🇱',tts:'he-IL'},{code:'sv',name:'Swedish',flag:'🇸🇪',tts:'sv-SE'},{code:'no',name:'Norwegian',flag:'🇳🇴',tts:'nb-NO'},{code:'pl',name:'Polish',flag:'🇵🇱',tts:'pl-PL'},{code:'id',name:'Indonesian',flag:'🇮🇩',tts:'id-ID'},{code:'th',name:'Thai',flag:'🇹🇭',tts:'th-TH'}];
+const LANGS=[{code:'auto',name:'Auto',flag:'🌐',tts:'en-US'},{code:'en',name:'English',flag:'🇬🇧',tts:'en-US'},{code:'pcm',name:'Pidgin',flag:'🇳🇬',tts:'en-NG'},{code:'ibb',name:'Ibibio',flag:'🇳🇬',tts:'en-NG'},{code:'efi',name:'Efik',flag:'🇳🇬',tts:'en-NG'},{code:'ha',name:'Hausa',flag:'🇳🇬',tts:'ha-NG'},{code:'yo',name:'Yoruba',flag:'🇳🇬',tts:'yo-NG'},{code:'ig',name:'Igbo',flag:'🇳🇬',tts:'ig-NG'},{code:'fr',name:'French',flag:'🇫🇷',tts:'fr-FR'},{code:'es',name:'Spanish',flag:'🇪🇸',tts:'es-ES'},{code:'de',name:'German',flag:'🇩🇪',tts:'de-DE'},{code:'pt',name:'Portuguese',flag:'🇵🇹',tts:'pt-PT'},{code:'it',name:'Italian',flag:'🇮🇹',tts:'it-IT'},{code:'nl',name:'Dutch',flag:'🇳🇱',tts:'nl-NL'},{code:'ar',name:'Arabic',flag:'🇸🇦',tts:'ar-SA'},{code:'zh',name:'Chinese',flag:'🇨🇳',tts:'zh-CN'},{code:'ja',name:'Japanese',flag:'🇯🇵',tts:'ja-JP'},{code:'ko',name:'Korean',flag:'🇰🇷',tts:'ko-KR'},{code:'ru',name:'Russian',flag:'🇷🇺',tts:'ru-RU'},{code:'hi',name:'Hindi',flag:'🇮🇳',tts:'hi-IN'},{code:'sw',name:'Swahili',flag:'🇰🇪',tts:'sw-KE'},{code:'zu',name:'Zulu',flag:'🇿🇦',tts:'zu-ZA'},{code:'am',name:'Amharic',flag:'🇪🇹',tts:'am-ET'},{code:'tr',name:'Turkish',flag:'🇹🇷',tts:'tr-TR'},{code:'el',name:'Greek',flag:'🇬🇷',tts:'el-GR'},{code:'he',name:'Hebrew',flag:'🇮🇱',tts:'he-IL'},{code:'sv',name:'Swedish',flag:'🇸🇪',tts:'sv-SE'},{code:'no',name:'Norwegian',flag:'🇳🇴',tts:'nb-NO'},{code:'pl',name:'Polish',flag:'🇵🇱',tts:'pl-PL'},{code:'id',name:'Indonesian',flag:'🇮🇩',tts:'id-ID'},{code:'th',name:'Thai',flag:'🇹🇭',tts:'th-TH'}];
 const FOLDERS={School:{icon:'fa-graduation-cap',bg:'#e0e7ff',c:'#3730a3'},Work:{icon:'fa-briefcase',bg:'#dbeafe',c:'#1e40af'},Church:{icon:'fa-church',bg:'#fef3c7',c:'#92400e'},Personal:{icon:'fa-user',bg:'#fce7f3',c:'#9d174d'},Business:{icon:'fa-chart-line',bg:'#dcfce7',c:'#166534'},General:{icon:'fa-folder',bg:'#eee',c:'#333'}};
 const TEMPLATES={
   blank:{title:'',text:''},
@@ -275,8 +275,36 @@ const TEMPLATES={
   journal:{title:'Journal - '+new Date().toLocaleDateString(),text:'Today I feel...\n\nGrateful for:\n- \n\nWhat happened today:\n\nTomorrow I will:\n'},
   idea:{title:'Idea - ',text:'Idea:\n\nWhy it matters:\n\nHow to start:\n1. \n'}
 };
+// PIDGIN ONLY FOR VOICE / LANGUAGE - UI STAYS ENGLISH
+const PIDGIN_WORDS=['wetin','abeg','na wa','e don do','how far','shebi','wahala','na so','jollof','gbese','omo','ehen','sef','dey','don','go','make','no wahala','wahala','chop','sabi','waka','gist','japa','yawa','e choke','no be','na im','how una dey','wetin dey','e be like','abeg','bros','sis','oga','madam','nawa','wahala no dey','e don cast','e don set','how e be','you sabi','i sabi','we go','make we','no vex','e sweet','e pain','e hard','e soft','baba','mama','pikin','chop','sleep','waka','come','go','give','take','see','hear','talk','yarn'];
+const PIDGIN_MAP=[
+  ['how are you','how you dey'],['how are you doing','how you dey'],['what is happening','wetin dey happen'],['what happened','wetin happen'],['i am going','i dey go'],['i am coming','i dey come'],['i don\'t know','i no sabi'],['i do not know','i no sabi'],['i know','i sabi'],['please','abeg'],['thank you','thank you, e sweet me'],['thank you very much','thank you well well'],['good morning','good morning, how you dey'],['good afternoon','good afternoon'],['good evening','good evening'],['it is good','e good'],['it is very good','e good well well'],['it is difficult','e hard'],['it is easy','e easy'],['i am tired','i don tire'],['i am hungry','hunger dey catch me'],['i am happy','i dey happy, my belle sweet me'],['let us go','make we go'],['let\'s go','make we go'],['come here','come here abeg'],['go away','comot for here'],['do not worry','no worry, no wahala'],['don\'t worry','no worry'],['no problem','no wahala'],['everything is fine','everything don set'],['what do you want','wetin you want'],['where are you','where you dey'],['where are you going','where you dey go'],['i want','i want'],['i need','i need'],['money','money'],['my friend','my guy'],['my brother','my bro'],['my sister','my sis'],['understand','sabi'],['do you understand','you sabi?'],['i understand','i sabi'],['listen','make you hear'],['look','make you see'],['speak','talk'],['talk to me','yarn me'],['i love you','i love you well well'],['god bless you','god go bless you'],['well done','well done, you try'],['congratulations','congrats, e sweet me'],['i am sorry','abeg, no vex'],['sorry','sorry, abeg no vex'],['yes','yes na'],['no','no, e no be so'],['maybe','e fit be'],['tomorrow','tomorrow'],['today','today'],['yesterday','yesterday'],['now','now now'],['later','later'],['quickly','quick quick'],['slowly','small small'],['big','big'],['small','small'],['good','good'],['bad','bad, e no good'],['beautiful','fine well well'],['meeting','meeting'],['class','class'],['church','church'],['school','school'],['work','work'],['business','business'],['idea','idea'],['food','chop'],['eat','chop'],['drink','drink'],['sleep','sleep'],['go to sleep','go sleep'],['wake up','wake up'],['i will come','i go come'],['i will go','i go go'],['we will see','we go see'],['it will happen','e go happen']
+];
+function toPidgin(text){
+  let out=' '+String(text||'')+' ';
+  PIDGIN_MAP.forEach(([en,pcm])=>{
+    const re=new RegExp('\\b'+en.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','gi');
+    out=out.replace(re,' '+pcm+' ');
+  });
+  out=out.replace(/\bI am\b/gi,'I dey').replace(/\bam I\b/gi,'I dey').replace(/\bI have\b/gi,'I get').replace(/\bYou are\b/gi,'You dey').replace(/\bWe are\b/gi,'We dey').replace(/\bThey are\b/gi,'Dem dey').replace(/\bHe is\b/gi,'E dey').replace(/\bShe is\b/gi,'E dey').replace(/\bIt is\b/gi,'E be').replace(/\bThis is\b/gi,'Na this be').replace(/\bThat is\b/gi,'Na that be').replace(/\bWhat\b/gi,'Wetin').replace(/\bWhy\b/gi,'Why').replace(/\bWhen\b/gi,'When');
+  return out.replace(/\s+/g,' ').trim();
+}
 function fillLangSelects(){const opts=LANGS.map(l=>`<option value="${l.code}">${l.flag} ${l.name}</option>`).join('');const optsNoAuto=LANGS.filter(l=>l.code!=='auto').map(l=>`<option value="${l.code}">${l.flag} ${l.name}</option>`).join('');document.getElementById('speechLang').innerHTML=opts;document.getElementById('translateTo').innerHTML=optsNoAuto;document.getElementById('fromLang').innerHTML=opts;document.getElementById('toLang').innerHTML=optsNoAuto;document.getElementById('editLang').innerHTML=optsNoAuto;document.getElementById('editTranslateTo').innerHTML=optsNoAuto;}
-function detectLanguage(text){const t=(text||'').toLowerCase();if(!t.trim())return LANGS[0];if(/(mmesiere|mma|nsido|idem|ufok|nwed|sosongo|eti|yak|mfin)/.test(t))return LANGS.find(l=>l.code==='ibb');if(/(emem|mokomor|efi|sosongho)/.test(t))return LANGS.find(l=>l.code==='efi');if(/(sannu|ina kwana|hausa)/.test(t))return LANGS.find(l=>l.code==='ha');if(/(bawo|kaaro|yoruba)/.test(t))return LANGS.find(l=>l.code==='yo');if(/(kedu|ndewo|igbo)/.test(t))return LANGS.find(l=>l.code==='ig');if(/(how una dey|wetin|na so|abi|shebi)/.test(t))return LANGS.find(l=>l.code==='pcm');if(/(bonjour|merci)/.test(t))return LANGS.find(l=>l.code==='fr');if(/(hola|gracias)/.test(t))return LANGS.find(l=>l.code==='es');return LANGS.find(l=>l.code==='en');}
+function detectLanguage(text){
+  const t=(text||'').toLowerCase();
+  if(!t.trim())return LANGS[0];
+  let pidginScore=0;
+  PIDGIN_WORDS.forEach(w=>{ if(t.includes(w)) pidginScore++; });
+  if(pidginScore>=1) return LANGS.find(l=>l.code==='pcm');
+  if(/(mmesiere|mma|nsido|idem|ufok|nwed|sosongo|eti|yak|mfin)/.test(t))return LANGS.find(l=>l.code==='ibb');
+  if(/(emem|mokomor|efi|sosongho)/.test(t))return LANGS.find(l=>l.code==='efi');
+  if(/(sannu|ina kwana|hausa)/.test(t))return LANGS.find(l=>l.code==='ha');
+  if(/(bawo|kaaro|yoruba)/.test(t))return LANGS.find(l=>l.code==='yo');
+  if(/(kedu|ndewo|igbo)/.test(t))return LANGS.find(l=>l.code==='ig');
+  if(/(bonjour|merci)/.test(t))return LANGS.find(l=>l.code==='fr');
+  if(/(hola|gracias)/.test(t))return LANGS.find(l=>l.code==='es');
+  return LANGS.find(l=>l.code==='en');
+}
 let isRec=false,transcript='',notes=[],editingIndex=-1,pendingDeleteIndex=-1,pendingClearAll=false,subParentIndex=-1,pendingSubParent=-1,pendingSubIndex=-1,viewerIndex=-1,viewerMainTitle='';
 let editingSubParent=-1, editingSubIndex=-1;
 let settings={dark:false,font:'17px',voiceURI:'',serverUrl:'https://kratenote-1.onrender.com',speed:0.9,pitch:1,speechLang:'auto',translateTo:'en',autoDetect:true};
@@ -376,9 +404,43 @@ function loadVoices(){voices=speechSynthesis.getVoices();const sel=document.getE
 speechSynthesis.onvoiceschanged=loadVoices;setTimeout(loadVoices,800);
 function saveAll(){ ensureNoteIds(); saveLocalOnly(); scheduleSync(); }
 function applySettings(){document.body.classList.toggle('dark',settings.dark);document.documentElement.setAttribute('data-theme', settings.dark ? 'dark' : 'light');document.documentElement.classList.toggle('dark',settings.dark);document.getElementById('darkSwitch').classList.toggle('on',settings.dark);document.getElementById('autoSwitch').classList.toggle('on',settings.autoDetect);document.getElementById('fontSelect').value=settings.font;document.getElementById('speechLang').value=settings.speechLang;document.getElementById('translateTo').value=settings.translateTo;document.getElementById('speedRange').value=settings.speed;document.getElementById('pitchRange').value=settings.pitch;document.getElementById('speedVal').textContent=settings.speed;document.getElementById('pitchVal').textContent=settings.pitch;box.style.fontSize=settings.font;}
-function speakClear(text,forcedLang=null){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);let langCode=forcedLang||settings.speechLang;if(langCode==='auto')langCode=detectLanguage(text).code;const langObj=LANGS.find(l=>l.code===langCode)||LANGS[1];u.lang=langObj.tts||'en-US';const voice=voices.find(v=>v.voiceURI===settings.voiceURI)||voices[0];if(voice)u.voice=voice;u.rate=parseFloat(settings.speed);u.pitch=parseFloat(settings.pitch);speechSynthesis.speak(u);}
+function speakClear(text,forcedLang=null){
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  let langCode=forcedLang||settings.speechLang;
+  if(langCode==='auto') langCode=detectLanguage(text).code;
+  const langObj=LANGS.find(l=>l.code===langCode)||LANGS[1];
+  // Pidgin voice = en-NG, so e sound Naija
+  u.lang = langCode==='pcm' ? 'en-NG' : (langObj.tts||'en-US');
+  let voice=null;
+  if(langCode==='pcm'){
+    voice=voices.find(v=>v.lang && v.lang.toLowerCase().startsWith('en-ng')) || voices.find(v=>v.lang && v.lang.toLowerCase().startsWith('en')) || voices.find(v=>v.voiceURI===settings.voiceURI) || voices[0];
+  } else {
+    voice=voices.find(v=>v.voiceURI===settings.voiceURI)||voices[0];
+  }
+  if(voice) u.voice=voice;
+  u.rate=parseFloat(settings.speed); u.pitch=parseFloat(settings.pitch);
+  speechSynthesis.speak(u);
+}
 function showDetectedRealTime(text){const lang=detectLanguage(text);detectedBadge.textContent=lang.flag+' '+lang.name;detectedBadge.className='badge on';detectedBadge.style.background='#6366f1';detectedBadge.style.color='#fff';if(lang.code!=='en'&&lang.code!=='auto'){detectedBadge.style.background='#10b981';}}
-function createRecognition(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){alert('Use Chrome for voice');return null;}const rec=new SR();rec.continuous=true;rec.interimResults=true;rec.lang='en-US';rec.onstart=()=>{liveBadge.classList.add('on');detectedBadge.textContent='Listening...';detectedBadge.className='badge on';detectedBadge.style.background='#6366f1';detectedBadge.style.color='#fff';statusTxt.textContent='Listening...';box.classList.add('has-text');if(!finalTranscriptLive)box.textContent='';};rec.onresult=(e)=>{let interim='';let finalPart='';for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript;if(e.results[i].isFinal)finalPart+=t+' ';else interim+=t;}if(e.results[e.results.length-1].isFinal)finalTranscriptLive+=finalPart;const full=(finalTranscriptLive+interim).trim();if(full){box.textContent=full;transcript=full;showDetectedRealTime(full);}};rec.onerror=(e)=>{console.log('SR',e.error);if(e.error==='not-allowed'||e.error==='service-not-allowed'){localStorage.setItem('k_voice_choice','denied');}};rec.onend=()=>{liveBadge.classList.remove('on');if(isRec){try{rec.start();}catch(err){}}};return rec;}
+function createRecognition(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){alert('Use Chrome for voice');return null;}
+  const rec=new SR(); rec.continuous=true; rec.interimResults=true;
+  // Pidgin recognition: use en-NG, else en-US. Auto still uses en-US but detects Pidgin from words.
+  let recLang='en-US';
+  if(settings.speechLang==='pcm') recLang='en-NG';
+  else if(settings.speechLang && settings.speechLang!=='auto'){
+    const lo=LANGS.find(l=>l.code===settings.speechLang);
+    if(lo) recLang=lo.tts||'en-US';
+  }
+  rec.lang=recLang;
+  rec.onstart=()=>{liveBadge.classList.add('on');detectedBadge.textContent='Listening...';detectedBadge.className='badge on';detectedBadge.style.background='#6366f1';detectedBadge.style.color='#fff';statusTxt.textContent='Listening...';box.classList.add('has-text');if(!finalTranscriptLive)box.textContent='';};
+  rec.onresult=(e)=>{let interim='';let finalPart='';for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript;if(e.results[i].isFinal)finalPart+=t+' ';else interim+=t;}if(e.results[e.results.length-1].isFinal)finalTranscriptLive+=finalPart;const full=(finalTranscriptLive+interim).trim();if(full){box.textContent=full;transcript=full;showDetectedRealTime(full);}};
+  rec.onerror=(e)=>{console.log('SR',e.error);if(e.error==='not-allowed'||e.error==='service-not-allowed'){localStorage.setItem('k_voice_choice','denied');}};
+  rec.onend=()=>{liveBadge.classList.remove('on');if(isRec){try{rec.start();}catch(err){}}};
+  return rec;
+}
 const primerModal=document.getElementById('voicePrimerModal');
 let primerResolve=null;
 function showPrimer(){ primerModal.style.display='flex'; return new Promise(res=>{ primerResolve=res; }); }
@@ -410,7 +472,12 @@ recBtn.addEventListener('click',async()=>{
     if(transcript&&transcript!=='Listening...')statusTxt.textContent='Done - tap SAVE';
   }
 });
-async function translateText(text,to){try{statusTxt.textContent='Translating...';const res=await fetch(settings.serverUrl.replace(/\/$/,'')+'/translate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:text.substring(0,3000),to:to})});const data=await res.json();statusTxt.textContent='';if(data.translated)return data.translated;return text;}catch(e){statusTxt.textContent='';return text;}}
+async function translateText(text,to){
+  if(to==='pcm'){
+    return toPidgin(text);
+  }
+  try{statusTxt.textContent='Translating...';const res=await fetch(settings.serverUrl.replace(/\/$/,'')+'/translate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:text.substring(0,3000),to:to})});const data=await res.json();statusTxt.textContent='';if(data.translated)return data.translated;return text;}catch(e){statusTxt.textContent='';return text;}
+}
 function saveNote(){const txt=(box.innerText||'').trim()||transcript.trim();if(!txt||txt.includes('Tap mic')||txt==='Listening...'||txt.length<2)return alert('Type or record something first!');let title=document.getElementById('titleInput').value.trim();if(!title){ title=txt.split('\n')[0].split(' ').slice(0,6).join(' '); } const lang=detectLanguage(txt);notes.unshift({id:newNoteId(),title,text:txt,date:new Date().toLocaleString(),lang:lang.name,code:lang.code,flag:lang.flag, ts: Date.now(), subs:[], highlights:[], folder:currentFolder, subject:currentSubject, pinned:false, archived:false, edited:false, editedAt:null});saveAll();render();document.getElementById('titleInput').value='';setEmptyState();document.querySelectorAll('.tplBtn').forEach(b=>b.classList.remove('active'));document.querySelector('[data-tpl="blank"]').classList.add('active');}
 function openConfirmDelete(index,isClearAll=false){
   pendingDeleteIndex=index;pendingClearAll=isClearAll;pendingSubParent=-1;pendingSubIndex=-1;
@@ -550,7 +617,7 @@ function openNoteViewer(idx){
   document.getElementById('viewerNavTitle').textContent=viewerMainTitle;
   document.getElementById('viewerNavMeta').innerHTML=`<span><i class="fa-solid fa-calendar"></i> ${escapeHtml(cleanDateStr(n.date))}</span><span><i class="fa-solid fa-book"></i> ${escapeHtml(n.subject||'General')}</span><span>${escapeHtml(n.flag||'🇬🇧')} ${escapeHtml(n.lang||'')}</span>${n.archived?'<span><i class="fa-solid fa-box-archive"></i> Archived</span>':''}${editedLabel}`;
   document.getElementById('viewerText').innerHTML=renderViewerText(n.text, n.highlights);
-  document.getElementById('viewerSubs').innerHTML=(n.subs||[]).length? `<h3 style="font-size:15px;margin:0 0 10px"> (${n.subs.length})</h3>` + (n.subs||[]).map((s,si)=>`<div class="subNote" data-heading="${escapeHtml(s.title)}"><div class="subNote-header"><span>${escapeHtml(s.title)}</span><small>${escapeHtml((s.date||'').split(',')[0])}</small></div><div class="subNote-content">${applyHighlights(escapeHtml(s.text), n.highlights)}</div><div class="subActions"><button type="button" class="subBtn edit" data-sub-action="edit" data-sub="${si}"><i class="fa-solid fa-pen-to-square"></i> Edit</button><button type="button" class="subBtn del" data-sub-action="del" data-sub="${si}"><i class="fa-solid fa-trash"></i> Delete</button></div></div>`).join('') : '<div style="text-align:center;padding:14px;opacity:.5;font-size:13px">No sub-topics yet</div>';
+  document.getElementById('viewerSubs').innerHTML=(n.subs||[]).length? `<h3 style="font-size:15px;margin:0 0 10px">Sub-topics (${n.subs.length})</h3>` + (n.subs||[]).map((s,si)=>`<div class="subNote" data-heading="${escapeHtml(s.title)}"><div class="subNote-header"><span>${escapeHtml(s.title)}</span><small>${escapeHtml((s.date||'').split(',')[0])}</small></div><div class="subNote-content">${applyHighlights(escapeHtml(s.text), n.highlights)}</div><div class="subActions"><button type="button" class="subBtn edit" data-sub-action="edit" data-sub="${si}"><i class="fa-solid fa-pen-to-square"></i> Edit</button><button type="button" class="subBtn del" data-sub-action="del" data-sub="${si}"><i class="fa-solid fa-trash"></i> Delete</button></div></div>`).join('') : '<div style="text-align:center;padding:14px;opacity:.5;font-size:13px">No sub-topics yet</div>';
   document.getElementById('noteViewer').classList.add('show');
   document.body.style.overflow='hidden';
   const body=document.getElementById('viewerBody'); body.scrollTop=0;
@@ -666,7 +733,11 @@ const subStatus=document.getElementById('subStatus');
 subBox.addEventListener('focus',()=>{ if(!subBox.classList.contains('has-text')){ subBox.innerHTML=''; subBox.classList.add('has-text'); } });
 function createSubRecognition(){
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition; if(!SR){ alert('Use Chrome'); return null; }
-  const rec=new SR(); rec.continuous=true; rec.interimResults=true; rec.lang='en-US';
+  const rec=new SR(); rec.continuous=true; rec.interimResults=true;
+  let recLang='en-US';
+  if(settings.speechLang==='pcm') recLang='en-NG';
+  else if(settings.speechLang && settings.speechLang!=='auto'){ const lo=LANGS.find(l=>l.code===settings.speechLang); if(lo) recLang=lo.tts||'en-US'; }
+  rec.lang=recLang;
   rec.onstart=()=>{ subStatus.textContent='Listening...'; subBox.classList.add('has-text'); if(!subFinal) subBox.textContent=''; };
   rec.onresult=(e)=>{ let interim=''; let fp=''; for(let i=e.resultIndex;i<e.results.length;i++){ const t=e.results[i][0].transcript; if(e.results[i].isFinal) fp+=t+' '; else interim+=t; } if(e.results[e.results.length-1].isFinal) subFinal+=fp; const full=(subFinal+interim).trim(); if(full) subBox.textContent=full; };
   rec.onend=()=>{ if(subRec){ try{ rec.start(); }catch(err){} } };
@@ -789,7 +860,7 @@ function render(){
       document.getElementById('notesList').innerHTML=`<div style="text-align:center;padding:24px;background:var(--box);border-radius:12px;border:1px dashed #ccc"><i class="fa-solid fa-circle-exclamation" style="font-size:36px;color:#f59e0b;display:block;margin-bottom:10px"></i><b>No match found</b><br><small style="opacity:.7">No note matches "${searchQuery}"</small><br><button id="clearSearchLink" style="margin-top:10px;background:#e0e7ff;color:#3730a3;padding:8px 14px;border-radius:8px;border:none;font-size:12px;cursor:pointer"><i class="fa-solid fa-xmark"></i> Clear search</button></div>`;
       const link=document.getElementById('clearSearchLink'); if(link) link.addEventListener('click',()=>{ searchInput.value=''; searchQuery=''; suggBox.classList.remove('on'); render(); });
     } else if(showArchived){
-      document.getElementById('notesList').innerHTML='<div style="text-align:center;padding:20px;opacity:.4"><i class="fa-solid fa-box-archive" style="font-size:32px;display:block;margin-bottom:8px"></i>No archived notes yet<br><small>Archive a note to keep it here, safe</small></div>';
+      document.getElementById('notesList').innerHTML='<div style="text-align:center;padding:20px;opacity:.4"><i class="fa-solid fa-box-archive" style="font-size:32px;display:block;margin-bottom:8px"></i>No archived notes yet<br><small>Archive a note to keep am here, safe</small></div>';
     } else {
       document.getElementById('notesList').innerHTML='<div style="text-align:center;padding:20px;opacity:.4"><i class="fa-solid fa-inbox" style="font-size:32px;display:block;margin-bottom:8px"></i>No notes yet in '+currentSubject+'<br><small>Tap a template above to start</small></div>';
     }
